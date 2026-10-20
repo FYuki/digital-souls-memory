@@ -1,0 +1,1618 @@
+{
+  "created_at": "2026-10-20T13:08:59.717655+00:00",
+  "measurement_base": "f58b47e37bcf7c4fc67d9b7bae4c67075ace963b",
+  "stages": [
+    {
+      "created_at": "2026-10-20T11:24:27.551567+00:00",
+      "memory_commit": "f58b47e37bcf7c4fc67d9b7bae4c67075ace963b",
+      "memory_dirty_before_evidence": true,
+      "core_commit": "b062a49a32d261d0ce472938c40711c6cb41d7c0",
+      "core_dirty": false,
+      "llama_cpp_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+      "llama_cpp_build": "b11347-5fc4f3c8c",
+      "db_image": "sha256:4a937b4ea899b940296c486d20e5dfcd300a73e18a2abb7fa3e0af273414a480",
+      "gpu_observations": [
+        {
+          "created_at": "2026-10-20T11:24:27.662765+00:00",
+          "stage": "before_db",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 2899,
+          "free_mib": 13163,
+          "utilization_percent": 8
+        },
+        {
+          "created_at": "2026-10-20T11:24:29.484097+00:00",
+          "stage": "before_model_load",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 2898,
+          "free_mib": 13164,
+          "utilization_percent": 17
+        },
+        {
+          "created_at": "2026-10-20T11:24:32.289751+00:00",
+          "stage": "after_model_load_and_preflight",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3473,
+          "free_mib": 12589,
+          "utilization_percent": 5
+        },
+        {
+          "created_at": "2026-10-20T11:43:40.868860+00:00",
+          "stage": "after_evaluation_before_release",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4721,
+          "free_mib": 11341,
+          "utilization_percent": 11
+        },
+        {
+          "created_at": "2026-10-20T11:43:41.445734+00:00",
+          "stage": "after_model_release",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4108,
+          "free_mib": 11954,
+          "utilization_percent": 12
+        },
+        {
+          "created_at": "2026-10-20T11:43:41.877907+00:00",
+          "stage": "after_all_cleanup",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4108,
+          "free_mib": 11954,
+          "utilization_percent": 13
+        }
+      ],
+      "models": [
+        {
+          "model_alias": "bge-m3",
+          "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+          "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+          "dimensions": 1024,
+          "pooling": "cls",
+          "query_prefix": "",
+          "passage_prefix": "",
+          "quantization": "Q8_0",
+          "max_context_length": 8192,
+          "measured_sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+          "gguf_bytes": 634553760,
+          "server_alias_verified": true,
+          "server_dimensions_verified": 1024,
+          "llama_arguments": [
+            "-m",
+            "/models/model.gguf",
+            "--alias",
+            "bge-m3",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "8080",
+            "--embeddings",
+            "--pooling",
+            "cls",
+            "--ctx-size",
+            "2048",
+            "--batch-size",
+            "2048",
+            "--ubatch-size",
+            "2048",
+            "--parallel",
+            "1",
+            "--gpu-layers",
+            "99",
+            "--threads",
+            "8",
+            "--threads-batch",
+            "8",
+            "--cache-ram",
+            "0",
+            "--no-webui",
+            "--log-timestamps"
+          ],
+          "model_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+          "container_id": "047daa808552597ec9474c8f1e8e106ea2b308aae06e31653514c45caf0911ec"
+        }
+      ],
+      "executions": [
+        {
+          "model_alias": "bge-m3",
+          "stage": "tuning",
+          "started_at": "2026-10-20T11:24:32.290607+00:00",
+          "finished_at": "2026-10-20T11:43:18.632088+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-bge-m3-tuning.json",
+          "report_sha256": "43a87964da09a32b1b7a5dd56172014ab228b7a0088d95d99d96bd2264224eb1",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--suite-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tune",
+            "--candidates",
+            "<local-config-dir>/bge-m3-candidates.json",
+            "--manifest",
+            "<local-config-dir>/bge-m3-manifest.json",
+            "--real-config",
+            "<local-config-dir>/bge-m3-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-bge-m3-tuning.json"
+          ]
+        },
+        {
+          "model_alias": "bge-m3",
+          "stage": "acceptance",
+          "started_at": "2026-10-20T11:43:18.751418+00:00",
+          "finished_at": "2026-10-20T11:43:40.815865+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-bge-m3-acceptance.json",
+          "report_sha256": "e1f0931c180857f6bd80b0969a5f4768ff16a2230a96cfbaab594afc834c2d8d",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/acceptance/suite.json",
+            "--suite-sha256",
+            "d9506eac3619196cdb75c8588a2e96ad9100d1cefb7378f8b6b8fe9db885c794",
+            "--tuning-suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--tuning-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tuning-report",
+            "<artifact-root>/eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-tuning.json",
+            "--tuning-report-sha256",
+            "43a87964da09a32b1b7a5dd56172014ab228b7a0088d95d99d96bd2264224eb1",
+            "--candidates",
+            "<local-config-dir>/bge-m3-candidates.json",
+            "--manifest",
+            "<local-config-dir>/bge-m3-manifest.json",
+            "--real-config",
+            "<local-config-dir>/bge-m3-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-bge-m3-acceptance.json"
+          ]
+        }
+      ],
+      "cleanup": {
+        "model_container_removed": true,
+        "db_container_removed": true
+      },
+      "db_extensions": {
+        "vector": "0.8.2",
+        "pg_bigm": "1.2",
+        "pgroonga": "4.1.0"
+      },
+      "db_resources": {
+        "cpus": 1,
+        "memory_limit_bytes": 1073741824,
+        "storage": "tmpfs",
+        "published_host": "127.0.0.1",
+        "port": 15439
+      },
+      "finished_at": "2026-10-20T11:43:41.878160+00:00"
+    },
+    {
+      "created_at": "2026-10-20T11:43:43.501453+00:00",
+      "memory_commit": "f58b47e37bcf7c4fc67d9b7bae4c67075ace963b",
+      "memory_dirty_before_evidence": true,
+      "core_commit": "b062a49a32d261d0ce472938c40711c6cb41d7c0",
+      "core_dirty": false,
+      "llama_cpp_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+      "llama_cpp_build": "b11347-5fc4f3c8c",
+      "db_image": "sha256:4a937b4ea899b940296c486d20e5dfcd300a73e18a2abb7fa3e0af273414a480",
+      "gpu_observations": [
+        {
+          "created_at": "2026-10-20T11:43:43.608064+00:00",
+          "stage": "before_db",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4108,
+          "free_mib": 11954,
+          "utilization_percent": 19
+        },
+        {
+          "created_at": "2026-10-20T11:43:45.459438+00:00",
+          "stage": "before_reranker_load",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4114,
+          "free_mib": 11948,
+          "utilization_percent": 29
+        },
+        {
+          "created_at": "2026-10-20T11:43:48.148451+00:00",
+          "stage": "after_reranker_load",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4716,
+          "free_mib": 11346,
+          "utilization_percent": 11
+        },
+        {
+          "created_at": "2026-10-20T11:43:48.558218+00:00",
+          "stage": "before_model_load",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4716,
+          "free_mib": 11346,
+          "utilization_percent": 11
+        },
+        {
+          "created_at": "2026-10-20T11:43:51.016517+00:00",
+          "stage": "after_model_load_and_preflight",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 5315,
+          "free_mib": 10747,
+          "utilization_percent": 12
+        },
+        {
+          "created_at": "2026-10-20T12:12:07.851625+00:00",
+          "stage": "after_evaluation_before_release",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4020,
+          "free_mib": 12042,
+          "utilization_percent": 6
+        },
+        {
+          "created_at": "2026-10-20T12:12:08.866841+00:00",
+          "stage": "after_model_release",
+          "model_alias": "bge-m3",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3403,
+          "free_mib": 12659,
+          "utilization_percent": 6
+        },
+        {
+          "created_at": "2026-10-20T12:12:10.252432+00:00",
+          "stage": "after_all_cleanup",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 2793,
+          "free_mib": 13269,
+          "utilization_percent": 7
+        }
+      ],
+      "models": [
+        {
+          "model_alias": "bge-m3",
+          "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+          "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+          "dimensions": 1024,
+          "pooling": "cls",
+          "query_prefix": "",
+          "passage_prefix": "",
+          "quantization": "Q8_0",
+          "max_context_length": 8192,
+          "measured_sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+          "gguf_bytes": 634553760,
+          "server_alias_verified": true,
+          "server_dimensions_verified": 1024,
+          "llama_arguments": [
+            "-m",
+            "/models/model.gguf",
+            "--alias",
+            "bge-m3",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "8080",
+            "--embeddings",
+            "--pooling",
+            "cls",
+            "--ctx-size",
+            "2048",
+            "--batch-size",
+            "2048",
+            "--ubatch-size",
+            "2048",
+            "--parallel",
+            "1",
+            "--gpu-layers",
+            "99",
+            "--threads",
+            "8",
+            "--threads-batch",
+            "8",
+            "--cache-ram",
+            "0",
+            "--no-webui",
+            "--log-timestamps"
+          ],
+          "model_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+          "container_id": "4bf2ea62047acf95aef0ff1c3f950bfb65f27aa14b2e057d3e68775b87f3225a"
+        }
+      ],
+      "executions": [
+        {
+          "model_alias": "bge-m3",
+          "stage": "tuning",
+          "started_at": "2026-10-20T11:43:51.017427+00:00",
+          "finished_at": "2026-10-20T12:11:41.178741+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-bge-m3-rerank-tuning.json",
+          "report_sha256": "d1c06784db9a1cddaa52cf6387ebd8048cd73fb16d2be562f29bab3787032a85",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--suite-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tune",
+            "--candidates",
+            "<local-config-dir>/bge-m3-rerank-candidates.json",
+            "--manifest",
+            "<local-config-dir>/bge-m3-rerank-manifest.json",
+            "--real-config",
+            "<local-config-dir>/bge-m3-rerank-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-bge-m3-rerank-tuning.json"
+          ]
+        },
+        {
+          "model_alias": "bge-m3",
+          "stage": "acceptance",
+          "started_at": "2026-10-20T12:11:41.300303+00:00",
+          "finished_at": "2026-10-20T12:12:07.821615+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-bge-m3-rerank-acceptance.json",
+          "report_sha256": "76e6fd6bbe6d132fd80052540a3c84a404618b3a62fa1bd29dcd8ece8f9a6ef2",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/acceptance/suite.json",
+            "--suite-sha256",
+            "d9506eac3619196cdb75c8588a2e96ad9100d1cefb7378f8b6b8fe9db885c794",
+            "--tuning-suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--tuning-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tuning-report",
+            "<artifact-root>/eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-rerank-tuning.json",
+            "--tuning-report-sha256",
+            "d1c06784db9a1cddaa52cf6387ebd8048cd73fb16d2be562f29bab3787032a85",
+            "--candidates",
+            "<local-config-dir>/bge-m3-rerank-candidates.json",
+            "--manifest",
+            "<local-config-dir>/bge-m3-rerank-manifest.json",
+            "--real-config",
+            "<local-config-dir>/bge-m3-rerank-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-bge-m3-rerank-acceptance.json"
+          ]
+        }
+      ],
+      "cleanup": {
+        "reranker_container_removed": true,
+        "model_container_removed": true,
+        "db_container_removed": true
+      },
+      "db_extensions": {
+        "vector": "0.8.2",
+        "pg_bigm": "1.2",
+        "pgroonga": "4.1.0"
+      },
+      "db_resources": {
+        "cpus": 1,
+        "memory_limit_bytes": 1073741824,
+        "storage": "tmpfs",
+        "published_host": "127.0.0.1",
+        "port": 15439
+      },
+      "reranker_alias_verified": true,
+      "reranker_preflight": {
+        "model": "bge-reranker-v2-m3",
+        "object": "list",
+        "usage": {
+          "prompt_tokens": 22,
+          "total_tokens": 22
+        },
+        "results": [
+          {
+            "index": 0,
+            "relevance_score": 5.020122528076172
+          },
+          {
+            "index": 1,
+            "relevance_score": -11.022048950195312
+          }
+        ]
+      },
+      "reranker": {
+        "model_alias": "bge-reranker-v2-m3",
+        "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+        "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+        "quantization": "Q8_0",
+        "max_context_length": 8192,
+        "llama_arguments": [
+          "-m",
+          "/models/model.gguf",
+          "--alias",
+          "bge-reranker-v2-m3",
+          "--host",
+          "0.0.0.0",
+          "--port",
+          "8080",
+          "--reranking",
+          "--embedding",
+          "--pooling",
+          "rank",
+          "--ctx-size",
+          "2048",
+          "--batch-size",
+          "2048",
+          "--ubatch-size",
+          "2048",
+          "--parallel",
+          "1",
+          "--gpu-layers",
+          "99",
+          "--threads",
+          "8",
+          "--threads-batch",
+          "8",
+          "--cache-ram",
+          "0",
+          "--no-webui",
+          "--log-timestamps"
+        ],
+        "gguf_bytes": 635676416
+      },
+      "finished_at": "2026-10-20T12:12:10.252750+00:00"
+    },
+    {
+      "created_at": "2026-10-20T12:13:41.056673+00:00",
+      "memory_commit": "f58b47e37bcf7c4fc67d9b7bae4c67075ace963b",
+      "memory_dirty_before_evidence": true,
+      "core_commit": "b062a49a32d261d0ce472938c40711c6cb41d7c0",
+      "core_dirty": false,
+      "llama_cpp_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+      "llama_cpp_build": "b11347-5fc4f3c8c",
+      "db_image": "sha256:0e8192649a3ffe47d73c899587779a693d1ffaaa643d48b5934f48e2c49387d2",
+      "gpu_observations": [
+        {
+          "created_at": "2026-10-20T12:13:41.184405+00:00",
+          "stage": "before_db",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3020,
+          "free_mib": 13042,
+          "utilization_percent": 31
+        },
+        {
+          "created_at": "2026-10-20T12:13:43.905710+00:00",
+          "stage": "before_model_load",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3002,
+          "free_mib": 13060,
+          "utilization_percent": 47
+        },
+        {
+          "created_at": "2026-10-20T12:13:45.585334+00:00",
+          "stage": "after_model_load_and_preflight",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 5281,
+          "free_mib": 10781,
+          "utilization_percent": 36
+        },
+        {
+          "created_at": "2026-10-20T12:33:36.077729+00:00",
+          "stage": "after_evaluation_before_release",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 5686,
+          "free_mib": 10376,
+          "utilization_percent": 3
+        },
+        {
+          "created_at": "2026-10-20T12:33:37.054043+00:00",
+          "stage": "after_model_release",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3395,
+          "free_mib": 12667,
+          "utilization_percent": 3
+        },
+        {
+          "created_at": "2026-10-20T12:33:38.695541+00:00",
+          "stage": "after_all_cleanup",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3414,
+          "free_mib": 12648,
+          "utilization_percent": 8
+        }
+      ],
+      "models": [
+        {
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "sha256": "06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+          "revision": "370f27d7550e0def9b39c1f16d3fbaa13aa67728",
+          "dimensions": 1024,
+          "pooling": "last",
+          "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+          "passage_prefix": "",
+          "quantization": "Q8_0",
+          "max_context_length": 32768,
+          "measured_sha256": "06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+          "gguf_bytes": 639150592,
+          "server_alias_verified": true,
+          "server_dimensions_verified": 1024,
+          "llama_arguments": [
+            "-m",
+            "/models/model.gguf",
+            "--alias",
+            "Qwen3-Embedding-0.6B",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "8080",
+            "--embeddings",
+            "--pooling",
+            "last",
+            "--ctx-size",
+            "2048",
+            "--batch-size",
+            "2048",
+            "--ubatch-size",
+            "2048",
+            "--parallel",
+            "1",
+            "--gpu-layers",
+            "99",
+            "--threads",
+            "8",
+            "--threads-batch",
+            "8",
+            "--cache-ram",
+            "0",
+            "--no-webui",
+            "--log-timestamps"
+          ],
+          "model_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+          "container_id": "02f4acb174357cbc0b4a7179550702c7d90b70cfd1b76845334b8f40b722ed90"
+        }
+      ],
+      "executions": [
+        {
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "stage": "tuning",
+          "started_at": "2026-10-20T12:13:45.586158+00:00",
+          "finished_at": "2026-10-20T12:33:13.524302+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-tuning.json",
+          "report_sha256": "cfcf9f1cbc3ae00c548c17ce247e597bac82d265df067087dfb64514b56209d8",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--suite-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tune",
+            "--candidates",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-candidates.json",
+            "--manifest",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-manifest.json",
+            "--real-config",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-tuning.json"
+          ]
+        },
+        {
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "stage": "acceptance",
+          "started_at": "2026-10-20T12:33:13.633598+00:00",
+          "finished_at": "2026-10-20T12:33:36.042346+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-acceptance.json",
+          "report_sha256": "952d2cecb70f4dacda455d871349640c0e3a1816c29f5945886f144a8da5f173",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/acceptance/suite.json",
+            "--suite-sha256",
+            "d9506eac3619196cdb75c8588a2e96ad9100d1cefb7378f8b6b8fe9db885c794",
+            "--tuning-suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--tuning-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tuning-report",
+            "<artifact-root>/eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-tuning.json",
+            "--tuning-report-sha256",
+            "cfcf9f1cbc3ae00c548c17ce247e597bac82d265df067087dfb64514b56209d8",
+            "--candidates",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-candidates.json",
+            "--manifest",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-manifest.json",
+            "--real-config",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-acceptance.json"
+          ]
+        }
+      ],
+      "cleanup": {
+        "model_container_removed": true,
+        "db_container_removed": true
+      },
+      "db_extensions": {
+        "vector": "0.8.2",
+        "pg_bigm": "1.2",
+        "pgroonga": "4.1.0"
+      },
+      "db_resources": {
+        "cpus": 1,
+        "memory_limit_bytes": 1073741824,
+        "storage": "tmpfs",
+        "published_host": "127.0.0.1",
+        "port": 15439
+      },
+      "finished_at": "2026-10-20T12:33:38.695782+00:00"
+    },
+    {
+      "created_at": "2026-10-20T12:33:41.014179+00:00",
+      "memory_commit": "f58b47e37bcf7c4fc67d9b7bae4c67075ace963b",
+      "memory_dirty_before_evidence": true,
+      "core_commit": "b062a49a32d261d0ce472938c40711c6cb41d7c0",
+      "core_dirty": false,
+      "llama_cpp_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+      "llama_cpp_build": "b11347-5fc4f3c8c",
+      "db_image": "sha256:0e8192649a3ffe47d73c899587779a693d1ffaaa643d48b5934f48e2c49387d2",
+      "gpu_observations": [
+        {
+          "created_at": "2026-10-20T12:33:41.118174+00:00",
+          "stage": "before_db",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3416,
+          "free_mib": 12646,
+          "utilization_percent": 21
+        },
+        {
+          "created_at": "2026-10-20T12:33:42.923039+00:00",
+          "stage": "before_reranker_load",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3422,
+          "free_mib": 12640,
+          "utilization_percent": 25
+        },
+        {
+          "created_at": "2026-10-20T12:33:45.472090+00:00",
+          "stage": "after_reranker_load",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4030,
+          "free_mib": 12032,
+          "utilization_percent": 4
+        },
+        {
+          "created_at": "2026-10-20T12:33:45.857406+00:00",
+          "stage": "before_model_load",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 4022,
+          "free_mib": 12040,
+          "utilization_percent": 2
+        },
+        {
+          "created_at": "2026-10-20T12:33:47.236958+00:00",
+          "stage": "after_model_load_and_preflight",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 6287,
+          "free_mib": 9775,
+          "utilization_percent": 25
+        },
+        {
+          "created_at": "2026-10-20T13:00:47.636155+00:00",
+          "stage": "after_evaluation_before_release",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 6028,
+          "free_mib": 10034,
+          "utilization_percent": 8
+        },
+        {
+          "created_at": "2026-10-20T13:00:48.703294+00:00",
+          "stage": "after_model_release",
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3749,
+          "free_mib": 12313,
+          "utilization_percent": 8
+        },
+        {
+          "created_at": "2026-10-20T13:00:50.038747+00:00",
+          "stage": "after_all_cleanup",
+          "model_alias": null,
+          "name": "NVIDIA GeForce RTX 4070 Ti SUPER",
+          "driver_version": "610.88",
+          "total_mib": 16376,
+          "used_mib": 3142,
+          "free_mib": 12920,
+          "utilization_percent": 13
+        }
+      ],
+      "models": [
+        {
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "sha256": "06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+          "revision": "370f27d7550e0def9b39c1f16d3fbaa13aa67728",
+          "dimensions": 1024,
+          "pooling": "last",
+          "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+          "passage_prefix": "",
+          "quantization": "Q8_0",
+          "max_context_length": 32768,
+          "measured_sha256": "06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+          "gguf_bytes": 639150592,
+          "server_alias_verified": true,
+          "server_dimensions_verified": 1024,
+          "llama_arguments": [
+            "-m",
+            "/models/model.gguf",
+            "--alias",
+            "Qwen3-Embedding-0.6B",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "8080",
+            "--embeddings",
+            "--pooling",
+            "last",
+            "--ctx-size",
+            "2048",
+            "--batch-size",
+            "2048",
+            "--ubatch-size",
+            "2048",
+            "--parallel",
+            "1",
+            "--gpu-layers",
+            "99",
+            "--threads",
+            "8",
+            "--threads-batch",
+            "8",
+            "--cache-ram",
+            "0",
+            "--no-webui",
+            "--log-timestamps"
+          ],
+          "model_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+          "container_id": "540ef1acac387afa100824033b46e1f7c1a81ef7316cc15b3d03949759821cac"
+        }
+      ],
+      "executions": [
+        {
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "stage": "tuning",
+          "started_at": "2026-10-20T12:33:47.239092+00:00",
+          "finished_at": "2026-10-20T13:00:18.736783+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-rerank-tuning.json",
+          "report_sha256": "9e492346587f77f8cf71024aaf541c45544c7185560545545ff22e964b838608",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--suite-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tune",
+            "--candidates",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-rerank-candidates.json",
+            "--manifest",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-rerank-manifest.json",
+            "--real-config",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-rerank-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-rerank-tuning.json"
+          ]
+        },
+        {
+          "model_alias": "Qwen3-Embedding-0.6B",
+          "stage": "acceptance",
+          "started_at": "2026-10-20T13:00:18.849048+00:00",
+          "finished_at": "2026-10-20T13:00:47.603123+00:00",
+          "exit_code": 1,
+          "report": "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-rerank-acceptance.json",
+          "report_sha256": "5d7d4e506b3422c58dbe629c81f5ba4d4fc501a1ad1a4455f8ce37f467cafb3c",
+          "command": [
+            "uv",
+            "run",
+            "--no-sync",
+            "memory-evaluate-retrieval",
+            "--suite",
+            "evals/retrieval/memory-v2/acceptance/suite.json",
+            "--suite-sha256",
+            "d9506eac3619196cdb75c8588a2e96ad9100d1cefb7378f8b6b8fe9db885c794",
+            "--tuning-suite",
+            "evals/retrieval/memory-v2/tuning/suite.json",
+            "--tuning-sha256",
+            "cbedec3b65f75ed1e4cd2b873155d7ce55d9ee9fbffd01e2b6c04651ec66fb29",
+            "--tuning-report",
+            "<artifact-root>/eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-rerank-tuning.json",
+            "--tuning-report-sha256",
+            "9e492346587f77f8cf71024aaf541c45544c7185560545545ff22e964b838608",
+            "--candidates",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-rerank-candidates.json",
+            "--manifest",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-rerank-manifest.json",
+            "--real-config",
+            "<local-config-dir>/Qwen3-Embedding-0.6B-rerank-config.json",
+            "--mode",
+            "real",
+            "--output",
+            "2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-rerank-acceptance.json"
+          ]
+        }
+      ],
+      "cleanup": {
+        "reranker_container_removed": true,
+        "model_container_removed": true,
+        "db_container_removed": true
+      },
+      "db_extensions": {
+        "vector": "0.8.2",
+        "pg_bigm": "1.2",
+        "pgroonga": "4.1.0"
+      },
+      "db_resources": {
+        "cpus": 1,
+        "memory_limit_bytes": 1073741824,
+        "storage": "tmpfs",
+        "published_host": "127.0.0.1",
+        "port": 15439
+      },
+      "reranker_alias_verified": true,
+      "reranker_preflight": {
+        "model": "bge-reranker-v2-m3",
+        "object": "list",
+        "usage": {
+          "prompt_tokens": 22,
+          "total_tokens": 22
+        },
+        "results": [
+          {
+            "index": 0,
+            "relevance_score": 5.020122528076172
+          },
+          {
+            "index": 1,
+            "relevance_score": -11.022048950195312
+          }
+        ]
+      },
+      "reranker": {
+        "model_alias": "bge-reranker-v2-m3",
+        "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+        "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+        "quantization": "Q8_0",
+        "max_context_length": 8192,
+        "llama_arguments": [
+          "-m",
+          "/models/model.gguf",
+          "--alias",
+          "bge-reranker-v2-m3",
+          "--host",
+          "0.0.0.0",
+          "--port",
+          "8080",
+          "--reranking",
+          "--embedding",
+          "--pooling",
+          "rank",
+          "--ctx-size",
+          "2048",
+          "--batch-size",
+          "2048",
+          "--ubatch-size",
+          "2048",
+          "--parallel",
+          "1",
+          "--gpu-layers",
+          "99",
+          "--threads",
+          "8",
+          "--threads-batch",
+          "8",
+          "--cache-ram",
+          "0",
+          "--no-webui",
+          "--log-timestamps"
+        ],
+        "gguf_bytes": 635676416
+      },
+      "finished_at": "2026-10-20T13:00:50.039056+00:00"
+    }
+  ],
+  "reranker_resources": [
+    {
+      "kind": "rerank",
+      "artifact": {
+        "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-rerank-resource-samples.json",
+        "sha256": "3b5050ea07bf1e7b072115202b720e1a46ff83469586e1d04c0ca837b0e25010",
+        "bytes": 213355
+      },
+      "wait_interval_ms": 1000,
+      "sample_count": 1811,
+      "error_count": 0,
+      "phases": [
+        {
+          "stage": "tuning",
+          "started_at": "2026-10-20T11:43:51.017427+00:00",
+          "finished_at": "2026-10-20T12:11:41.178741+00:00",
+          "sample_count": 1778,
+          "cpu_ms_between_first_last_sample": 507408.777,
+          "ram_bytes_sample_max": 539701248,
+          "first_sample_at": "2026-10-20T11:43:51.216478+00:00",
+          "last_sample_at": "2026-10-20T12:11:40.563960+00:00"
+        },
+        {
+          "stage": "acceptance",
+          "started_at": "2026-10-20T12:11:41.300303+00:00",
+          "finished_at": "2026-10-20T12:12:07.821615+00:00",
+          "sample_count": 29,
+          "cpu_ms_between_first_last_sample": 4740.414,
+          "ram_bytes_sample_max": 1410285568,
+          "first_sample_at": "2026-10-20T12:11:41.572012+00:00",
+          "last_sample_at": "2026-10-20T12:12:07.663605+00:00"
+        }
+      ]
+    },
+    {
+      "kind": "qwen-rerank",
+      "artifact": {
+        "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-qwen-rerank-resource-samples.json",
+        "sha256": "8a2a6d9bfcc5eac67930e0c7dbe07538da0120200401528af7f6afa86dc422fc",
+        "bytes": 190685
+      },
+      "wait_interval_ms": 1000,
+      "sample_count": 1619,
+      "error_count": 0,
+      "phases": [
+        {
+          "stage": "tuning",
+          "started_at": "2026-10-20T12:33:47.239092+00:00",
+          "finished_at": "2026-10-20T13:00:18.736783+00:00",
+          "sample_count": 1587,
+          "cpu_ms_between_first_last_sample": 436324.627,
+          "ram_bytes_sample_max": 539668480,
+          "first_sample_at": "2026-10-20T12:33:47.525743+00:00",
+          "last_sample_at": "2026-10-20T13:00:17.790503+00:00"
+        },
+        {
+          "stage": "acceptance",
+          "started_at": "2026-10-20T13:00:18.849048+00:00",
+          "finished_at": "2026-10-20T13:00:47.603123+00:00",
+          "sample_count": 28,
+          "cpu_ms_between_first_last_sample": 4733.848,
+          "ram_bytes_sample_max": 1411166208,
+          "first_sample_at": "2026-10-20T13:00:19.795016+00:00",
+          "last_sample_at": "2026-10-20T13:00:46.867379+00:00"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-acceptance.json",
+      "sha256": "952d2cecb70f4dacda455d871349640c0e3a1816c29f5945886f144a8da5f173",
+      "bytes": 1824002
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-qwen-rerank-server.log",
+      "sha256": "661a7fa081737958938d9e5f16842bcc5c0b48ed5bb4819cf0e661bb8dc62e58",
+      "bytes": 28272005
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-qwen-server.log",
+      "sha256": "62a279ce63235be2ff6c5c56eb5a0a8fdcf9d25d9463ce2cf9255570e63b457d",
+      "bytes": 28233733
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-rerank-acceptance.json",
+      "sha256": "5d7d4e506b3422c58dbe629c81f5ba4d4fc501a1ad1a4455f8ce37f467cafb3c",
+      "bytes": 1889397
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-rerank-tuning.json",
+      "sha256": "9e492346587f77f8cf71024aaf541c45544c7185560545545ff22e964b838608",
+      "bytes": 120039244
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-Qwen3-Embedding-0.6B-tuning.json",
+      "sha256": "cfcf9f1cbc3ae00c548c17ce247e597bac82d265df067087dfb64514b56209d8",
+      "bytes": 117352123
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-acceptance.json",
+      "sha256": "e1f0931c180857f6bd80b0969a5f4768ff16a2230a96cfbaab594afc834c2d8d",
+      "bytes": 1824345
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-rerank-acceptance.json",
+      "sha256": "76e6fd6bbe6d132fd80052540a3c84a404618b3a62fa1bd29dcd8ece8f9a6ef2",
+      "bytes": 1885606
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-rerank-server.log",
+      "sha256": "eeabc57787c2099dcfd175ffe89af09562e8e7a9e90b94bf0d6c4cdcc87d3b47",
+      "bytes": 29597657
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-rerank-tuning.json",
+      "sha256": "d1c06784db9a1cddaa52cf6387ebd8048cd73fb16d2be562f29bab3787032a85",
+      "bytes": 122212743
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-server-snapshot.log",
+      "sha256": "c1d3c53f5a60e635ef6efc93d640c92899367745586a4f26d91405411d7ece44",
+      "bytes": 21102011
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-bge-m3-tuning.json",
+      "sha256": "43a87964da09a32b1b7a5dd56172014ab228b7a0088d95d99d96bd2264224eb1",
+      "bytes": 119221536
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-cleanup-verification.json",
+      "sha256": "835e50273a313c9156a1815348d0583e3c8c33e0293dd921d6557a40cbb26291",
+      "bytes": 184
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-BAAI--bge-m3-f090942b5d75.json",
+      "sha256": "f090942b5d75d5082b64c4353c437c67b86ada4e3a36e66084cbddfc3a08f60b",
+      "bytes": 10614
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen--Qwen3-Embedding-0.6B-GGUF-8a377122493a.json",
+      "sha256": "8a377122493a29e5d772c395495be65f503cbda97f5c6a666405e78ebfa50b29",
+      "bytes": 6445
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-Q8_0.gguf.metadata-f9b99e315966.json",
+      "sha256": "f9b99e31596681a87c5986464afd0cc07d7d5f933c7c8e6aabb09a0dc85bfbf0",
+      "bytes": 1060
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-acceptance-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-acceptance-summary-47d0afec6aa5.json",
+      "sha256": "47d0afec6aa59630574fdb0fe81579146edcc395b79ec0112785a37cb54700fa",
+      "bytes": 117628
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-candidates-780773485454.json",
+      "sha256": "780773485454e7c84cf3cd42329e64fd387cf9ed5ad1546b0e3586dd4f71e640",
+      "bytes": 1031
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-config-c7fe77551e03.json",
+      "sha256": "c7fe77551e0399c50ae5cd0b69ab35b7e27bd05ab5685f435126d60079cbd7b7",
+      "bytes": 847
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-manifest-ae58a9576b0d.json",
+      "sha256": "ae58a9576b0d989285a1239c6f33f743d3d43f7f2fa68b70974e4411d1834f1e",
+      "bytes": 530
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-rerank-acceptance-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-rerank-acceptance-summary-42621b5ac4ea.json",
+      "sha256": "42621b5ac4ea59ce2a14fdf9a51d327ebd07ac7fbf83903b8eb0dcf44b333495",
+      "bytes": 163724
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-rerank-candidates-75342d587f42.json",
+      "sha256": "75342d587f4288bcaefe99df8c0aa437002fbbd44e07b415b3647f4892e1ca60",
+      "bytes": 1585
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-rerank-config-f720748cdde1.json",
+      "sha256": "f720748cdde1e9a722ec14ac29229405f1e914870f5fc9d4c28eeacb8f14d52b",
+      "bytes": 1261
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-rerank-manifest-ae58a9576b0d.json",
+      "sha256": "ae58a9576b0d989285a1239c6f33f743d3d43f7f2fa68b70974e4411d1834f1e",
+      "bytes": 530
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-rerank-tuning-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-rerank-tuning-summary-153ffdf33f21.json",
+      "sha256": "153ffdf33f21e73ad0164c3d283975a65f4ef20f8ece9b30eab492a7f699c078",
+      "bytes": 3815711
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-tuning-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-Qwen3-Embedding-0.6B-tuning-summary-7c815bdeebe9.json",
+      "sha256": "7c815bdeebe913bebe7cb925a7381f3a355c7250691e8af772ace7c18f155833",
+      "bytes": 2790555
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-after-qwen-e2d932840ad7.py",
+      "sha256": "e2d932840ad78bd22eb07231a56aa98694f1e55b50692e56853ce991e75685f7",
+      "bytes": 996
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-after-qwen-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-after-qwen-v2-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-baseline-orchestration-0197aa6fab42.log",
+      "sha256": "0197aa6fab42ffdf6c90bfc786d126ceca0b9aec064cd5bdf429422c9c0d9f4d",
+      "bytes": 247
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-acceptance-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-acceptance-summary-c3de063da489.json",
+      "sha256": "c3de063da489ff4c7927fec4952a446b51d638518ab56087c31b802f9b4b20e9",
+      "bytes": 117441
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-candidates-5ebbadcc2180.json",
+      "sha256": "5ebbadcc21808faf79cc02c5e679541d878576d1a4583109bd4dd05fc02bf7b0",
+      "bytes": 787
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-config-b59345544885.json",
+      "sha256": "b5934554488516e7643480922cbb66c4d85d7ece936c2b12aa9317f5d59a7dd8",
+      "bytes": 695
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-manifest-02613d642491.json",
+      "sha256": "02613d6424918dbb09fcb7f44e5c8a0159a8368ed1051b8c31804169887bf5bd",
+      "bytes": 530
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-q8_0.gguf.metadata-1caa22622719.json",
+      "sha256": "1caa226227196fed65fea30383d7af977aeea910c4e4a7e944425c3a95aac1a2",
+      "bytes": 602
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-rerank-acceptance-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-rerank-acceptance-summary-16616b25d2c7.json",
+      "sha256": "16616b25d2c7fa295da6d5f52eb16d400147d4981e5b4965baffbc983cf3cbc1",
+      "bytes": 163530
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-rerank-candidates-5570e9233a15.json",
+      "sha256": "5570e9233a152a41041eed3ea3bce3f97e49b14e9f9fa745339e4f18ae07ce4c",
+      "bytes": 1341
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-rerank-config-5084bd2c7f1e.json",
+      "sha256": "5084bd2c7f1e93cdb0c246e0bc90f2365624f6f09f0c5a2b0164770e3d182b5a",
+      "bytes": 1101
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-rerank-manifest-02613d642491.json",
+      "sha256": "02613d6424918dbb09fcb7f44e5c8a0159a8368ed1051b8c31804169887bf5bd",
+      "bytes": 530
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-rerank-tuning-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-rerank-tuning-summary-718e509ea666.json",
+      "sha256": "718e509ea666c9f7d9e4cfb2180bf08003b422a91a5a855db4ca44bf52ae9134",
+      "bytes": 3812167
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-tuning-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-m3-tuning-summary-2ad8e33f241a.json",
+      "sha256": "2ad8e33f241a557ef321e6fee66ff2146a95ab1e5ed0833eb37f4354a96cb6c6",
+      "bytes": 2787064
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-reranker-v2-m3-Q8_0.gguf.metadata-3a0d34f2c2f8.json",
+      "sha256": "3a0d34f2c2f8e7e5400297c29a45311cef3dfa6e79fe22dedf8f6af3e915eab6",
+      "bytes": 694
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-bge-source-d7d69eacc7bd.json",
+      "sha256": "d7d69eacc7bd8c349b632cd0fb8ea5005e87420bfe897737a4e5993bb97ca42f",
+      "bytes": 2104
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-cl-nagoya--ruri-v3-310m-22784b1c1fa0.json",
+      "sha256": "22784b1c1fa0eedb025cd50866034f145d58df93f205264cb9f1e32b65d41ee4",
+      "bytes": 9564
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-collect-environment-97d285430d74.py",
+      "sha256": "97d285430d74dbf0960d689701d54984f2f3aabff54bc2272be58afd27c031f0",
+      "bytes": 4605
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-continuation-e87578f4eb2a.log",
+      "sha256": "e87578f4eb2a8ce514001bb46827bd19578cc6e0baa1f474c1831057062057e8",
+      "bytes": 357
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-continue-94dd529e7957.py",
+      "sha256": "94dd529e7957c7a2e186fa83f2177bb1d6e01a95c9abf834a27ad2485e4090ec",
+      "bytes": 825
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-export-stderr-e3b0c44298fc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-gpustack--bge-reranker-v2-m3-GGUF-05da62305925.json",
+      "sha256": "05da62305925f4c8e41faad04eba551b75711a1c483931cedd2bf66b1c2aafd1",
+      "bytes": 5176
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-inventory-b099243017bc.py",
+      "sha256": "b099243017bc2aaa6259b0320f80b52d418123f3bb556749588b8ae6b537f506",
+      "bytes": 1872
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-local-gates-orchestration-45fe343f1653.log",
+      "sha256": "45fe343f16534ac154336b8ea48d492674255359b86c044c4eaa18dae1ea272b",
+      "bytes": 1346
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-prepare-eaa45a1b385b.py",
+      "sha256": "eaa45a1b385b90247cd8836aea4fa649e35e60eb277590f6b3f5dec5fe9f556f",
+      "bytes": 776
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-prepare-qwen-451b2fc7fec6.py",
+      "sha256": "451b2fc7fec6f3675faa6869111f14b29ba0a25ec84c07107901320746f9ab52",
+      "bytes": 482
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-prepare-rerank-d1c848f12c29.py",
+      "sha256": "d1c848f12c295f9987c2592f31e24978fec031485ad39c4990e796f1a4119e3d",
+      "bytes": 5136
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-qwen-orchestration-8ccaad078bd0.log",
+      "sha256": "8ccaad078bd0761e7b8a53a55464386fa6ba90fb32c99b559ce72a1645ef47fe",
+      "bytes": 2527
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-qwen-rerank-container-4d6acf6c2e93.log",
+      "sha256": "4d6acf6c2e9316ed7a7723061595f12e205eac6aaa3a7d5494e69c5d0474fef5",
+      "bytes": 22648585
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-qwen-rerank-orchestration-6d80b3fc1d5a.log",
+      "sha256": "6d80b3fc1d5a5f4ada0e21fd89dbfa26be2fb1aaa22539b59dae9c48d126cbdd",
+      "bytes": 340
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-qwen-retry-orchestration-f75e65353d11.log",
+      "sha256": "f75e65353d1110d7c355691fc2272c0cfcd70234f28a5d66e3f1a61cfe0cc57e",
+      "bytes": 304
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-read-gguf-f0ed08d3ac34.py",
+      "sha256": "f0ed08d3ac340cfcaa8509bf24d6aeccfd22c3e30843728527d32edd41cfe717",
+      "bytes": 826
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-render-adr-f58267d9cc5e.py",
+      "sha256": "f58267d9cc5e6280f5dc89bd51fd242343967c07a6eebc8a8fdc3b3507360c27",
+      "bytes": 7128
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-render-report-bf655f0d5bcf.py",
+      "sha256": "bf655f0d5bcf91ba6e4f63e6a8aa65029e1c4179276c942e095a66e4d5e96701",
+      "bytes": 9283
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-render-report-ebe8907f5905.py",
+      "sha256": "ebe8907f5905a8a468e7dc02f5601766ab678313fa97ef53c045e1bb31a030d9",
+      "bytes": 10117
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-render-report-f745d29a8f2e.py",
+      "sha256": "f745d29a8f2e3975850b8ef91c833d395c90e4f27dddfddc0690fe49f808e6d6",
+      "bytes": 10103
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-rerank-container-bd1ccb6767ec.log",
+      "sha256": "bd1ccb6767ecd66b1faa4002e3799793a113e2bf164451041ce16bdd9f19b4e2",
+      "bytes": 22654371
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-rerank-orchestration-bfd17195582a.log",
+      "sha256": "bfd17195582a1203b19e4a1e81e1c31ea137ffdd70a20a0b081a58a21716af84",
+      "bytes": 274
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-run-baseline-451e8de6a6df.py",
+      "sha256": "451e8de6a6dff91dd411568b0f7fcb01255ec0a3ac7eb60f7e728e2433d0c53c",
+      "bytes": 10837
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-run-local-gates-f8ca0c45e8ba.py",
+      "sha256": "f8ca0c45e8ba10b78a5df1f9e879d088ef2039eaf7594d122c91b1f70dfdd62f",
+      "bytes": 2166
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-run-qwen-ffa028393e52.py",
+      "sha256": "ffa028393e52e80f6b91bc93f2696134bdd4ac465b22f92526b5a37378da0fd9",
+      "bytes": 11170
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-run-qwen-rerank-e44b5d56eb38.py",
+      "sha256": "e44b5d56eb38660ac0335859e3f347a938a6029f7ac6c3dec4e47782a6097432",
+      "bytes": 15669
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-run-rerank-e1de87630082.py",
+      "sha256": "e1de876300823475fa9b93419263028a1c459f6e90a259d0ce74788cf7084194",
+      "bytes": 15572
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-ruri-1_Pooling--config-1c8bc7bd750c.json",
+      "sha256": "1c8bc7bd750c5c20d8707f1c5c578f5d69bb3d1d5ebcf4b2fde5128de154ec1c",
+      "bytes": 296
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-ruri-config-abd6ecec3171.json",
+      "sha256": "abd6ecec3171fbac433b1ca690e56230c2f180b2e7fd1f416eded779abf47844",
+      "bytes": 1324
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-ruri-official-repository-search-5dd2680346d7.json",
+      "sha256": "5dd2680346d709acc24237438241983b4c8c3b951c00acaa707c856472802580",
+      "bytes": 6859
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-ruri-sentence_bert_config-eb9b44b13c0f.json",
+      "sha256": "eb9b44b13c0f52a3b3685c3b1cbdea1ba8b04bea123b98f61610048940776eb1",
+      "bytes": 54
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-validate-and-compact-262e79f167fc.py",
+      "sha256": "262e79f167fc486be1a634f360364b5da82af53417c8a3b1651e03d797c93b0a",
+      "bytes": 6368
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-execution-validation-orchestration-403a0983d259.log",
+      "sha256": "403a0983d25941c5a2f3ba1dae3a214adb69e7fb6b1214059ad2995705030f66",
+      "bytes": 214
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-host-capabilities.json",
+      "sha256": "067811dc650abfe740ca2062b9bb94e4e32fc8d0379654d3316b3d8572941ee6",
+      "bytes": 752
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-host-environment.json",
+      "sha256": "040ed6626a8249603d787de49f89090437275e6d965a091261204342caf0904b",
+      "bytes": 7350
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-llama-version.txt",
+      "sha256": "660aaac9bf7b0baad64097cb741aa8081268f49770e7dc34383f7a31c930b06a",
+      "bytes": 90
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-qwen-host-environment.json",
+      "sha256": "52f84d87398fcade1c86ca68b6ed8a369c61bccba00573bc9e954debcda25326",
+      "bytes": 7710
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-qwen-rerank-host-environment.json",
+      "sha256": "760a2031a0a5efd9dbf000eb07d7818328bfcf3c34ae341e6249ac56e7360f32",
+      "bytes": 9725
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-qwen-rerank-resource-samples.json",
+      "sha256": "8a2a6d9bfcc5eac67930e0c7dbe07538da0120200401528af7f6afa86dc422fc",
+      "bytes": 190685
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-qwen-setup-error.log",
+      "sha256": "8ccaad078bd0761e7b8a53a55464386fa6ba90fb32c99b559ce72a1645ef47fe",
+      "bytes": 2527
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-qwen-setup-recovery.json",
+      "sha256": "a1d53a25cde40e4f42ca42e85af36c164138daa2ce37126df5d0c8db91ebc944",
+      "bytes": 4131
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-rerank-host-environment.json",
+      "sha256": "569f4cb797726eb5c0df22f38c0e3b2f316f638a20909db8834a3e36bbc7c8f2",
+      "bytes": 9364
+    },
+    {
+      "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-v2-rerank-resource-samples.json",
+      "sha256": "3b5050ea07bf1e7b072115202b720e1a46ff83469586e1d04c0ca837b0e25010",
+      "bytes": 213355
+    }
+  ],
+  "notes": [
+    "GPU VRAM is whole-device, includes unrelated host activity",
+    "Container RAM is sampled memory_stats.usage, not guaranteed intersample peak",
+    "reranker CPU sample differences cover first-to-last observed points inside each entire CLI stage, not individual runs",
+    "Previous DB image absent; actual immutable ID and package comparison recorded",
+    "Original unresolved candidate templates preserved; separate confirmed execution candidates used",
+    "No evaluator, suites or gold changed",
+    "Synthetic data only, loopback only; dedicated containers removed; no existing services modified"
+  ],
+  "host_capabilities": {
+    "created_at": "2026-10-20T12:26:50.230423+00:00",
+    "cpu": {
+      "Architecture": "x86_64",
+      "CPU(s)": "28",
+      "On-line CPU(s) list": "0-27",
+      "Vendor ID": "GenuineIntel",
+      "Model name": "Intel(R) Core(TM) i7-14700K",
+      "Thread(s) per core": "2",
+      "Core(s) per socket": "14",
+      "Socket(s)": "1",
+      "Hypervisor vendor": "Microsoft",
+      "Virtualization type": "full"
+    },
+    "guest_memory_snapshot": {
+      "MemTotal": "49199172 kB",
+      "MemAvailable": "45562748 kB"
+    },
+    "os": {
+      "NAME": "Ubuntu",
+      "VERSION": "24.04.4 LTS (Noble Numbat)",
+      "VERSION_ID": "24.04"
+    },
+    "kernel": "6.18.54.1-microsoft-standard-WSL2",
+    "python": "3.12.3",
+    "uv": "uv 0.8.22",
+    "docker_server": "29.6.0",
+    "docker_compose": "5.2.0"
+  },
+  "setup_incidents": [
+    {
+      "created_at": "2026-10-20T12:13:41.023045+00:00",
+      "stage": "Qwen3 pre-model environment setup",
+      "status": "ERROR",
+      "real_model_calls": 0,
+      "reason": "Previously measured DB image4a937... was absent before Qwen setup, so docker image inspect failed. No model or DB container started.",
+      "recovery": "Rebuild same pinned Dockerfile into a dedicated tag; all build steps cached, locked package cmp passed; actual new image recorded separately",
+      "new_db_image": "sha256:0e8192649a3ffe47d73c899587779a693d1ffaaa643d48b5934f48e2c49387d2",
+      "fixed_dockerfile_sha256": "86302aacc326ef02ddfe7f0d8ca883859638a8311e6af02f2b6e5873275ddcaf",
+      "packages_lock_sha256": "5b9eaf3875f19539bde25c8063be11d2a98214a567b246536db3d4caa69bc7f3",
+      "temporary_stopped_pin_container": "memory-v2-it2-db-image-pin"
+    }
+  ]
+}

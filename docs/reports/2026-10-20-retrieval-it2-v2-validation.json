@@ -1,0 +1,245 @@
+{
+  "measured_source_commit": "f58b47e37bcf7c4fc67d9b7bae4c67075ace963b",
+  "checks": [
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--check"
+      ],
+      "started_at": "2026-10-20T13:01:56.436258+00:00",
+      "finished_at": "2026-10-20T13:01:56.444835+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "bash",
+        "-n",
+        "tools/with-test-postgres.sh"
+      ],
+      "started_at": "2026-10-20T13:01:56.444874+00:00",
+      "finished_at": "2026-10-20T13:01:56.445870+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "config",
+        "--no-interpolate",
+        "--quiet"
+      ],
+      "started_at": "2026-10-20T13:01:56.445896+00:00",
+      "finished_at": "2026-10-20T13:01:56.480971+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "ruff",
+        "check",
+        "src",
+        "tests",
+        "migrations"
+      ],
+      "started_at": "2026-10-20T13:01:56.481027+00:00",
+      "finished_at": "2026-10-20T13:01:56.500239+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests",
+        "migrations"
+      ],
+      "started_at": "2026-10-20T13:01:56.500329+00:00",
+      "finished_at": "2026-10-20T13:01:56.519529+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "mypy"
+      ],
+      "started_at": "2026-10-20T13:01:56.519577+00:00",
+      "finished_at": "2026-10-20T13:02:03.607963+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-m",
+        "ut",
+        "-q"
+      ],
+      "started_at": "2026-10-20T13:02:03.608025+00:00",
+      "finished_at": "2026-10-20T13:02:07.863023+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-m",
+        "it1",
+        "-q"
+      ],
+      "started_at": "2026-10-20T13:02:07.863079+00:00",
+      "finished_at": "2026-10-20T13:02:17.201160+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "bash",
+        "tools/with-test-postgres.sh"
+      ],
+      "started_at": "2026-10-20T13:02:17.201214+00:00",
+      "finished_at": "2026-10-20T13:03:01.455816+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "build",
+        "--no-build-isolation"
+      ],
+      "started_at": "2026-10-20T13:03:01.455884+00:00",
+      "finished_at": "2026-10-20T13:03:01.762718+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "export",
+        "--frozen",
+        "--no-dev",
+        "--no-emit-project",
+        "--format",
+        "requirements-txt"
+      ],
+      "started_at": "2026-10-20T13:03:01.762771+00:00",
+      "finished_at": "2026-10-20T13:03:01.769917+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "venv",
+        ".package-check"
+      ],
+      "started_at": "2026-10-20T13:03:01.770002+00:00",
+      "finished_at": "2026-10-20T13:03:01.777294+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        ".package-check/bin/python",
+        "--require-hashes",
+        "-r",
+        "<local-test-artifacts>/runtime.txt"
+      ],
+      "started_at": "2026-10-20T13:03:01.777347+00:00",
+      "finished_at": "2026-10-20T13:03:02.169459+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        ".package-check/bin/python",
+        "--no-deps",
+        "dist/digital_souls_memory-0.1.0-py3-none-any.whl"
+      ],
+      "started_at": "2026-10-20T13:03:02.169558+00:00",
+      "finished_at": "2026-10-20T13:03:02.184857+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        ".package-check/bin/python",
+        "-I",
+        "-c",
+        "from digital_souls_memory.api import create_app; assert create_app().title == 'Digital Souls Memory'"
+      ],
+      "started_at": "2026-10-20T13:03:02.184912+00:00",
+      "finished_at": "2026-10-20T13:03:02.649636+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-20T13:03:02.649698+00:00",
+      "finished_at": "2026-10-20T13:03:02.651114+00:00",
+      "exit_code": 0,
+      "status": "PASS"
+    }
+  ],
+  "suites": {
+    "ut": {
+      "passed": 427,
+      "skipped": 0,
+      "xfail": 0,
+      "xpass": 0
+    },
+    "it1": {
+      "passed": 481,
+      "skipped": 0,
+      "xfail": 0,
+      "xpass": 0
+    },
+    "postgres": {
+      "passed": 177,
+      "skipped": 0,
+      "xfail": 0,
+      "xpass": 0
+    }
+  },
+  "it2_evidence_revalidation": {
+    "status": "PASS",
+    "tuning_runs": 1080,
+    "acceptance_runs": 24,
+    "candidate_bytes_match": true
+  },
+  "it2_quality": "FAIL for every executable configuration",
+  "st": "NOT RUN",
+  "ci": "Parent responsible; not checked here"
+}

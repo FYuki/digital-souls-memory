@@ -1,0 +1,135 @@
+{
+  "models": [
+    {
+      "model_alias": "bge-m3",
+      "repository": "ggml-org/bge-m3-Q8_0-GGUF",
+      "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+      "file": "bge-m3-q8_0.gguf",
+      "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+      "bytes": 634553760,
+      "downloaded_this_session": false,
+      "source_url": "https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF/tree/9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+      "gguf_metadata": {
+        "general.architecture": "bert",
+        "general.type": "model",
+        "general.size_label": "567M",
+        "general.license": "mit",
+        "general.tags": [
+          "sentence-transformers",
+          "feature-extraction",
+          "sentence-similarity",
+          "sentence-similarity"
+        ],
+        "bert.block_count": 24,
+        "bert.context_length": 8192,
+        "bert.embedding_length": 1024,
+        "bert.feed_forward_length": 4096,
+        "bert.attention.head_count": 16,
+        "bert.attention.layer_norm_epsilon": 9.999999747378752e-06,
+        "bert.attention.causal": false,
+        "bert.pooling_type": 2,
+        "general.quantization_version": 2,
+        "general.file_type": 7
+      }
+    },
+    {
+      "model_alias": "Qwen3-Embedding-0.6B",
+      "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
+      "revision": "370f27d7550e0def9b39c1f16d3fbaa13aa67728",
+      "file": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+      "sha256": "06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+      "bytes": 639150592,
+      "downloaded_this_session": true,
+      "source_url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/tree/370f27d7550e0def9b39c1f16d3fbaa13aa67728",
+      "gguf_metadata": {
+        "general.architecture": "qwen3",
+        "general.type": "model",
+        "general.name": "Qwen3 Embedding 0.6b",
+        "general.basename": "qwen3-embedding",
+        "general.size_label": "0.6B",
+        "general.license": "apache-2.0",
+        "general.base_model.count": 1,
+        "general.base_model.0.name": "Qwen3 0.6B Base",
+        "general.base_model.0.organization": "Qwen",
+        "general.base_model.0.repo_url": "https://huggingface.co/Qwen/Qwen3-0.6B-Base",
+        "general.tags": [
+          "transformers",
+          "sentence-transformers",
+          "sentence-similarity",
+          "feature-extraction",
+          "text-embeddings-inference"
+        ],
+        "qwen3.block_count": 28,
+        "qwen3.context_length": 32768,
+        "qwen3.embedding_length": 1024,
+        "qwen3.feed_forward_length": 3072,
+        "qwen3.attention.head_count": 16,
+        "qwen3.attention.head_count_kv": 8,
+        "qwen3.rope.freq_base": 1000000.0,
+        "qwen3.attention.layer_norm_rms_epsilon": 9.999999974752427e-07,
+        "qwen3.attention.key_length": 128,
+        "qwen3.attention.value_length": 128,
+        "qwen3.pooling_type": 3,
+        "general.quantization_version": 2,
+        "general.file_type": 7
+      }
+    },
+    {
+      "model_alias": "bge-reranker-v2-m3",
+      "repository": "gpustack/bge-reranker-v2-m3-GGUF",
+      "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+      "file": "bge-reranker-v2-m3-Q8_0.gguf",
+      "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+      "bytes": 635676416,
+      "downloaded_this_session": true,
+      "source_url": "https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/tree/3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+      "gguf_metadata": {
+        "general.architecture": "bert",
+        "general.type": "model",
+        "general.name": "Bge M3",
+        "general.organization": "BAAI",
+        "general.size_label": "568M",
+        "general.license": "apache-2.0",
+        "general.tags": [
+          "transformers",
+          "sentence-transformers",
+          "text-embeddings-inference",
+          "text-classification"
+        ],
+        "general.languages": [
+          "multilingual"
+        ],
+        "bert.block_count": 24,
+        "bert.context_length": 8192,
+        "bert.embedding_length": 1024,
+        "bert.feed_forward_length": 4096,
+        "bert.attention.head_count": 16,
+        "bert.attention.layer_norm_epsilon": 9.999999747378752e-06,
+        "general.file_type": 7,
+        "bert.attention.causal": false,
+        "general.quantization_version": 2
+      }
+    }
+  ],
+  "unavailable": [
+    {
+      "model_alias": "ruri-v3-310m",
+      "status": "NOT RUN",
+      "repository": "cl-nagoya/ruri-v3-310m",
+      "revision": "18b60fb8c2b9df296fb4212bb7d23ef94e579cd3",
+      "reason": "公式配布のファイル一覧に GGUF が存在しない。第三者 Targoyle 版は ModernBERT/SentencePiece 対応の独自 llama.cpp パッチで変換したと明記しており、公式 GGUF 不在時に変換や代替を推測しないという依頼条件に従い実行しない。",
+      "source_url": "https://huggingface.co/cl-nagoya/ruri-v3-310m/tree/18b60fb8c2b9df296fb4212bb7d23ef94e579cd3",
+      "third_party_reference": "https://huggingface.co/Targoyle/ruri-v3-310m-GGUF/blob/16f17f3/README.md",
+      "upstream_only": {
+        "dimensions": 768,
+        "pooling": "mean",
+        "query_prefix": "検索クエリ: ",
+        "passage_prefix": "検索文書: ",
+        "max_context_length": 8192,
+        "gguf_revision": null,
+        "gguf_sha256": null,
+        "gguf_quantization": null
+      }
+    }
+  ]
+}
