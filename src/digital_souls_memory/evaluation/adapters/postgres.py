@@ -25,6 +25,7 @@ from ..models import (
     validate_vectors,
 )
 from ..retrieval import (
+    composite_score,
     eligible_memories,
     lexical_terms,
     normalized_key,
@@ -154,6 +155,14 @@ class PostgresSearch:
     def search(self, query_vector: tuple[float, ...], *, limit: int) -> list[dict[str, object]]:
         if self.case is None:
             raise ValueError("Search must be indexed first")
+        return [
+            {key: value for key, value in hit.items() if key not in ("cosine", "reranker_score")}
+            for hit in rank_results(self.observe(query_vector), record(self.case["protocol"]))
+        ]
+
+    def observe(self, query_vector: tuple[float, ...]) -> list[dict[str, object]]:
+        if self.case is None:
+            raise ValueError("Search must be indexed first")
         validate_vectors((query_vector,), count=1, dimensions=integer(self.candidate["dimensions"]))
         terms = lexical_terms(string(self.case["query"]))
         matched: dict[str, int] = {}
@@ -177,6 +186,8 @@ class PostgresSearch:
             observations.append(
                 {
                     "memory_id": identifier,
+                    "cosine": 1 - number(distance),
+                    "reranker_score": None,
                     "components": score_components(
                         self.case,
                         memory,
@@ -185,7 +196,13 @@ class PostgresSearch:
                     ),
                 }
             )
-        ranked = rank_results(observations, record(self.case["protocol"]))
+        ranked = [
+            {
+                **o,
+                "score": composite_score(o["components"], record(self.case["protocol"])["weights"]),
+            }
+            for o in observations
+        ]
         # Evaluate the complete small synthetic set; the use case enforces the return budget.
         for hit in ranked:
             saved = self.connection.execute(

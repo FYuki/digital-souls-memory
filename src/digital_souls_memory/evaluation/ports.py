@@ -22,6 +22,23 @@ class Search(Protocol):
 
 
 @runtime_checkable
+class ObservedSearch(Search, Protocol):
+    def observe(self, query_vector: tuple[float, ...]) -> list[dict[str, object]]: ...
+
+
+class Reranker(Protocol):
+    def rerank(
+        self, query: str, documents: tuple[dict[str, object], ...]
+    ) -> list[dict[str, object]]: ...
+
+
+@runtime_checkable
+class MeasuredReranker(Reranker, Protocol):
+    @property
+    def real_model_calls(self) -> int: ...
+
+
+@runtime_checkable
 class MeasuredSearch(Search, Protocol):
     @property
     def measurements(self) -> dict[str, float]: ...
@@ -35,3 +52,4 @@ class ResourceObserver(Protocol):
 type EmbeddingFactory = Callable[[dict[str, object]], AbstractContextManager[Embedding]]
 type SearchFactory = Callable[[dict[str, object]], AbstractContextManager[Search]]
 type ResourceFactory = Callable[[dict[str, object]], AbstractContextManager[ResourceObserver]]
+type RerankerFactory = Callable[[dict[str, object]], AbstractContextManager[Reranker]]

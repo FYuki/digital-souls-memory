@@ -4,7 +4,7 @@ from copy import deepcopy
 from typing import Self
 
 from ..models import integer, record, rows, string, validate_vectors
-from ..retrieval import source_spans
+from ..retrieval import composite_score, source_spans
 
 
 class FixtureEmbedding:
@@ -50,3 +50,32 @@ class FixtureSearch:
             {**hit, "source_spans": source_spans(self.case, memory_id=string(hit["memory_id"]))}
             for hit in observations[:limit]
         ]
+
+    def observe(self, query_vector: tuple[float, ...]) -> list[dict[str, object]]:
+        if self.case is None:
+            raise ValueError("Fixture not indexed")
+        protocol = record(self.case["protocol"])
+        return [
+            {
+                **hit,
+                "score": composite_score(hit["components"], protocol["weights"]),
+                "source_spans": source_spans(self.case, memory_id=string(hit["memory_id"])),
+            }
+            for hit in rows(self.observations[string(self.case["id"])])
+        ]
+
+
+class FixtureReranker:
+    def __init__(self, fixture: dict[str, object]) -> None:
+        self.scores = deepcopy(record(fixture["reranker_scores"]))
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.scores.clear()
+
+    def rerank(
+        self, query: str, documents: tuple[dict[str, object], ...]
+    ) -> list[dict[str, object]]:
+        return deepcopy(rows(self.scores[query]))

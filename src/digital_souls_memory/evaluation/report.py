@@ -2,8 +2,10 @@
 
 import hashlib
 import json
+import math
 import re
 from copy import deepcopy
+from pathlib import PurePosixPath
 
 from .comparison import resolved_protocol
 from .models import (
@@ -16,8 +18,13 @@ from .models import (
     validate_candidate,
     validate_suite,
 )
-from .retrieval import composite_score
-from .scoring import aggregate_run, evaluate_case, percentile
+from .retrieval import (
+    composite_score,
+    eligible_memories,
+    select_observations,
+    validate_observations,
+)
+from .scoring import aggregate_run, evaluate_case, percentile, stage_latency
 
 
 def validate_manifest(manifest: dict[str, object]) -> None:
@@ -54,7 +61,9 @@ def validate_report(report: dict[str, object]) -> None:
     candidates = rows(report["candidates"])
     unique(candidates, "id")
     for candidate in candidates:
-        validate_candidate(candidate)
+        validate_candidate(
+            candidate, require_context=protocol.get("comparison_version") == "memory-v2"
+        )
     expected = {
         (string(candidate["id"]), index)
         for candidate in candidates
@@ -67,6 +76,14 @@ def validate_report(report: dict[str, object]) -> None:
     for run in runs:
         candidate = next(c for c in candidates if c["id"] == run["candidate_id"])
         resolved = resolved_protocol(protocol, candidate)
+        if resolved.get("comparison_version") == "memory-v2":
+            calls = run["real_reranker_calls"]
+            if type(calls) is not int or calls < 0 or (mode == "fixture" and calls != 0):
+                raise ValueError("Invalid reranker call count")
+            if type(run["reranker_enabled"]) is not bool or (
+                "reranker" in candidate and run["reranker_enabled"] is not True
+            ):
+                raise ValueError("Reranker configuration mismatch")
         if "resources" in run:
             validate_resources(record(run["resources"]))
         if mode == "fixture" and (
@@ -85,6 +102,31 @@ def validate_report(report: dict[str, object]) -> None:
         for result in results:
             identifier = string(result["case_id"])
             retrieved = rows(result["retrieved_hits"])
+            if resolved.get("comparison_version") == "memory-v2":
+                case = cases[identifier]
+                observations = rows(result["candidate_observations"])
+                validate_observations(observations, case, resolved)
+                if any(
+                    (o["reranker_score"] is not None) is not run["reranker_enabled"]
+                    for o in observations
+                ):
+                    raise ValueError("Reranker observation mismatch")
+                if result["eligible_ids"] != sorted(
+                    string(m["id"]) for m in eligible_memories(case)
+                ):
+                    raise ValueError("Eligibility evidence mismatch")
+                expected_hits = select_observations(observations, resolved)
+                score_fields = ("memory_id", "score", "components")
+                if [{key: hit[key] for key in score_fields} for hit in expected_hits] != [
+                    {key: hit[key] for key in score_fields} for hit in retrieved
+                ]:
+                    raise ValueError("Candidate to retrieval evidence mismatch")
+                duration = sum(
+                    number(result[k])
+                    for k in ("query_embedding_ms", "search_ms", "rerank_ms", "result_selection_ms")
+                )
+                if not math.isclose(number(result["recall_ms"]), duration, abs_tol=2):
+                    raise ValueError("Recall stage duration mismatch")
             for hit in retrieved:
                 if "components" in hit and hit["score"] != composite_score(
                     hit["components"], resolved["weights"]
@@ -113,9 +155,12 @@ def validate_report(report: dict[str, object]) -> None:
                     "vector_bytes",
                 } or any(number(v) < 0 for v in database.values()):
                     raise ValueError("Invalid database measurement")
-        summary = aggregate_run(results)
+        summary = aggregate_run(results, protocol=resolved)
         if any(run[key] != value for key, value in summary.items()):
             raise ValueError("Forged aggregate")
+        if resolved.get("comparison_version") == "memory-v2":
+            if run["stage_latency"] != stage_latency(results):
+                raise ValueError("Invalid stage latency summary")
         if mode == "real" and run["quality_passed"] is not summary["passed"]:
             raise ValueError("Inconsistent quality verdict")
         if "latency" in run:
@@ -176,6 +221,24 @@ def public_report(report: dict[str, object]) -> dict[str, object]:
             projected["hits"] = hits
             projected["retrieved_hits"] = _public_hits(rows(result["retrieved_hits"]))
             projected["return_budget"] = deepcopy(result["return_budget"])
+            if record(suite["protocol"]).get("comparison_version") == "memory-v2":
+                for key in (
+                    "safety_passed",
+                    "quality_passed",
+                    "false_positive_count",
+                    "required_ids",
+                    "eligible_ids",
+                    "rerank_ms",
+                    "result_selection_ms",
+                ):
+                    projected[key] = deepcopy(result[key])
+                projected["candidate_observations"] = [
+                    {
+                        key: deepcopy(o[key])
+                        for key in ("memory_id", "cosine", "components", "score", "reranker_score")
+                    }
+                    for o in rows(result["candidate_observations"])
+                ]
             for key in (
                 "index_ms",
                 "passage_embedding_ms",
@@ -206,6 +269,12 @@ def public_report(report: dict[str, object]) -> dict[str, object]:
             "harness_process_peak_rss_kib",
             "latency",
             "resources",
+            "safety_passed",
+            "score_ranges",
+            "quality_gates",
+            "stage_latency",
+            "real_reranker_calls",
+            "reranker_enabled",
         ):
             if key in run:
                 projected_run[key] = deepcopy(run[key])
@@ -217,26 +286,7 @@ def public_report(report: dict[str, object]) -> dict[str, object]:
         "quality_passed": report["quality_passed"],
         "input_sha256": hashes,
         "runs": runs,
-        "candidates": [
-            {
-                key: deepcopy(candidate[key])
-                for key in (
-                    "id",
-                    "model_alias",
-                    "revision",
-                    "sha256",
-                    "dimensions",
-                    "pooling",
-                    "query_prefix",
-                    "passage_prefix",
-                    "extension",
-                    "quantization",
-                    "parameters",
-                )
-                if key in candidate
-            }
-            for candidate in rows(report["candidates"])
-        ],
+        "candidates": [_public_candidate(candidate) for candidate in rows(report["candidates"])],
         "protocol": {
             key: record(suite["protocol"])[key]
             for key in (
@@ -284,6 +334,33 @@ def public_report(report: dict[str, object]) -> dict[str, object]:
             )
         }
     return published
+
+
+def _public_candidate(candidate: dict[str, object]) -> dict[str, object]:
+    projected = {
+        key: deepcopy(candidate[key])
+        for key in (
+            "id",
+            "model_alias",
+            "revision",
+            "sha256",
+            "dimensions",
+            "pooling",
+            "query_prefix",
+            "passage_prefix",
+            "extension",
+            "quantization",
+            "parameters",
+            "max_context_length",
+        )
+        if key in candidate
+    }
+    if "reranker" in candidate:
+        projected["reranker"] = {
+            key: deepcopy(record(candidate["reranker"])[key])
+            for key in ("model_alias", "revision", "sha256", "quantization", "max_context_length")
+        }
+    return projected
 
 
 def _public_hits(hits: list[dict[str, object]]) -> list[dict[str, object]]:
@@ -387,3 +464,50 @@ def validate_resources(evidence: dict[str, object]) -> None:
         ) / 1e6
         if computed < 0 or evidence[role + "_cpu_ms"] != computed:
             raise ValueError("Resource counter mismatch")
+
+
+def artifact_summary(payload: bytes, reference: str) -> dict[str, object]:
+    path = PurePosixPath(reference)
+    if (
+        len(path.parts) < 3
+        or path.parts[0] != "eval-artifacts"
+        or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", path.parts[1])
+        or ".." in path.parts
+        or path.is_absolute()
+        or str(path) != reference
+        or "\\" in reference
+    ):
+        raise ValueError("Relative dated artifact reference required")
+    report = record(json.loads(payload))
+    return {
+        "artifact": {
+            "reference": reference,
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "bytes": len(payload),
+        },
+        "mode": report["mode"],
+        "quality_passed": report["quality_passed"],
+        "input_sha256": report["input_sha256"],
+        "runs": [
+            {
+                key: deepcopy(run[key])
+                for key in (
+                    "candidate_id",
+                    "run_index",
+                    "execution_error",
+                    "quality_passed",
+                    "passed",
+                    "safety_passed",
+                    "categories",
+                    "score_ranges",
+                    "quality_gates",
+                    "latency",
+                    "stage_latency",
+                    "real_model_calls",
+                    "real_reranker_calls",
+                )
+                if key in run
+            }
+            for run in rows(report["runs"])
+        ],
+    }
