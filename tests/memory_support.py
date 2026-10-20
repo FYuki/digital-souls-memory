@@ -9,7 +9,6 @@ from digital_souls_memory.memory.domain import (
     Epistemics,
     IdentityLinks,
 )
-
 from tests.evidence_support import OCCURRED, RECORDED
 
 KINDS = ("fact", "preference", "relationship", "commitment", "summary", "key")
