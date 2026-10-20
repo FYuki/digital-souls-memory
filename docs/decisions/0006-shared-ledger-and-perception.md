@@ -1,7 +1,7 @@
 # 0006. 証拠台帳はキャラ共通とし、知覚範囲は参加者で表す
 
 - 日付：2026-10-19
-- 状態：承認
+- 状態：知覚範囲の定義（participants／audience）の部分のみ [ADR 0022](0022-perceived-by.md) で置き換え。その他の決定は有効
 
 ## 背景
 
@@ -9,8 +9,8 @@
 
 ## 決定
 
-- Evidence はキャラを持たない共通台帳とする。Turn に actor（発話・行為の主体）と kind（utterance／observation）、Session に participants を持ち、参加者と実際の聞き手が異なるときだけ Turn に audience を持つ。
-- キャラ別の派生記憶・内省は、そのキャラが participants か audience に含まれる Turn からだけ作る。
+- Evidence はキャラを持たない共通台帳とする。Turn に actor（発話・行為の主体）と kind を持つ。当初の kind は utterance／observation とした（[ADR 0022](0022-perceived-by.md) で thought を追加）。
+- 当初の知覚範囲は Session.participants と、実際の聞き手が異なるときの Turn.audience で表し、キャラ別の派生記憶・内省はそのキャラを含む Turn だけから作るとした。**この participants／audience による定義のみ ADR 0022 の perceived_by と本文範囲の規則に読み替える。**
 - 視聴者コメントはすべて Turn に記録し、派生記憶の抽出対象はキャラが反応したものに絞る。視聴者ごとの記憶は Relationship で持つ。
 - 会話以外の経験も Turn として記録し、surface でゲームや日記などを区別する。
 - セッションは窓口の接続単位とし、話題によるエピソード分割は窓口ごとの裏処理で行う。
