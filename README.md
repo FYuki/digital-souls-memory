@@ -8,6 +8,7 @@ AIキャラクターの一貫性と成長を支える記憶サービスです。
 
 - [ドメインモデル](docs/domain-model.md)：決定した内容（Core との境界、境界づけられたコンテキスト、エンティティ、不変条件、主要フロー、評価指標、実装の構成）
 - [決定記録（ADR）](docs/decisions/)：設計判断とその理由、検討した案
+- [Evidence API](docs/evidence-api.md)：Session・Turn・配送報告の登録と取得、知覚範囲、入力契約
 - 調査資料
   - [長期記憶と内省における原文の重要性](docs/research/raw-vs-summary-memory.md)
   - [内省と長期記憶の相互作用（認知科学からの設計）](docs/research/reflection-and-memory-cognitive-science.md)
@@ -41,7 +42,8 @@ uv run --no-sync uvicorn digital_souls_memory.api:create_app --factory --host 12
 
 `GET http://127.0.0.1:8000/health` は `{"status":"ok"}` を返します。
 DB 接続・実モデル・認証情報を必要としない liveness です。
-Phase 0 で実装するのはこの基盤までで、ドメインモデル・想起 API・LLM 接続は Phase 1 で扱います。
+Evidence API は Session・Turn・配送報告の登録と取得を提供します。
+利用には DB の明示設定と migration が必要です。想起 API・LLM 接続は未実装です。
 
 開発 DB は次の手順で起動・初期化します。パスワードと接続 URL はローカル環境で指定し、
 リポジトリには保存しません。URL 内のパスワードは必要に応じて URL エンコードしてください。
