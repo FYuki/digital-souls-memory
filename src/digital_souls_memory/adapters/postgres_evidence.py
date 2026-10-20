@@ -34,6 +34,8 @@ class PostgresEvidenceStore:
         except psycopg.errors.UniqueViolation as error:
             raise EvidenceConflict() from error
         except psycopg.errors.ForeignKeyViolation as error:
+            if error.diag.constraint_name == "turns_reply_to_turn_id_fkey":
+                raise EvidenceValidationError("Reply target does not exist") from error
             raise EvidenceNotFound() from error
         except (
             psycopg.errors.CheckViolation,
@@ -47,14 +49,15 @@ class PostgresEvidenceStore:
     def add_session(self, value: Session) -> None:
         with self._connection() as connection:
             connection.execute(
-                "INSERT INTO sessions (session_id, started_at, ended_at, surface, participants) "
+                "INSERT INTO sessions "
+                "(session_id, started_at, ended_at, surface, reports_delivery) "
                 "VALUES (%s, %s, %s, %s, %s)",
                 (
                     value.session_id,
                     value.started_at,
                     value.ended_at,
                     value.surface,
-                    list(value.participants),
+                    value.reports_delivery,
                 ),
             )
 
@@ -69,9 +72,10 @@ class PostgresEvidenceStore:
     def add_turn(self, value: Turn) -> None:
         with self._connection() as connection:
             connection.execute(
-                "INSERT INTO turns (turn_id, session_id, surface, actor, kind, text, audience, "
+                "INSERT INTO turns (turn_id, session_id, surface, actor, kind, text, perceived_by, "
+                "addressees, address_mode, reply_to_turn_id, "
                 "language, register, sensitivity, classifier_version, occurred_at, recorded_at) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     value.turn_id,
                     value.session_id,
@@ -79,7 +83,10 @@ class PostgresEvidenceStore:
                     value.actor,
                     value.kind,
                     value.text,
-                    list(value.audience),
+                    list(value.perceived_by),
+                    list(value.addressees),
+                    value.address_mode,
+                    value.reply_to_turn_id,
                     value.language,
                     Jsonb(dict(value.register)),
                     value.sensitivity,
@@ -130,10 +137,8 @@ class PostgresEvidenceStore:
             with connection.cursor(name="evidence_turns") as cursor:
                 cursor.itersize = 128
                 cursor.execute(
-                    "SELECT t.* FROM turns t JOIN sessions s ON s.session_id = t.session_id "
-                    "WHERE t.actor = %s OR %s = ANY(t.audience) "
-                    "OR (cardinality(t.audience) = 0 AND %s = ANY(s.participants)) "
+                    "SELECT t.* FROM turns t WHERE %s = ANY(t.perceived_by) "
                     "ORDER BY t.occurred_at, t.recorded_at, t.turn_id",
-                    (character_id, character_id, character_id),
+                    (character_id,),
                 )
                 yield (Turn(**row) for row in cursor)

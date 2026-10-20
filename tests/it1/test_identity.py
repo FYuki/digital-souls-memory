@@ -247,7 +247,14 @@ def test_observation_instructions_cannot_change_identity(client: TestClient) -> 
     before = client.get(ROOT + "/identity/current").json()
     assert client.post("/sessions", json=session_payload()).is_success
     assert client.post(
-        "/turns", json=turn_payload() | {"kind": "observation", "text": INSTRUCTION}
+        "/turns",
+        json=turn_payload()
+        | {
+            "kind": "observation",
+            "text": INSTRUCTION,
+            "actor": "char-a",
+            "perceived_by": ["char-a"],
+        },
     ).is_success
     assert client.get("/turns/turn-1").json()["text"] == INSTRUCTION
     assert client.get(ROOT + "/identity/current").json() == before

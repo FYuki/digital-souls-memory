@@ -4,16 +4,31 @@ from collections.abc import Callable, Iterator, Mapping
 from contextlib import AbstractContextManager, contextmanager
 from datetime import datetime
 
-from digital_souls_memory.evidence.domain import DeliveryReceipt, Session, Turn, validate_receipt
-from digital_souls_memory.evidence.ports import EvidenceNotFound, EvidenceStore
+from digital_souls_memory.evidence.domain import (
+    DeliveryReceipt,
+    EvidenceValidationError,
+    Session,
+    Turn,
+    resolve_address_mode,
+    validate_receipt,
+)
+from digital_souls_memory.evidence.ports import (
+    CharacterRegistry,
+    EvidenceNotFound,
+    EvidenceStore,
+    EvidenceUnavailable,
+)
 
 Clock = Callable[[], datetime]
 
 
 class EvidenceService:
-    def __init__(self, store: EvidenceStore, clock: Clock) -> None:
+    def __init__(
+        self, store: EvidenceStore, clock: Clock, characters: CharacterRegistry | None = None
+    ) -> None:
         self._store = store
         self._clock = clock
+        self._characters = characters
 
     def add_session(self, value: Session) -> Session:
         self._store.add_session(value)
@@ -34,13 +49,22 @@ class EvidenceService:
         actor: str,
         kind: str,
         text: str,
-        audience: tuple[str, ...],
+        perceived_by: tuple[str, ...],
+        addressees: tuple[str, ...],
+        address_mode: str | None,
+        reply_to_turn_id: str | None,
         language: str,
         register: Mapping[str, str],
         sensitivity: str,
         classifier_version: str,
         occurred_at: datetime,
     ) -> Turn:
+        if self._characters is None:
+            raise EvidenceUnavailable()
+        actor_is_character = self._characters.is_character(actor)
+        mode = resolve_address_mode(
+            address_mode=address_mode, actor_is_character=actor_is_character, addressees=addressees
+        )
         value = Turn(
             turn_id=turn_id,
             session_id=session_id,
@@ -48,7 +72,10 @@ class EvidenceService:
             actor=actor,
             kind=kind,
             text=text,
-            audience=audience,
+            perceived_by=perceived_by,
+            addressees=addressees,
+            address_mode=mode,
+            reply_to_turn_id=reply_to_turn_id,
             language=language,
             register=register,
             sensitivity=sensitivity,
@@ -56,6 +83,21 @@ class EvidenceService:
             occurred_at=occurred_at,
             recorded_at=self._clock(),
         )
+        if any(
+            not (
+                actor_is_character
+                if identifier == actor
+                else self._characters.is_character(identifier)
+            )
+            for identifier in value.perceived_by
+        ):
+            raise EvidenceValidationError("Perception requires registered characters")
+        if actor_is_character and actor not in value.perceived_by:
+            raise EvidenceValidationError("Character actor must perceive its own turn")
+        if kind == "thought" and not actor_is_character:
+            raise EvidenceValidationError("Thought requires a registered character actor")
+        if reply_to_turn_id is not None and self._store.get_turn(reply_to_turn_id) is None:
+            raise EvidenceValidationError("Reply target does not exist")
         self.get_session(session_id)
         self._store.add_turn(value)
         return value
@@ -68,6 +110,9 @@ class EvidenceService:
 
     def add_receipt(self, value: DeliveryReceipt) -> DeliveryReceipt:
         turn = self.get_turn(value.turn_id)
+        session = self.get_session(turn.session_id)
+        if not session.reports_delivery or turn.kind == "thought":
+            raise EvidenceValidationError("Turn does not accept delivery receipts")
         validate_receipt(value, turn.text)
         self._store.add_receipt(value)
         return value

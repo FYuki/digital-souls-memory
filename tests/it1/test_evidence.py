@@ -1,3 +1,4 @@
+import json
 from collections.abc import Iterator
 from datetime import datetime, timedelta
 
@@ -6,6 +7,7 @@ from fastapi.testclient import TestClient
 from httpx import Response
 
 from digital_souls_memory.api import create_app
+from digital_souls_memory.identity.ports import IdentityUnavailable
 from tests.evidence_support import (
     INSTRUCTION,
     OCCURRED,
@@ -15,7 +17,7 @@ from tests.evidence_support import (
     session_payload,
     turn_payload,
 )
-from tests.it1.evidence_fakes import FakeEvidenceStore
+from tests.it1.evidence_fakes import FakeEvidenceStore, registered_identities
 
 pytestmark = pytest.mark.it1
 
@@ -27,7 +29,9 @@ def store() -> FakeEvidenceStore:
 
 @pytest.fixture
 def client(store: FakeEvidenceStore) -> Iterator[TestClient]:
-    with TestClient(create_app(store=store, clock=lambda: RECORDED)) as result:
+    with TestClient(
+        create_app(store=store, clock=lambda: RECORDED, identity_store=registered_identities())
+    ) as result:
         yield result
 
 
@@ -51,11 +55,10 @@ def assert_dto_error(response: Response, field: str) -> None:
 def test_http_identifiers_support_all_reference_operations(
     client: TestClient, identifier: str
 ) -> None:
-    participant, audience = "char_a", "char_b"
+    listener = "char_b"
     payload = {
         **session_payload(),
         "session_id": identifier,
-        "participants": [participant],
         "surface": "session/1",
     }
     assert client.post("/sessions", json=payload).status_code == 201
@@ -64,7 +67,7 @@ def test_http_identifiers_support_all_reference_operations(
         **turn_payload(),
         "turn_id": "Turn_1",
         "session_id": identifier,
-        "audience": [audience],
+        "perceived_by": [listener],
         "actor": "actor/1",
         "language": "ja/JP",
         "sensitivity": "label/1",
@@ -78,8 +81,8 @@ def test_http_identifiers_support_all_reference_operations(
     report = {**receipt_payload("none", 0), "reported_by": "window/1"}
     assert client.post("/turns/Turn_1/receipts", json=report).status_code == 201
     assert client.get("/turns/Turn_1/receipts").json()[0]["reported_by"] == "window/1"
-    assert client.get(f"/characters/{participant}/turns").json() == []
-    values = client.get(f"/characters/{audience}/turns").json()
+    assert client.get("/characters/char_a/turns").json() == []
+    values = client.get(f"/characters/{listener}/turns").json()
     assert [value["turn_id"] for value in values] == ["Turn_1"]
     assert values[0] == saved
 
@@ -88,10 +91,10 @@ def test_http_identifiers_support_all_reference_operations(
     "path,field",
     [
         ("/sessions", "session_id"),
-        ("/sessions", "participants"),
         ("/turns", "turn_id"),
         ("/turns", "session_id"),
-        ("/turns", "audience"),
+        ("/turns", "perceived_by"),
+        ("/turns", "addressees"),
     ],
 )
 @pytest.mark.parametrize("invalid", ["session/1", "", " ", "日本語", "a\n", "a?b", 1])
@@ -100,7 +103,7 @@ def test_invalid_http_identifier_is_rejected_before_storage(
 ) -> None:
     register_turn(client)
     payload = session_payload() if path == "/sessions" else turn_payload()
-    payload[field] = [invalid] if field in {"participants", "audience"} else invalid
+    payload[field] = [invalid] if field in {"perceived_by", "addressees"} else invalid
     before = store.writes
     response = client.post(path, json=payload)
     assert_dto_error(response, field)
@@ -150,7 +153,7 @@ def test_invalid_label_returns_422_without_writing(
 
 @pytest.mark.parametrize(
     "path,field",
-    [("/sessions", field) for field in ("session_id", "started_at", "surface", "participants")]
+    [("/sessions", field) for field in ("session_id", "started_at", "surface", "reports_delivery")]
     + [
         ("/turns", field)
         for field in (
@@ -163,6 +166,8 @@ def test_invalid_label_returns_422_without_writing(
             "language",
             "register",
             "occurred_at",
+            "perceived_by",
+            "addressees",
         )
     ]
     + [
@@ -192,19 +197,15 @@ def test_required_field_missing_does_not_write(
     assert store.writes == before
 
 
-def test_optional_session_end_and_turn_audience(client: TestClient) -> None:
+def test_optional_session_end_and_reply(client: TestClient) -> None:
     payload = session_payload()
     del payload["ended_at"]
-    assert client.post("/sessions", json=payload).is_success
+    assert client.post("/sessions", json=payload).status_code == 201
     payload = turn_payload()
-    del payload["audience"]
-    assert client.post("/turns", json=payload).is_success
+    del payload["reply_to_turn_id"]
+    assert client.post("/turns", json=payload).status_code == 201
     assert client.get("/sessions/session-1").json()["ended_at"] is None
-    assert client.get("/turns/turn-1").json()["audience"] == []
-    assert [value["turn_id"] for value in client.get("/characters/char-a/turns").json()] == [
-        "turn-1"
-    ]
-    assert client.get("/characters/char-z/turns").json() == []
+    assert client.get("/turns/turn-1").json()["reply_to_turn_id"] is None
 
 
 @pytest.mark.parametrize(
@@ -220,73 +221,51 @@ def test_all_utterances_and_observations_are_registered(
     client: TestClient, actor: str, kind: str, surface: str
 ) -> None:
     assert client.post("/sessions", json=session_payload()).is_success
-    payload = {**turn_payload(), "actor": actor, "kind": kind, "surface": surface}
+    payload = {
+        **turn_payload(),
+        "actor": actor,
+        "kind": kind,
+        "surface": surface,
+        "perceived_by": ["char-a", "char-b"],
+    }
     assert client.post("/turns", json=payload).is_success
     saved = client.get("/turns/turn-1").json()
     assert (saved["actor"], saved["kind"], saved["surface"]) == (actor, kind, surface)
     assert saved["text"] == TEXT
 
 
-def test_character_query_limits_listeners_and_includes_own_turns(client: TestClient) -> None:
-    register_turn(client)
-    assert client.post(
-        "/sessions", json={**session_payload(), "session_id": "private", "participants": ["char-z"]}
-    ).is_success
-    assert client.post(
-        "/turns",
-        json={**turn_payload(), "turn_id": "private", "session_id": "private", "audience": []},
-    ).is_success
-    for character, expected in [
-        ("char-a", set()),
-        ("char-b", {"turn-1"}),
-        ("char-c", {"turn-1", "private"}),
-        ("nobody", set()),
+def test_each_turn_keeps_its_perception_after_reply_and_hearsay(client: TestClient) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    for identifier, perceived, targets, reply, kind in [
+        ("whisper", ["char-c"], ["viewer"], None, "utterance"),
+        ("reply", ["char-b", "char-c"], ["char-a"], "whisper", "utterance"),
+        ("hearsay", ["char-a", "char-c"], [], "whisper", "observation"),
     ]:
-        response = client.get(f"/characters/{character}/turns")
-        assert response.status_code == 200
-        assert {value["turn_id"] for value in response.json()} == expected
-
-
-@pytest.mark.parametrize(
-    "participants,audience,actor,expected",
-    [
-        (["char-a"], [], "char-c", True),
-        (["char-z"], [], "char-c", False),
-        (["char-z"], ["char-a"], "char-c", True),
-        (["char-a"], ["char-b"], "char-c", False),
-        (["char-z"], [], "char-a", True),
-        (["char-z"], ["char-b"], "char-a", True),
-    ],
-)
-def test_character_query_applies_audience_participants_and_actor_rules(
-    client: TestClient, participants: list[str], audience: list[str], actor: str, expected: bool
-) -> None:
-    assert client.post(
-        "/sessions", json={**session_payload(), "participants": participants}
-    ).is_success
-    assert client.post(
-        "/turns", json={**turn_payload(), "audience": audience, "actor": actor}
-    ).is_success
-    assert [value["turn_id"] for value in client.get("/characters/char-a/turns").json()] == (
-        ["turn-1"] if expected else []
-    )
-
-
-@pytest.mark.parametrize("kind", ["utterance", "observation"])
-def test_actor_exception_does_not_include_other_turns_in_same_session(
-    client: TestClient, kind: str
-) -> None:
-    assert client.post(
-        "/sessions", json={**session_payload(), "participants": ["char-b", "char-c"]}
-    ).is_success
-    for identifier, actor in [("own", "char-a"), ("other", "char-c")]:
-        assert client.post(
-            "/turns",
-            json={**turn_payload(), "turn_id": identifier, "actor": actor, "kind": kind},
-        ).is_success
-    response = client.get("/characters/char-a/turns")
-    assert response.status_code == 200
-    assert [value["turn_id"] for value in response.json()] == ["own"]
+        assert (
+            client.post(
+                "/turns",
+                json=turn_payload()
+                | {
+                    "turn_id": identifier,
+                    "perceived_by": perceived,
+                    "addressees": targets,
+                    "address_mode": "direct" if targets else "broadcast",
+                    "reply_to_turn_id": reply,
+                    "kind": kind,
+                },
+            ).status_code
+            == 201
+        )
+    for character, expected in [
+        ("char-a", ["hearsay"]),
+        ("char-b", ["reply"]),
+        ("char-c", ["hearsay", "reply", "whisper"]),
+        ("char-z", []),
+    ]:
+        assert [
+            v["turn_id"] for v in client.get(f"/characters/{character}/turns").json()
+        ] == expected
+    assert client.get("/turns/whisper").json()["perceived_by"] == ["char-c"]
 
 
 @pytest.mark.parametrize(
@@ -312,7 +291,9 @@ def test_character_query_orders_turns_across_sessions_and_surfaces(
             RECORDED + timedelta(seconds=first_recorded),
         ]
     )
-    with TestClient(create_app(store=store, clock=lambda: next(times))) as client:
+    with TestClient(
+        create_app(store=store, clock=lambda: next(times), identity_store=registered_identities())
+    ) as client:
         for identifier, surface in [("session-1", "chat"), ("session-2", "diary")]:
             assert client.post(
                 "/sessions",
@@ -465,3 +446,327 @@ def test_invalid_database_configuration_does_not_become_empty_results(
     with TestClient(create_app()) as default_client:
         assert default_client.get("/characters/char-a/turns").status_code == 503
         assert default_client.get("/health").status_code == 200
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_delivery_declaration_roundtrips(
+    client: TestClient, store: FakeEvidenceStore, value: bool
+) -> None:
+    response = client.post("/sessions", json=session_payload() | {"reports_delivery": value})
+    assert response.status_code == 201
+    assert response.json()["reports_delivery"] is value
+    assert client.get("/sessions/session-1").json()["reports_delivery"] is value
+    assert store.sessions["session-1"].reports_delivery is value
+
+
+@pytest.mark.parametrize("value", [None, 0, 1, "true", "false", [], {}])
+def test_invalid_delivery_declaration_does_not_write(
+    client: TestClient, store: FakeEvidenceStore, value: object
+) -> None:
+    assert (
+        client.post("/sessions", json=session_payload() | {"reports_delivery": value}).status_code
+        == 422
+    )
+    assert store.writes == 0
+
+
+@pytest.mark.parametrize("path,key", [("/sessions", "participants"), ("/turns", "audience")])
+def test_top_level_old_fields_including_escaped_keys_are_rejected(
+    client: TestClient, store: FakeEvidenceStore, path: str, key: str
+) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    payload = (
+        (session_payload() | {"session_id": "other"}) if path == "/sessions" else turn_payload()
+    )
+    raw = (
+        json.dumps(payload)[:-1]
+        + ', "'
+        + (r"\u0061udience" if key == "audience" else key)
+        + '" : [] }'
+    )
+    before = store.writes
+    assert (
+        client.post(path, content=raw, headers={"Content-Type": "application/json"}).status_code
+        == 422
+    )
+    assert store.writes == before
+
+
+def test_old_field_words_in_text_and_register_are_preserved(client: TestClient) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    payload = turn_payload() | {
+        "text": '{"audience":[]}',
+        "register": {"participants": "引用", "audience": "語句"},
+    }
+    assert client.post("/turns", json=payload).status_code == 201
+    saved = client.get("/turns/turn-1").json()
+    assert saved["text"] == payload["text"]
+    assert saved["register"] == payload["register"]
+    assert "audience" not in saved
+    assert "participants" not in client.get("/sessions/session-1").json()
+
+
+@pytest.mark.parametrize("field", ["perceived_by", "addressees"])
+@pytest.mark.parametrize(
+    "value", ["missing", None, "char-b", 3, {}, [3], [""], [" \t"], ["char-b", "char-b"]]
+)
+def test_invalid_required_arrays_do_not_write(
+    client: TestClient, store: FakeEvidenceStore, field: str, value: object
+) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    payload = turn_payload()
+    if value == "missing":
+        del payload[field]
+    else:
+        payload[field] = value
+    before = store.writes
+    assert client.post("/turns", json=payload).status_code == 422
+    assert store.writes == before
+
+
+@pytest.mark.parametrize("actor", ["char-c", "viewer", "char-unregistered"])
+@pytest.mark.parametrize("kind", ["utterance", "observation"])
+@pytest.mark.parametrize(
+    "mode",
+    ["missing", None, "direct", "broadcast", "self", "unknown", "", "Broadcast", 0, False, [], {}],
+)
+@pytest.mark.parametrize("targets", [[], ["viewer", "char-a"]])
+def test_actor_specific_address_mode_acceptance(
+    client: TestClient,
+    store: FakeEvidenceStore,
+    actor: str,
+    kind: str,
+    mode: object,
+    targets: list[str],
+) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    payload = turn_payload() | {"actor": actor, "kind": kind, "addressees": targets}
+    if mode == "missing":
+        del payload["address_mode"]
+    else:
+        payload["address_mode"] = mode
+    before = store.writes
+    resolved = "broadcast" if mode in ("missing", None) and actor != "char-c" else mode
+    valid = (resolved == "direct" and bool(targets)) or (
+        resolved in ("broadcast", "self") and not targets
+    )
+    response = client.post("/turns", json=payload)
+    assert response.status_code == (201 if valid else 422)
+    assert store.writes == before + int(valid)
+    if valid:
+        assert response.json()["address_mode"] == resolved
+        assert response.json()["addressees"] == targets
+        assert store.turns["turn-1"].address_mode == resolved
+        assert client.get("/turns/turn-1").json() == response.json()
+
+
+@pytest.mark.parametrize(
+    "resource,payload",
+    [
+        ("core-identities", {"values": ["誠実"], "prohibitions": []}),
+        ("temperaments", {"description": "合成気質"}),
+    ],
+)
+@pytest.mark.parametrize("mode", ["missing", None])
+def test_either_identity_registration_requires_character_mode(
+    client: TestClient,
+    store: FakeEvidenceStore,
+    resource: str,
+    payload: dict[str, object],
+    mode: object,
+) -> None:
+    assert (
+        client.post(
+            f"/characters/viewer-looking/{resource}",
+            json=payload,
+        ).status_code
+        == 201
+    )
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    value = turn_payload() | {"actor": "viewer-looking", "perceived_by": ["viewer-looking"]}
+    if mode == "missing":
+        del value["address_mode"]
+    else:
+        value["address_mode"] = mode
+    before = store.writes
+    assert client.post("/turns", json=value).status_code == 422
+    assert store.writes == before
+    assert client.post("/turns", json=value | {"address_mode": "broadcast"}).status_code == 201
+
+
+@pytest.mark.parametrize(
+    "actor,perceived,kind",
+    [
+        ("viewer", ["viewer"], "utterance"),
+        ("char-c", [], "utterance"),
+        ("char-c", ["char-b"], "observation"),
+        ("char-c", ["char-c", "unregistered"], "utterance"),
+        ("viewer", [], "thought"),
+        ("char-c", [], "thought"),
+        ("char-c", ["char-b"], "thought"),
+        ("char-c", ["char-c", "char-b"], "thought"),
+        ("char-c", ["char-c"], "unknown"),
+    ],
+)
+def test_registration_and_thought_constraints_reject_without_writing(
+    client: TestClient, store: FakeEvidenceStore, actor: str, perceived: list[str], kind: str
+) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    before = store.writes
+    assert (
+        client.post(
+            "/turns",
+            json=turn_payload() | {"actor": actor, "kind": kind, "perceived_by": perceived},
+        ).status_code
+        == 422
+    )
+    assert store.writes == before
+
+
+@pytest.mark.parametrize("mode", ["missing", None])
+def test_user_thought_is_not_enabled_by_mode_default(
+    client: TestClient, store: FakeEvidenceStore, mode: object
+) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    payload = turn_payload() | {"actor": "viewer", "kind": "thought", "perceived_by": []}
+    if mode == "missing":
+        del payload["address_mode"]
+    else:
+        payload["address_mode"] = mode
+    before = store.writes
+    assert client.post("/turns", json=payload).status_code == 422
+    assert store.writes == before
+
+
+@pytest.mark.parametrize(
+    "actor,perceived,mode,kind",
+    [
+        ("char-c", ["char-c", "char-b"], "self", "utterance"),
+        ("viewer", ["char-c", "char-b"], "self", "utterance"),
+        ("viewer", [], "self", "utterance"),
+        ("char-c", ["char-c"], "broadcast", "thought"),
+    ],
+)
+def test_self_and_thought_have_explicit_perception(
+    client: TestClient, actor: str, perceived: list[str], mode: str, kind: str
+) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    assert (
+        client.post(
+            "/turns",
+            json=turn_payload()
+            | {"actor": actor, "perceived_by": perceived, "address_mode": mode, "kind": kind},
+        ).status_code
+        == 201
+    )
+    for character in ("char-a", "char-b", "char-c", "char-z"):
+        assert [v["turn_id"] for v in client.get(f"/characters/{character}/turns").json()] == (
+            ["turn-1"] if character in perceived else []
+        )
+
+
+@pytest.mark.parametrize("reference", ["missing", ["turn-1", "turn-2"], "", 3, {}])
+def test_invalid_reply_is_rejected_without_writing(
+    client: TestClient, store: FakeEvidenceStore, reference: object
+) -> None:
+    register_turn(client)
+    before = store.writes
+    assert (
+        client.post(
+            "/turns", json=turn_payload() | {"turn_id": "reply", "reply_to_turn_id": reference}
+        ).status_code
+        == 422
+    )
+    assert store.writes == before
+
+
+@pytest.mark.parametrize(
+    "delivery,kind",
+    [(False, "utterance"), (False, "observation"), (False, "thought"), (True, "thought")],
+)
+def test_ineligible_receipts_do_not_write_or_change_text(
+    client: TestClient, store: FakeEvidenceStore, delivery: bool, kind: str
+) -> None:
+    assert (
+        client.post(
+            "/sessions", json=session_payload() | {"reports_delivery": delivery}
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            "/turns", json=turn_payload() | {"kind": kind, "perceived_by": ["char-c"]}
+        ).status_code
+        == 201
+    )
+    before = store.writes
+    assert client.post("/turns/turn-1/receipts", json=receipt_payload("none", 0)).status_code == 422
+    assert store.writes == before
+    assert client.get("/turns/turn-1/receipts").json() == []
+    assert client.get("/turns/turn-1").json()["text"] == TEXT
+
+
+def test_openapi_exposes_optional_input_but_resolved_response_mode(client: TestClient) -> None:
+    schemas = client.get("/openapi.json").json()["components"]["schemas"]
+    for name in ("SessionRequest", "SessionResponse"):
+        assert "participants" not in schemas[name]["properties"]
+        assert "reports_delivery" in schemas[name]["required"]
+        assert schemas[name]["properties"]["reports_delivery"]["type"] == "boolean"
+    request = schemas["TurnRequest"]
+    response = schemas["TurnResponse"]
+    assert "address_mode" not in request["required"]
+    variants = request["properties"]["address_mode"]["anyOf"]
+    assert any(v.get("type") == "null" for v in variants)
+    assert any(set(v.get("enum", [])) == {"direct", "broadcast", "self"} for v in variants)
+    assert "address_mode" in response["required"]
+    assert response["properties"]["address_mode"]["type"] == "string"
+    assert set(response["properties"]["address_mode"]["enum"]) == {"direct", "broadcast", "self"}
+    for schema in (request, response):
+        assert "audience" not in schema["properties"]
+        assert {"perceived_by", "addressees"} <= set(schema["required"])
+        assert set(schema["properties"]["kind"]["enum"]) == {"utterance", "observation", "thought"}
+
+
+@pytest.mark.parametrize("targets", [["char-b"], ["viewer"], ["char-a", "viewer"]])
+def test_direct_addressing_uses_only_declared_perception(
+    client: TestClient, targets: list[str]
+) -> None:
+    assert client.post("/sessions", json=session_payload()).status_code == 201
+    assert (
+        client.post(
+            "/turns", json=turn_payload() | {"addressees": targets, "address_mode": "direct"}
+        ).status_code
+        == 201
+    )
+    assert client.get("/characters/char-a/turns").json() == []
+    assert client.get("/characters/char-z/turns").json() == []
+    for character in ("char-b", "char-c"):
+        assert [v["turn_id"] for v in client.get(f"/characters/{character}/turns").json()] == [
+            "turn-1"
+        ]
+
+
+def test_identity_lookup_failure_is_not_treated_as_user_and_retry_succeeds(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    evidence = FakeEvidenceStore()
+    identities = registered_identities()
+    with TestClient(
+        create_app(store=evidence, identity_store=identities, clock=lambda: RECORDED)
+    ) as client:
+        assert client.post("/sessions", json=session_payload()).status_code == 201
+        payload = turn_payload() | {"actor": "viewer", "perceived_by": []}
+        del payload["address_mode"]
+        before = evidence.writes
+
+        def unavailable(character_id: str, version: int | None = None) -> None:
+            raise IdentityUnavailable()
+
+        with monkeypatch.context() as patch:
+            patch.setattr(identities, "get_core", unavailable)
+            patch.setattr(identities, "get_temperament", unavailable)
+            assert client.post("/turns", json=payload).status_code == 503
+        assert evidence.writes == before
+        response = client.post("/turns", json=payload)
+        assert response.status_code == 201
+        assert response.json()["address_mode"] == "broadcast"

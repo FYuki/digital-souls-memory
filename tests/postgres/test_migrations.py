@@ -16,7 +16,10 @@ pytestmark = pytest.mark.postgres
 def test_identity_revision_is_the_single_successor_of_evidence() -> None:
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
     scripts = ScriptDirectory.from_config(config)
-    assert scripts.get_heads() == ["0003"]
+    assert scripts.get_heads() == ["0004"]
+    perception = scripts.get_revision("0004")
+    assert perception is not None
+    assert perception.down_revision == "0003"
     identity = scripts.get_revision("0003")
     assert identity is not None
     assert identity.down_revision == "0002"
@@ -79,7 +82,7 @@ def test_upgrade_and_downgrade_on_empty_database(
                 if previous_head
                 else {}
             )
-            command.upgrade(config, "head")
+            command.upgrade(config, "0003")
             assert connection.execute(
                 "SELECT extversion FROM pg_extension WHERE extname = 'vector'"
             ).fetchone() == ("0.8.2",)
@@ -91,7 +94,7 @@ def test_upgrade_and_downgrade_on_empty_database(
             ]
             for table in ("sessions", "turns", "delivery_receipts"):
                 assert connection.execute("SELECT to_regclass(%s)", (table,)).fetchone() == (table,)
-            command.upgrade(config, "head")
+            command.upgrade(config, "0003")
             for table in ("core_identities", "temperaments", "personality_profiles"):
                 assert connection.execute("SELECT to_regclass(%s)", (table,)).fetchone() == (table,)
             if previous_head:
@@ -108,7 +111,7 @@ def test_upgrade_and_downgrade_on_empty_database(
                 assert connection.execute("SELECT to_regclass(%s)", (table,)).fetchone() == (None,)
             for table, rows in evidence_before.items():
                 assert connection.execute(f"SELECT * FROM {table}").fetchall() == rows
-            command.upgrade(config, "head")
+            command.upgrade(config, "0003")
             assert connection.execute("SELECT version_num FROM alembic_version").fetchall() == [
                 ("0003",)
             ]
@@ -120,7 +123,7 @@ def test_upgrade_and_downgrade_on_empty_database(
             ]
             for table in ("sessions", "turns", "delivery_receipts"):
                 assert connection.execute("SELECT to_regclass(%s)", (table,)).fetchone() == (None,)
-            command.upgrade(config, "head")
+            command.upgrade(config, "0003")
             if previous_head:
                 assert connection.execute(
                     "SELECT value::text FROM synthetic_existing"
