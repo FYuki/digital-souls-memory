@@ -2,8 +2,9 @@
 
 Issue #9の評価専用パッケージです。製品schema・migration・想起APIは変更しません。
 実検索、固定条件によるtuning、公開証跡の再検証まで実装しています。
-実モデル比較はNOT RUNです。前段でNVML取得をOSに拒否され、GPU deviceも
-確認できなかったという報告を引き継ぎ、同条件のGPU確認は反復していません。
+当初の実モデル比較NOT RUN記録は保存しています。ホスト実行ではGPUを確認し、
+bge-m3は完走して品質FAIL、e5は長文で実行ERRORでした。
+[実測記録](reports/2026-10-20-retrieval-it2-host.md)を参照してください。
 
 ## 固定入力
 
@@ -145,7 +146,7 @@ sort_keys、ensure_ascii=False、separators=(',',':')、allow_nan=Falseを固定
 加重和・集計・分位点・CPU差分を再検証できます。
 
 製品HTTP・ProvisionRecord書込みは未計測です。標本間のRAM/VRAM peakは保証しません。
-DB/OS cacheは制御せずcold cacheと記載しません。実資源計測はNOT RUNで通常試験はfake transportです。
+DB/OS cacheは制御せずcold cacheと記載しません。実資源計測は新しいホスト実行証跡に保存しました。通常試験はfake transportです。
 これらの値から製品ターン想起全体への適合を断定しません。
 公開出力は原文・query・任意追加欄・外部例外本文を含めず、byte hashと正規JSON hash、候補parameters、
 各runの実呼出し件数を保存します。validate_public_reportに固定suiteと調整済み候補を渡して再検証します。
