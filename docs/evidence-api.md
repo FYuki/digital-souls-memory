@@ -195,10 +195,12 @@ Receipt の親不存在を404にする確認はサービスが担い、ストア
 
 0004 は0003の後に直列適用します。旧 Session は reports_delivery=true、
 旧 Turn は空宛先・broadcast・返信先なしで埋め、宛先や返信先を推測しません。
-旧 audience が非空ならその配列、空なら旧 Session.participants から明示的合成対応表の
-キャラだけを順序どおり選び、未収録のキャラ actor 本人を末尾に一度追加します。
-対応表は migration 内の char-a / char-b / char-c（キャラ）、viewer（利用者）です。
-未知 ID または未登録キャラがあれば停止し、トランザクションで変更を取り消します。
+旧 audience が非空ならその配列、空なら旧 Session.participants を選んでから、
+core_identities または temperaments に登録されたキャラ ID だけを順序どおり抽出します。
+登録キャラ actor 本人が未収録なら末尾に一度追加します。
+キャラは0003の identity テーブルへ登録してから0004を適用してください。
+未登録 ID は利用者として除外し、その存在だけでは移行を中断しません。
+移行途中で失敗した場合は、トリガーの一時的な無効化も含めてトランザクションで取り消します。
 
 downgrade は perceived_by を旧 audience にコピーし、全 participants を空にします。
 元の在席一覧・旧配列中の利用者・空配列の表現差・宛先・mode・返信先・配達宣言は

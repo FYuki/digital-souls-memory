@@ -8,21 +8,16 @@ down_revision: str | None = "0003"
 branch_labels: str | None = None
 depends_on: str | None = None
 
-# Explicit roles of the supported synthetic legacy fixture, never prefix inference.
-ID_ROLES = {"char-a": "character", "char-b": "character", "char-c": "character", "viewer": "user"}
-
 
 def upgrade() -> None:
     connection = op.get_bind()
-    identifiers = connection.execute(
-        sa.text("""
-        SELECT unnest(participants) FROM sessions
-        UNION SELECT unnest(audience) FROM turns
-        UNION SELECT actor FROM turns
+    op.execute("""
+        CREATE FUNCTION evidence_is_character(identifier TEXT) RETURNS BOOLEAN
+        LANGUAGE SQL STABLE STRICT AS $$
+            SELECT EXISTS (SELECT 1 FROM core_identities WHERE character_id = identifier)
+                OR EXISTS (SELECT 1 FROM temperaments WHERE character_id = identifier)
+        $$
     """)
-    ).scalars()
-    if any(identifier not in ID_ROLES for identifier in identifiers):
-        raise ValueError("Unclassified legacy identifier; synthetic role mapping required")
     op.execute("ALTER TABLE sessions DISABLE TRIGGER evidence_immutable")
     op.execute("ALTER TABLE turns DISABLE TRIGGER evidence_immutable")
     op.execute("ALTER TABLE sessions ADD COLUMN reports_delivery BOOLEAN")
@@ -37,15 +32,18 @@ def upgrade() -> None:
     """)
     for row in connection.execute(
         sa.text("""
-        SELECT t.turn_id, t.actor,
-            CASE WHEN cardinality(t.audience) > 0 THEN t.audience ELSE s.participants END AS legacy
+        SELECT t.turn_id, t.actor, evidence_is_character(t.actor) AS actor_is_character,
+            ARRAY(
+                SELECT identifier FROM unnest(
+                    CASE WHEN cardinality(t.audience) > 0 THEN t.audience ELSE s.participants END
+                ) WITH ORDINALITY AS legacy(identifier, position)
+                WHERE evidence_is_character(identifier) ORDER BY position
+            ) AS perceived
         FROM turns t JOIN sessions s USING (session_id)
     """)
     ).mappings():
-        perceived = [
-            identifier for identifier in row["legacy"] if ID_ROLES[identifier] == "character"
-        ]
-        if ID_ROLES[row["actor"]] == "character" and row["actor"] not in perceived:
+        perceived = row["perceived"]
+        if row["actor_is_character"] and row["actor"] not in perceived:
             perceived.append(row["actor"])
         connection.execute(
             sa.text("""
@@ -63,13 +61,6 @@ def upgrade() -> None:
                                 WHERE member IS NULL OR member !~ '\\S')
                 AND cardinality(members) = (
                     SELECT count(DISTINCT member) FROM unnest(members) member)
-        $$
-    """)
-    op.execute("""
-        CREATE FUNCTION evidence_is_character(identifier TEXT) RETURNS BOOLEAN
-        LANGUAGE SQL STABLE STRICT AS $$
-            SELECT EXISTS (SELECT 1 FROM core_identities WHERE character_id = identifier)
-                OR EXISTS (SELECT 1 FROM temperaments WHERE character_id = identifier)
         $$
     """)
     op.execute("""

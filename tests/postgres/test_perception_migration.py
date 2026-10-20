@@ -9,6 +9,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from psycopg.types.json import Jsonb
+from sqlalchemy.exc import IntegrityError
 
 from tests.evidence_support import OCCURRED, RECORDED, TEXT
 from tests.identity_support import aspects
@@ -147,22 +148,149 @@ def test_upgrade_backfills_explicit_roles_and_preserves_other_values(
         assert_immutable(conn)
 
 
-def test_unknown_legacy_id_aborts_upgrade_without_partial_changes(
+@pytest.mark.parametrize("actor", ["char-a", "unclassified"])
+def test_upgrade_excludes_unregistered_ids_without_aborting(
     migration_database: tuple[str, Config],
-    rejected: Callable[[], pytest.RaisesExc[BaseException]],
+    actor: str,
 ) -> None:
     url, config = migration_database
     with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
         conn.execute(
-            "INSERT INTO sessions VALUES ('unknown', %s, NULL, 'synthetic', ARRAY['unclassified'])",
-            (OCCURRED,),
+            "INSERT INTO sessions VALUES ('unknown', %s, NULL, 'synthetic', %s)",
+            (OCCURRED, ["char-a", "unclassified", "viewer"]),
         )
+        for tid, audience in [("explicit", ["unclassified", "char-a"]), ("fallback", [])]:
+            conn.execute(
+                "INSERT INTO turns VALUES (%s, 'unknown', 'synthetic', %s, "
+                "'observation', %s, %s, 'ja', '{}'::jsonb, 'synthetic', 'v1', %s, %s)",
+                (tid, actor, TEXT, audience, OCCURRED, RECORDED),
+            )
+        conn.execute(
+            "INSERT INTO delivery_receipts (turn_id, status, spoken_until, "
+            "reported_by, reported_at) VALUES ('explicit', 'partial', 1, "
+            "'synthetic-window', %s)",
+            (RECORDED,),
+        )
+        command.upgrade(config, "head")
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchall() == [("0004",)]
+        assert conn.execute(
+            "SELECT turn_id, perceived_by FROM turns ORDER BY turn_id"
+        ).fetchall() == [("explicit", []), ("fallback", [])]
+        assert_immutable(conn)
+
+
+@pytest.mark.parametrize("registration", ["core", "temperament", "both"])
+def test_upgrade_uses_identity_registration_for_perception_and_actor(
+    migration_database: tuple[str, Config], registration: str
+) -> None:
+    url, config = migration_database
+    with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
+        for identifier in ("subject-42", "subject-99"):
+            if registration in ("core", "both"):
+                conn.execute(
+                    "INSERT INTO core_identities VALUES (%s, %s, %s, 1, %s)",
+                    (identifier, ["誠実"], [], RECORDED),
+                )
+            if registration in ("temperament", "both"):
+                conn.execute(
+                    "INSERT INTO temperaments VALUES (%s, '合成気質', 1, %s)",
+                    (identifier, RECORDED),
+                )
+        conn.execute(
+            "INSERT INTO sessions VALUES ('registered', %s, NULL, 'synthetic', %s)",
+            (OCCURRED, ["subject-99", "viewer", "subject-42"]),
+        )
+        for tid, actor, audience in [
+            ("explicit", "subject-42", ["viewer", "subject-99"]),
+            ("fallback", "subject-42", []),
+            ("included", "subject-42", ["subject-42", "viewer", "subject-99"]),
+            ("user-actor", "viewer", ["subject-99", "viewer", "subject-42"]),
+        ]:
+            conn.execute(
+                "INSERT INTO turns VALUES (%s, 'registered', 'synthetic', %s, "
+                "'observation', %s, %s, 'ja', '{}'::jsonb, 'synthetic', 'v1', %s, %s)",
+                (tid, actor, TEXT, audience, OCCURRED, RECORDED),
+            )
         before = snapshot(conn)
-        with rejected():
+        command.upgrade(config, "head")
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchall() == [("0004",)]
+        assert conn.execute(
+            "SELECT turn_id, perceived_by FROM turns ORDER BY turn_id"
+        ).fetchall() == [
+            ("explicit", ["subject-99", "subject-42"]),
+            ("fallback", ["subject-99", "subject-42"]),
+            ("included", ["subject-42", "subject-99"]),
+            ("user-actor", ["subject-99", "subject-42"]),
+        ]
+        after = snapshot(conn)
+        for table in ("core_identities", "temperaments", "personality_profiles"):
+            assert after[table] == before[table]
+
+
+@pytest.mark.parametrize("actor, expected", [("viewer", []), ("char-c", ["char-c"])])
+def test_upgrade_does_not_fall_back_from_nonempty_user_only_audience(
+    migration_database: tuple[str, Config], actor: str, expected: list[str]
+) -> None:
+    url, config = migration_database
+    with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
+        seed_legacy(conn)
+        conn.execute(
+            "INSERT INTO turns SELECT (jsonb_populate_record(NULL::turns, "
+            "to_jsonb(t) || %s)).* FROM turns t WHERE turn_id = 'explicit'",
+            (Jsonb({"turn_id": "user-only", "actor": actor, "audience": ["viewer"]}),),
+        )
+        command.upgrade(config, "head")
+        assert conn.execute(
+            "SELECT perceived_by FROM turns WHERE turn_id = 'user-only'"
+        ).fetchone() == (expected,)
+
+
+def migration_schema(
+    conn: psycopg.Connection[tuple[object, ...]],
+) -> dict[str, list[tuple[object, ...]]]:
+    return {
+        "columns": conn.execute(
+            "SELECT table_name, column_name, data_type, is_nullable FROM "
+            "information_schema.columns WHERE table_schema = 'public' "
+            "ORDER BY table_name, ordinal_position"
+        ).fetchall(),
+        "triggers": conn.execute(
+            "SELECT c.relname, t.tgname, t.tgenabled FROM pg_trigger t "
+            "JOIN pg_class c ON c.oid = t.tgrelid "
+            "JOIN pg_namespace n ON n.oid = c.relnamespace "
+            "WHERE n.nspname = 'public' AND NOT t.tgisinternal "
+            "ORDER BY c.relname, t.tgname"
+        ).fetchall(),
+    }
+
+
+@pytest.mark.parametrize("direction", ["upgrade", "downgrade"])
+def test_failed_backfill_restores_data_schema_and_immutable_triggers(
+    migration_database: tuple[str, Config], direction: str
+) -> None:
+    url, config = migration_database
+    with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
+        seed_legacy(conn)
+        if direction == "downgrade":
             command.upgrade(config, "head")
-        assert snapshot(conn) == before
-        with pytest.raises(psycopg.errors.InsufficientPrivilege):
-            conn.execute("DELETE FROM sessions")
+        # Existing rows remain valid input; only the migration's UPDATE must fail.
+        conn.execute("ALTER TABLE turns ADD CONSTRAINT backfill_failure CHECK (false) NOT VALID")
+        try:
+            before = snapshot(conn)
+            schema_before = migration_schema(conn)
+            assert_immutable(conn)
+            with pytest.raises(IntegrityError) as failure:
+                if direction == "upgrade":
+                    command.upgrade(config, "head")
+                else:
+                    command.downgrade(config, "0003")
+            assert isinstance(failure.value.orig, psycopg.errors.CheckViolation)
+            assert failure.value.orig.diag.constraint_name == "backfill_failure"
+            assert snapshot(conn) == before
+            assert migration_schema(conn) == schema_before
+            assert_immutable(conn)
+        finally:
+            conn.execute("ALTER TABLE turns DROP CONSTRAINT backfill_failure")
 
 
 def test_downgrade_copies_perception_and_loses_only_declared_fields(
