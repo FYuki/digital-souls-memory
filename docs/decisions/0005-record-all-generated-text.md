@@ -10,7 +10,11 @@
 ## 決定
 
 - キャラが生成した文は、話されなかった部分も含めて全文を Turn として登録する。
-- 相手にどこまで届いたかは、窓口からの報告を DeliveryReceipt（status: full／partial／none, spoken_until）として別レコードで追記する。Turn は書き換えない。
+- 相手にどこまで届いたかは、Core が窓口から受け取った報告を DeliveryReceipt（status: full／partial／none, spoken_until）として別レコードで追記する。Turn は書き換えない。
+
+## 検討した案
+
+- **実際に話された範囲を Turn の本文とし、生成全文はメタ情報として残す**：「言っていないことを覚えている」状態を防ぐ案だった。生成した文は話されなかった部分も本人の思考として存在したと扱い、届いた範囲は DeliveryReceipt で区別できるため不採用。
 
 ## 影響
 
