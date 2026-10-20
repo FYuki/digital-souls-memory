@@ -7,8 +7,8 @@ fixture_dir=$(mktemp -d /tmp/memory-pg.XXXXXXXX)
 container_name="memory-pg-${fixture_dir##*.}"
 cleanup() {
   docker rm --force "$container_name" >/dev/null 2>&1 || true
-  rm -f -- "$fixture_dir/socket/.s.PGSQL.5432" "$fixture_dir/socket/.s.PGSQL.5432.lock"
-  rmdir -- "$fixture_dir/socket" "$fixture_dir"
+  rm -f -- "$fixture_dir/socket/.s.PGSQL.5432" "$fixture_dir/socket/.s.PGSQL.5432.lock" || true
+  rmdir -- "$fixture_dir/socket" "$fixture_dir" || true
 }
 trap cleanup EXIT
 mkdir -m 700 "$fixture_dir/socket"
