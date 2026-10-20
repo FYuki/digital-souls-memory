@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 import httpx
 import pytest
+
 from digital_souls_memory.evaluation.adapters.llamacpp import LlamaCppEmbedding
 
 pytestmark = pytest.mark.it1

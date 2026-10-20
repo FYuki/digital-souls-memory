@@ -5,6 +5,7 @@ from hashlib import sha256
 from pathlib import Path
 
 import pytest
+
 from digital_souls_memory.evaluation.models import load_suite, validate_suite
 
 pytestmark = pytest.mark.ut

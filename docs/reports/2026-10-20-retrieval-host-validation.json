@@ -1,0 +1,115 @@
+{
+  "created_at": "2026-10-20T06:40:02.987794+00:00",
+  "purpose": "Issue #9: epic/phase1-consistency 統合後の通常CI相当検証",
+  "memory_commit": "57d7fd611e28580189dc78eff1e59650696ef31e",
+  "memory_dirty": true,
+  "epic_commit": "669c51e43ae847cd83482a1e5fb604e0d10bed26",
+  "python": "3.12.3",
+  "uv": "0.8.22",
+  "results": [
+    {
+      "command": "uv lock --check",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv sync --frozen",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "bash -n tools/with-test-postgres.sh",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "docker compose config --no-interpolate --quiet",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "docker compose -f compose.retrieval-evaluation.yml config --no-interpolate --quiet",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run --no-sync ruff check src tests migrations",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run --no-sync ruff format --check src tests migrations",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run --no-sync mypy",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv build --no-build-isolation",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv export --frozen --no-dev --no-emit-project --format requirements-txt",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv venv .package-check",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv pip install --python .package-check/bin/python --require-hashes -r <locked-runtime-requirements>",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv pip install --python .package-check/bin/python --no-deps dist/*.whl",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "isolated wheel import: api.create_app and evaluation.cli.main",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run --no-sync pytest -m ut -q",
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 182,
+      "deselected": 268,
+      "skipped": 0
+    },
+    {
+      "command": "uv run --no-sync pytest -m it1 -q",
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 192,
+      "deselected": 258,
+      "skipped": 0
+    },
+    {
+      "command": "bash tools/with-test-postgres.sh",
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 76,
+      "deselected": 374,
+      "skipped": 0
+    }
+  ],
+  "notes": [
+    "tests/__init__.py の追加で変わった import 分類を評価テスト2ファイルの空行追加で整列。評価ロジック変更なし。",
+    "Starlette TestClient の anyio BlockingPortal に DeprecationWarning 1件。skip/xfail/xpassなし。",
+    "既存の NOT RUN 記録は保存し、本記録は実モデルの品質証跡にはしない。"
+  ]
+}
