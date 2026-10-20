@@ -4,11 +4,10 @@ from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from threading import RLock
 
-from digital_souls_memory.voice.domain import VerbatimAnchor, VoiceExemplar
-from digital_souls_memory.voice.ports import VoiceConflict, VoiceUnavailable
-
 from digital_souls_memory.identity.domain import PersonalityProfile, Temperament
 from digital_souls_memory.identity.ports import IdentityUnavailable, ReviewResult
+from digital_souls_memory.voice.domain import VerbatimAnchor, VoiceExemplar
+from digital_souls_memory.voice.ports import VoiceConflict, VoiceUnavailable
 from tests.it1.identity_fakes import FakeLLMGateway, FakeReviewer
 
 

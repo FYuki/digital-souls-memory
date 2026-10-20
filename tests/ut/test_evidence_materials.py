@@ -2,9 +2,9 @@ from dataclasses import replace
 from datetime import timedelta
 
 import pytest
-from digital_souls_memory.evidence.materials import available_text
 
 from digital_souls_memory.evidence.domain import DeliveryReceipt
+from digital_souls_memory.evidence.materials import available_text
 from tests.evidence_support import RECORDED, TEXT, receipt, session, turn
 
 pytestmark = pytest.mark.ut

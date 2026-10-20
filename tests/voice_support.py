@@ -1,7 +1,6 @@
 """Synthetic Voice inputs shared by HTTP and PostgreSQL contract tests."""
 
 from digital_souls_memory.voice.domain import VerbatimAnchor, VoiceExemplar
-
 from tests.identity_support import REGISTERED
 
 TEXT = "  私は約束を守ります。\nI shall keep it. e\u0301🙂\t"
