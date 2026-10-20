@@ -1,7 +1,7 @@
 # 0006. 証拠台帳はキャラ共通とし、知覚範囲は参加者で表す
 
 - 日付：2026-10-19
-- 状態：承認（知覚範囲の表し方は [ADR 0022](0022-perceived-by.md) で置き換え。文書レビュー待ち・実装変更は後続）
+- 状態：置き換え済み（[ADR 0022](0022-perceived-by.md)）
 
 ## 背景
 
@@ -9,9 +9,8 @@
 
 ## 決定
 
-> 以下は当初の決定を保持している。participants／audience による知覚範囲は、
-> [ADR 0022](0022-perceived-by.md) の Turn.perceived_by と自己発話の知覚判定に読み替える。
-> Session は接続単位として残し、場所による開示制御は行わず、開示は記憶ごとに制御する。
+> 以下は当初の決定を保持している。現在の共通台帳・知覚・宛先・在席の規則は
+> [ADR 0022](0022-perceived-by.md) を参照する。
 
 - Evidence はキャラを持たない共通台帳とする。Turn に actor（発話・行為の主体）と kind（utterance／observation）、Session に participants を持ち、参加者と実際の聞き手が異なるときだけ Turn に audience を持つ。
 - キャラ別の派生記憶・内省は、そのキャラが participants か audience に含まれる Turn からだけ作る。
