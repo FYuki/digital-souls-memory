@@ -6,12 +6,18 @@ import json
 import sys
 from pathlib import Path
 
-from .adapters.fixture import FixtureEmbedding, FixtureReranker, FixtureSearch
-from .adapters.real import real_factories, real_reranker_factory
+from .adapters.fixture import FixtureEmbedding, FixtureReranker, FixtureSearch, FixtureTokenCounter
+from .adapters.real import real_factories, real_reranker_factory, real_token_counter_factory
 from .adapters.resources import ResourceMonitor
 from .comparison import selected_candidates, tuning_candidates
 from .models import COMPARISON_VERSION, load_suite, record, rows, string, unique, validate_suite
-from .ports import EmbeddingFactory, RerankerFactory, ResourceFactory, SearchFactory
+from .ports import (
+    EmbeddingFactory,
+    RerankerFactory,
+    ResourceFactory,
+    SearchFactory,
+    TokenCounterFactory,
+)
 from .report import artifact_summary, public_report, validate_manifest, validate_public_report
 from .runner import run_evaluation
 
@@ -23,6 +29,7 @@ def main(
     search_factory: SearchFactory | None = None,
     resource_factory: ResourceFactory | None = None,
     reranker_factory: RerankerFactory | None = None,
+    token_counter_factory: TokenCounterFactory | None = None,
 ) -> int:
     parser = argparse.ArgumentParser(description="合成データの検索評価")
     parser.add_argument("--suite", type=Path, required=True)
@@ -67,6 +74,7 @@ def main(
         if options.mode == "real" and record(suite["protocol"]).get("comparison_version") not in (
             COMPARISON_VERSION,
             "memory-v2",
+            "memory-v2.1",
         ):
             raise ValueError("Real comparison requires the fixed protocol")
         input_files_sha256 = {
@@ -75,10 +83,32 @@ def main(
         }
         if options.tuning_suite is not None:
             input_files_sha256["tuning"] = options.tuning_sha256
+        manifest = None
+        if options.manifest is not None:
+            manifest_bytes = options.manifest.read_bytes()
+            manifest = record(json.loads(manifest_bytes))
+            validate_manifest(manifest)
+            input_files_sha256["manifest"] = hashlib.sha256(manifest_bytes).hexdigest()
+        elif options.mode == "real":
+            raise ValueError("Real evaluation requires an execution manifest")
+        protocol = record(suite["protocol"])
+        if protocol.get("comparison_version") == "memory-v2.1" and token_counter_factory is None:
+            if options.mode == "real":
+                if options.real_config is None:
+                    raise ValueError("Explicit tokenizer model configuration required")
+                token_counter_factory = real_token_counter_factory(
+                    record(json.loads(options.real_config.read_bytes())), candidates
+                )
+            else:
+
+                def fixture_counter(candidate: dict[str, object]) -> FixtureTokenCounter:
+                    return FixtureTokenCounter()
+
+                token_counter_factory = fixture_counter
         if options.tune:
             if options.tuning_report is not None:
                 raise ValueError("Tuning cannot consume acceptance or prior selection results")
-            candidates = tuning_candidates(candidates)
+            candidates = tuning_candidates(candidates, protocol=protocol)
         elif options.tuning_report is not None:
             if tuning is None or options.tuning_report_sha256 is None:
                 raise ValueError("Pinned independent tuning report required")
@@ -89,20 +119,15 @@ def main(
             if tuning_report["mode"] != options.mode:
                 raise ValueError("Fixture tuning cannot certify real parameters")
             validate_public_report(
-                tuning_report, suite=tuning, candidates=tuning_candidates(candidates)
+                tuning_report,
+                suite=tuning,
+                candidates=tuning_candidates(candidates, protocol=protocol),
+                token_counter_factory=token_counter_factory,
             )
             candidates = selected_candidates({**tuning_report, "suite": tuning}, candidates)
             input_files_sha256["tuning_report"] = options.tuning_report_sha256
         elif options.mode == "real":
             raise ValueError("Acceptance requires parameters selected from pinned tuning evidence")
-        manifest = None
-        if options.manifest is not None:
-            manifest_bytes = options.manifest.read_bytes()
-            manifest = record(json.loads(manifest_bytes))
-            validate_manifest(manifest)
-            input_files_sha256["manifest"] = hashlib.sha256(manifest_bytes).hexdigest()
-        elif options.mode == "real":
-            raise ValueError("Real evaluation requires an execution manifest")
         if embedding_factory is None and search_factory is None and options.mode == "real":
             if options.real_config is None:
                 raise ValueError("Explicit local endpoints and synthetic DB configuration required")
@@ -157,12 +182,19 @@ def main(
             search_factory=search_factory,
             resource_factory=resource_factory,
             reranker_factory=reranker_factory,
+            token_counter_factory=token_counter_factory,
         )
         if manifest is not None:
             report["manifest"] = manifest
         report["input_files_sha256"] = input_files_sha256
         payload = (
-            json.dumps(public_report(report), ensure_ascii=False, allow_nan=False, indent=2) + "\n"
+            json.dumps(
+                public_report(report, token_counter_factory=token_counter_factory),
+                ensure_ascii=False,
+                allow_nan=False,
+                indent=2,
+            )
+            + "\n"
         )
         summary = None
         if options.summary_output is not None or options.artifact_reference is not None:

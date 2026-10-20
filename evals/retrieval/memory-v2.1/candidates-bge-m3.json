@@ -1,0 +1,28 @@
+[
+  {
+    "model_alias": "bge-m3",
+    "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+    "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "pooling": "cls",
+    "query_prefix": "",
+    "passage_prefix": "",
+    "id": "bge-m3-pg_bigm",
+    "extension": "pg_bigm",
+    "dimensions": 1024,
+    "quantization": "Q8_0",
+    "max_context_length": 8192
+  },
+  {
+    "model_alias": "bge-m3",
+    "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+    "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "pooling": "cls",
+    "query_prefix": "",
+    "passage_prefix": "",
+    "id": "bge-m3-pgroonga",
+    "extension": "pgroonga",
+    "dimensions": 1024,
+    "quantization": "Q8_0",
+    "max_context_length": 8192
+  }
+]

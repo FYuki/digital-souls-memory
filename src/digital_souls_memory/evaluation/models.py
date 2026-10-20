@@ -140,7 +140,10 @@ def validated_weights(value: object) -> dict[str, float]:
 
 def validate_protocol(protocol: dict[str, object]) -> None:
     validated_weights(protocol["weights"])
-    unit(protocol["threshold"])
+    if protocol.get("comparison_version") == "memory-v2.1":
+        number(protocol["threshold"])
+    else:
+        unit(protocol["threshold"])
     if integer(protocol["top_k"]) > 5 or integer(protocol["token_budget"]) > 1500:
         raise ValueError("Return budget exceeded")
     if integer(protocol["repetitions"]) != 3 or protocol["percentile_method"] != "linear":
@@ -148,10 +151,13 @@ def validate_protocol(protocol: dict[str, object]) -> None:
     if "comparison_version" in protocol:
         weights = validated_weights(protocol["weights"])
         if (
-            protocol["comparison_version"] not in (COMPARISON_VERSION, "memory-v2")
+            protocol["comparison_version"] not in (COMPARISON_VERSION, "memory-v2", "memory-v2.1")
             or protocol["top_k"] != 5
             or protocol["token_budget"] != 1500
-            or protocol["threshold"] not in [i / 100 for i in THRESHOLD_PERCENTAGES]
+            or (
+                protocol.get("comparison_version") != "memory-v2.1"
+                and protocol["threshold"] not in [i / 100 for i in THRESHOLD_PERCENTAGES]
+            )
             or weights["semantic"] not in [i / 100 for i in SEMANTIC_PERCENTAGES]
             or not math.isclose(
                 weights["lexical"], SEMANTIC_LEXICAL_PERCENTAGE / 100 - weights["semantic"]
@@ -164,7 +170,7 @@ def validate_protocol(protocol: dict[str, object]) -> None:
             raise ValueError("Fixed comparison rules mismatch")
 
 
-def validate_case(case: dict[str, object]) -> None:
+def validate_case(case: dict[str, object], *, require_source_ranges: bool = False) -> None:
     for field in ("id", "category", "character_id", "query"):
         string(case[field])
     timestamp(case["as_of"])
@@ -187,6 +193,7 @@ def validate_case(case: dict[str, object]) -> None:
         timestamp(turn["occurred_at"])
         timestamp(turn["recorded_at"])
     memories = rows(case["memories"])
+    by_turn = {string(t["turn_id"]): t for t in turns}
     unique(memories, "id")
     for memory in memories:
         string(memory["content"])
@@ -202,6 +209,26 @@ def validate_case(case: dict[str, object]) -> None:
         timestamp(memory["last_reinforced_at"])
         for field in ("importance", "self_relevance", "trust"):
             unit(memory[field])
+        if require_source_ranges and set(strings(memory["source_turn_ids"])) <= set(by_turn):
+            if {s["turn_id"] for s in rows(memory["source_spans"])} != set(
+                strings(memory["source_turn_ids"])
+            ):
+                raise ValueError("Declared ranges must cover memory sources")
+        if "source_spans" in memory:
+            spans = rows(memory["source_spans"])
+            if not spans:
+                raise ValueError("Source ranges required")
+            for span in spans:
+                identifier = string(span["turn_id"])
+                span_start, span_end = span["start"], span["end"]
+                if (
+                    identifier not in strings(memory["source_turn_ids"])
+                    or identifier not in by_turn
+                    or type(span_start) is not int
+                    or type(span_end) is not int
+                    or not 0 <= span_start < span_end <= len(string(by_turn[identifier]["text"]))
+                ):
+                    raise ValueError("Invalid source range")
 
 
 def validate_suite(suite: dict[str, object], *, tuning_case_ids: set[str]) -> None:
@@ -214,13 +241,17 @@ def validate_suite(suite: dict[str, object], *, tuning_case_ids: set[str]) -> No
     validate_protocol(record(suite["protocol"]))
     by_id = {string(case["id"]): case for case in cases}
     for case in cases:
-        validate_case(case)
+        validate_case(
+            case,
+            require_source_ranges=record(suite["protocol"]).get("comparison_version")
+            == "memory-v2.1",
+        )
     for expected in gold:
         known = unique(rows(by_id[string(expected["case_id"])]["memories"]), "id")
         required, forbidden = strings(expected["required_ids"]), strings(expected["forbidden_ids"])
         if not (set(required) | set(forbidden)) <= known or set(required) & set(forbidden):
             raise ValueError("Invalid gold identifiers")
-        if record(suite["protocol"]).get("comparison_version") == "memory-v2":
+        if record(suite["protocol"]).get("comparison_version") in ("memory-v2", "memory-v2.1"):
             safety = set(strings(expected["safety_forbidden_ids"]))
             quality = set(strings(expected["quality_forbidden_ids"]))
             if safety & quality or safety | quality != set(forbidden):

@@ -7,6 +7,7 @@ from resource import RUSAGE_SELF, getrusage
 from time import perf_counter, process_time
 
 from .comparison import resolved_protocol
+from .context import bounded_results as token_bounded_results
 from .models import (
     integer,
     number,
@@ -30,10 +31,12 @@ from .ports import (
     ResourceFactory,
     ResourceObserver,
     SearchFactory,
+    TokenCounterFactory,
 )
 from .retrieval import (
     bounded_results,
     eligible_memories,
+    rerank_candidates,
     select_observations,
     validate_observations,
 )
@@ -49,6 +52,7 @@ def run_evaluation(
     search_factory: SearchFactory,
     resource_factory: ResourceFactory | None = None,
     reranker_factory: RerankerFactory | None = None,
+    token_counter_factory: TokenCounterFactory | None = None,
 ) -> dict[str, object]:
     validate_suite(suite, tuning_case_ids=set())
     if mode not in ("fixture", "real") or not candidates:
@@ -57,12 +61,16 @@ def run_evaluation(
     for candidate in candidates:
         validate_candidate(
             candidate,
-            require_context=record(suite["protocol"]).get("comparison_version") == "memory-v2",
+            require_context=record(suite["protocol"]).get("comparison_version")
+            in ("memory-v2", "memory-v2.1"),
         )
         resolved_protocol(record(suite["protocol"]), candidate)
     snapshot = deepcopy(suite)
     protocol = record(snapshot["protocol"])
-    v2 = protocol.get("comparison_version") == "memory-v2"
+    v21 = protocol.get("comparison_version") == "memory-v2.1"
+    v2 = protocol.get("comparison_version") in ("memory-v2", "memory-v2.1")
+    if v21 and token_counter_factory is None:
+        raise ValueError("Explicit token counter factory required")
     if reranker_factory is not None and not v2:
         raise ValueError("Reranker requires memory-v2")
     if any("reranker" in c for c in candidates) and reranker_factory is None:
@@ -89,6 +97,11 @@ def run_evaluation(
             cpu_started = process_time()
             try:
                 with ExitStack() as resources:
+                    counter = (
+                        resources.enter_context(token_counter_factory(deepcopy(candidate)))
+                        if v21 and token_counter_factory is not None
+                        else None
+                    )
                     if resource_factory is not None:
                         observer = resources.enter_context(resource_factory(deepcopy(candidate)))
                     embedding = resources.enter_context(embedding_factory(deepcopy(candidate)))
@@ -153,20 +166,27 @@ def run_evaluation(
                             search_finished = perf_counter()
                             rerank_started = search_finished
                             if reranker is not None and observations:
+                                sending = (
+                                    rerank_candidates(observations)
+                                    if v21
+                                    else [{"memory_id": m["id"]} for m in memories]
+                                )
+                                by_memory = {string(m["id"]): m for m in memories}
                                 scores = reranker.rerank(
                                     string(case["query"]),
                                     tuple(
-                                        {"memory_id": m["id"], "content": m["content"]}
-                                        for m in memories
+                                        {
+                                            "memory_id": o["memory_id"],
+                                            "content": by_memory[string(o["memory_id"])]["content"],
+                                        }
+                                        for o in sending
                                     ),
                                 )
-                                if unique(scores, "memory_id") != {
-                                    o["memory_id"] for o in observations
-                                }:
+                                if unique(scores, "memory_id") != {o["memory_id"] for o in sending}:
                                     raise ValueError("Reranker response IDs mismatch")
                                 by_id = {string(s["memory_id"]): number(s["score"]) for s in scores}
                                 observations = [
-                                    {**o, "reranker_score": by_id[string(o["memory_id"])]}
+                                    {**o, "reranker_score": by_id.get(string(o["memory_id"]))}
                                     for o in observations
                                 ]
                             rerank_ms = (perf_counter() - rerank_started) * 1000
@@ -174,11 +194,20 @@ def run_evaluation(
                             hits = select_observations(observations, resolved)
                         else:
                             hits = search.search(query_vector, limit=integer(protocol["top_k"]))
-                        selected, budget = bounded_results(
-                            hits,
-                            limit=integer(resolved["top_k"]),
-                            budget=integer(resolved["token_budget"]),
-                        )
+                        if counter is not None:
+                            selected, budget = token_bounded_results(
+                                hits,
+                                case=case,
+                                limit=integer(resolved["top_k"]),
+                                budget=integer(resolved["token_budget"]),
+                                token_counter=counter,
+                            )
+                        else:
+                            selected, budget = bounded_results(
+                                hits,
+                                limit=integer(resolved["top_k"]),
+                                budget=integer(resolved["token_budget"]),
+                            )
                         finished = perf_counter()
                         search_ms = ((search_finished if v2 else finished) - started) * 1000
                         started = perf_counter()
@@ -188,6 +217,7 @@ def run_evaluation(
                             selected,
                             threshold=resolved["threshold"],
                             protocol=resolved,
+                            token_counter=counter,
                         )
                         if v2:
                             result["candidate_observations"] = [

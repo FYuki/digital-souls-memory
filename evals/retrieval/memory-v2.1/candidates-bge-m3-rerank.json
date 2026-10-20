@@ -1,0 +1,42 @@
+[
+  {
+    "model_alias": "bge-m3",
+    "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+    "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "pooling": "cls",
+    "query_prefix": "",
+    "passage_prefix": "",
+    "id": "bge-m3-pg_bigm",
+    "extension": "pg_bigm",
+    "dimensions": 1024,
+    "quantization": "Q8_0",
+    "max_context_length": 8192,
+    "reranker": {
+      "model_alias": "bge-reranker-v2-m3",
+      "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+      "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+      "quantization": "Q8_0",
+      "max_context_length": 8192
+    }
+  },
+  {
+    "model_alias": "bge-m3",
+    "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+    "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "pooling": "cls",
+    "query_prefix": "",
+    "passage_prefix": "",
+    "id": "bge-m3-pgroonga",
+    "extension": "pgroonga",
+    "dimensions": 1024,
+    "quantization": "Q8_0",
+    "max_context_length": 8192,
+    "reranker": {
+      "model_alias": "bge-reranker-v2-m3",
+      "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+      "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+      "quantization": "Q8_0",
+      "max_context_length": 8192
+    }
+  }
+]

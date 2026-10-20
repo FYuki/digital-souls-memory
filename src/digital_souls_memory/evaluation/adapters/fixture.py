@@ -25,6 +25,19 @@ class FixtureEmbedding:
         )
 
 
+class FixtureTokenCounter:
+    method = "approximate-characters-v1"
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+    def count(self, text: str) -> int:
+        return len(text)
+
+
 class FixtureSearch:
     def __init__(self, fixture: dict[str, object]) -> None:
         self.observations = deepcopy(record(fixture["observations"]))

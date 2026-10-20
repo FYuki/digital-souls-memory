@@ -31,6 +31,7 @@ from ..retrieval import (
     normalized_key,
     rank_results,
     score_components,
+    source_spans,
 )
 
 
@@ -209,23 +210,15 @@ class PostgresSearch:
                 "SELECT body FROM memories WHERE id=%s", (hit["memory_id"],)
             ).fetchone()
             assert saved is not None
-            spans: list[dict[str, object]] = []
+            saved_turns: list[dict[str, object]] = []
             for identifier in strings(record(saved[0])["source_turn_ids"]):
                 row = self.connection.execute(
                     "SELECT body FROM turns WHERE id=%s", (identifier,)
                 ).fetchone()
                 assert row is not None
-                turn = record(row[0])
-                text = string(turn["text"])
-                spans.append(
-                    {
-                        "turn_id": identifier,
-                        "start": 0,
-                        "end": len(text),
-                        "text": text,
-                        "actor": turn["actor"],
-                        "language": turn["language"],
-                    }
-                )
-            hit["source_spans"] = spans
+                saved_turns.append(record(row[0]))
+            hit["source_spans"] = source_spans(
+                {**self.case, "memories": [record(saved[0])], "turns": saved_turns},
+                memory_id=string(hit["memory_id"]),
+            )
         return ranked

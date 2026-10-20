@@ -277,3 +277,87 @@ uv run --no-sync python -m digital_souls_memory.evaluation.rescore \
 新しい実測ではなく、raw cosine・reranker・遅延は再測定しません。
 保存されていない値を補完せず、acceptanceへの効果は新たなIT2で確認します。
 [参考再採点報告](reports/2026-10-20-memory-v2-reference.md)を参照してください。
+
+## memory-v2.1による再測定
+
+棄却尺度・返却予算・必須出典区間の品質判定が変わるため、比較版を
+`memory-v2.1`へ上げます。`evals/retrieval/memory-v2.1/`を使用し、v2の入力・gold・
+実測証跡は保持します。両splitのquery・Turn原文・派生本文・goldはv2と同じです。
+評価入力の記憶に`source_spans`（turn_id/start/end）だけを追加します。
+短い派生本文が出典原文の部分文字列ならその範囲、要約・複数出典なら対応する原文範囲を
+明示します。長い作業記録の出典は、小物入れの目印について述べた一文です。
+範囲の作成と検索はgoldを参照しません。オフセットはPython文字位置で、原文を正規化しません。
+
+| 項目 | memory-v2.1の条件 |
+| --- | --- |
+| 候補取得 | 適格候補だけを埋め込み・索引へ渡す。6項加重和の降順、同点ID順で上位20件をrerankerへ送る |
+| reranker有効 | llama.cppのraw relevanceを変換せず使用。relevance >= thresholdで棄却し、relevance降順・同点ID順で返す。合成閾値を再適用しない |
+| 有効時グリッド | raw relevanceの-12〜12を1刻み、既存の3種類の重みと組み合わせた75設定。品質合格を保証する範囲ではない |
+| reranker無効 | 既存の合成スコア順位・包含的閾値・45設定を維持。返却量の判定は新版のトークン相当へ変更 |
+| 計数 | 記憶ID・原文・話者・言語・オフセット・切り出し情報を含む返却JSON配列全体。scoreは含めない。正規JSONの条件は旧版と同じ |
+| 通常試験 | `FixtureTokenCounter`の`approximate-characters-v1`。Unicode文字数をトークン相当数とする決定的近似で、日本語・英語に同じ規則を使う |
+| 実モデル | 埋め込みモデルと同じendpoint・identityの`POST /tokenize`。contentは返却JSONそのもの、接頭辞なし、add_special=false。tokens配列の長さを使用 |
+| 返却予算 | 最大5件・1,500トークン相当。部分の計数値を加算せず、追加するたびに全体を再計数する |
+| 窓 | 単体で予算を超えた記憶は各出典を連続窓へ切り出す。queryの完全一致、またはqueryの隣接2文字が最も多く一致する文の一致位置を中心にする。一致がなければ先頭を中心とする |
+| 窓の大きさ | 複数出典の文字数に比例して配分し、実際の全体JSONを再計数しながら幅を二分探索する。予算内の窓を確認できなければ除外し、理由を残す |
+| 切り出し情報 | `truncated`と返却start/end、元のoriginal_start/original_endを保持。本文は原文の部分文字列だけで、要約・言い換えなし |
+| 品質 | 必須IDの包含に加え、goldのrequired_source_spansの本文が指定Turnの返却区間に含まれること。欠落を合格にしない |
+| 報告 | return_budget.token_count/token_counterに計数値・方式を記録。score_rangesは全適格候補から分類別・各回で算出。未送信rerankerスコアはnull、0補完なし |
+
+計数通信の失敗・不正応答では実行エラーを記録し、近似への切替は行いません。
+公開報告には本文を含めず、範囲・hash・切り出し情報・計数方式を保持します。
+`public_report`、`validate_report`、`validate_public_report`には実行時と同じidentityの
+`token_counter_factory`を必ず渡します。CLIは固定tuning報告の検証時点からこの依存を構築し、
+acceptanceの実行と公開再検証まで渡します。factory不在を暗黙の近似で補いません。
+対象llama.cpp buildの`/tokenize`互換性・実モデル品質は親の測定担当による確認事項です。
+MockTransportの成功は実機互換性の証明ではありません。
+
+### 8構成の実行コマンド（親の測定担当用）
+
+新ディレクトリの`candidates-bge-m3.json`、`candidates-bge-m3-rerank.json`、
+`candidates-Qwen3-Embedding-0.6B.json`、`candidates-Qwen3-Embedding-0.6B-rerank.json`は
+各2方式（pg_bigm/PGroonga）を含み、合計8構成です。無効構成にreranker設定は不要です。
+`candidate-templates.json`にはruri-v3-310mを残します。公式配布にGGUFがないため
+**NOT RUN**という既存の理由を維持し、変換モデルで補いません。
+既存の[モデル報告](reports/2026-10-20-retrieval-it2-v2-models.json)の理由も保持します。
+
+実行前にモデルの実GGUF hash・revision・量子化・文脈長、GPU余裕、専用DB、
+llama.cpp build/image・DB拡張版を確認してください。各構成名に対応する
+`config/<name>.json`と`manifest/<name>.json`を用意します。real-configの
+model_identitiesには候補と同じ全identity項目（quantization/max_context_lengthも含む）を
+記録します。rerankerありのconfigにはreranker_endpoints/reranker_identitiesも必要です。
+ARTIFACT_ROOTはリポジトリ外の新規出力先です。以下は実行せずに示した再測定手順です。
+
+```sh
+TUNING_SHA256=$(sha256sum evals/retrieval/memory-v2.1/tuning/suite.json | cut -d ' ' -f 1)
+ACCEPTANCE_SHA256=$(sha256sum evals/retrieval/memory-v2.1/acceptance/suite.json | cut -d ' ' -f 1)
+for name in bge-m3 bge-m3-rerank Qwen3-Embedding-0.6B Qwen3-Embedding-0.6B-rerank; do
+  candidate="evals/retrieval/memory-v2.1/candidates-$name.json"
+  target="$ARTIFACT_ROOT/eval-artifacts/2026-10-20/memory-v2.1-$name"
+  mkdir -p "$target"
+  sha256sum "$candidate"
+  uv run --no-sync memory-evaluate-retrieval \
+    --suite evals/retrieval/memory-v2.1/tuning/suite.json --suite-sha256 "$TUNING_SHA256" \
+    --candidates "$candidate" --manifest "manifest/$name.json" --real-config "config/$name.json" \
+    --tune --mode real --output "$target/tuning.json" \
+    --summary-output "$target/tuning-summary.json" \
+    --artifact-reference "eval-artifacts/2026-10-20/memory-v2.1-$name/tuning.json"
+  status=$?
+  if [ "$status" -gt 1 ]; then exit "$status"; fi
+  TUNING_REPORT_SHA256=$(sha256sum "$target/tuning.json" | cut -d ' ' -f 1)
+  uv run --no-sync memory-evaluate-retrieval \
+    --suite evals/retrieval/memory-v2.1/acceptance/suite.json --suite-sha256 "$ACCEPTANCE_SHA256" \
+    --tuning-suite evals/retrieval/memory-v2.1/tuning/suite.json --tuning-sha256 "$TUNING_SHA256" \
+    --tuning-report "$target/tuning.json" --tuning-report-sha256 "$TUNING_REPORT_SHA256" \
+    --candidates "$candidate" --manifest "manifest/$name.json" --real-config "config/$name.json" \
+    --mode real --output "$target/acceptance.json" \
+    --summary-output "$target/acceptance-summary.json" \
+    --artifact-reference "eval-artifacts/2026-10-20/memory-v2.1-$name/acceptance.json"
+  status=$?
+  if [ "$status" -gt 1 ]; then exit "$status"; fi
+done
+```
+
+終了1の品質FAILも保存し、acceptanceで閾値を再調整しません。終了2は入力・実行エラーです。
+過去のv2 FAILは新版の結果で上書きしません。詳細JSONのbyte hashとsummaryを対応付け、
+計数方式・分類別スコア分位点・品質ゲートを各回で確認してください。
