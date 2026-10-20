@@ -20,9 +20,13 @@ def database_url(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
         command.upgrade(config, "head")
         yield url
     finally:
+        # Application tests may select a temporary nonowner role; migrations use the owner.
+        monkeypatch.setenv("MEMORY_DATABASE_URL", url)
         with psycopg.connect(url, autocommit=True, connect_timeout=5) as connection:
             if connection.execute("SELECT to_regclass('public.turns')").fetchone() != (None,):
-                connection.execute("TRUNCATE delivery_receipts, turns")
+                connection.execute(
+                    "TRUNCATE voice_exemplars, verbatim_anchors, delivery_receipts, turns"
+                )
         command.downgrade(config, "base")
         with psycopg.connect(url, autocommit=True, connect_timeout=5) as connection:
             connection.execute("DROP TABLE IF EXISTS alembic_version")

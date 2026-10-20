@@ -113,8 +113,8 @@ def test_upgrade_backfills_explicit_roles_and_preserves_other_values(
             "language, register, sensitivity, classifier_version, "
             "occurred_at, recorded_at FROM turns ORDER BY turn_id"
         ).fetchall()
-        command.upgrade(config, "head")
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
+        command.upgrade(config, "0004")
         assert conn.execute("SELECT version_num FROM alembic_version").fetchall() == [("0004",)]
         assert conn.execute(
             "SELECT session_id, reports_delivery FROM sessions ORDER BY session_id"
@@ -171,7 +171,7 @@ def test_upgrade_excludes_unregistered_ids_without_aborting(
             "'synthetic-window', %s)",
             (RECORDED,),
         )
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
         assert conn.execute("SELECT version_num FROM alembic_version").fetchall() == [("0004",)]
         assert conn.execute(
             "SELECT turn_id, perceived_by FROM turns ORDER BY turn_id"
@@ -212,7 +212,7 @@ def test_upgrade_uses_identity_registration_for_perception_and_actor(
                 (tid, actor, TEXT, audience, OCCURRED, RECORDED),
             )
         before = snapshot(conn)
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
         assert conn.execute("SELECT version_num FROM alembic_version").fetchall() == [("0004",)]
         assert conn.execute(
             "SELECT turn_id, perceived_by FROM turns ORDER BY turn_id"
@@ -239,7 +239,7 @@ def test_upgrade_does_not_fall_back_from_nonempty_user_only_audience(
             "to_jsonb(t) || %s)).* FROM turns t WHERE turn_id = 'explicit'",
             (Jsonb({"turn_id": "user-only", "actor": actor, "audience": ["viewer"]}),),
         )
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
         assert conn.execute(
             "SELECT perceived_by FROM turns WHERE turn_id = 'user-only'"
         ).fetchone() == (expected,)
@@ -272,7 +272,7 @@ def test_failed_backfill_restores_data_schema_and_immutable_triggers(
     with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
         seed_legacy(conn)
         if direction == "downgrade":
-            command.upgrade(config, "head")
+            command.upgrade(config, "0004")
         # Existing rows remain valid input; only the migration's UPDATE must fail.
         conn.execute("ALTER TABLE turns ADD CONSTRAINT backfill_failure CHECK (false) NOT VALID")
         try:
@@ -281,7 +281,7 @@ def test_failed_backfill_restores_data_schema_and_immutable_triggers(
             assert_immutable(conn)
             with pytest.raises(IntegrityError) as failure:
                 if direction == "upgrade":
-                    command.upgrade(config, "head")
+                    command.upgrade(config, "0004")
                 else:
                     command.downgrade(config, "0003")
             assert isinstance(failure.value.orig, psycopg.errors.CheckViolation)
@@ -299,7 +299,7 @@ def test_downgrade_copies_perception_and_loses_only_declared_fields(
     url, config = migration_database
     with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
         seed_legacy(conn)
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
         conn.execute(
             "INSERT INTO sessions (session_id, started_at, surface, "
             "reports_delivery) VALUES ('new', %s, 'synthetic', false)",
@@ -331,7 +331,7 @@ def test_downgrade_copies_perception_and_loses_only_declared_fields(
         )
         assert conn.execute("SELECT participants FROM sessions").fetchall() == [([],), ([],), ([],)]
         assert_immutable(conn)
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
         assert (
             conn.execute("SELECT turn_id, perceived_by FROM turns ORDER BY turn_id").fetchall()
             == perception
@@ -352,7 +352,7 @@ def test_thought_refuses_downgrade_before_any_schema_or_data_changes(
     url, config = migration_database
     with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
         seed_legacy(conn)
-        command.upgrade(config, "head")
+        command.upgrade(config, "0004")
         conn.execute(
             "INSERT INTO turns SELECT (jsonb_populate_record(NULL::turns, "
             "to_jsonb(t) || %s)).* FROM turns t WHERE turn_id = 'explicit'",
@@ -381,8 +381,8 @@ def test_thought_refuses_downgrade_before_any_schema_or_data_changes(
 def test_empty_database_upgrade_is_repeatable(migration_database: tuple[str, Config]) -> None:
     url, config = migration_database
     command.downgrade(config, "base")
-    command.upgrade(config, "head")
-    command.upgrade(config, "head")
+    command.upgrade(config, "0004")
+    command.upgrade(config, "0004")
     with psycopg.connect(url, connect_timeout=5) as conn:
         assert conn.execute("SELECT version_num FROM alembic_version").fetchall() == [("0004",)]
         assert conn.execute("SELECT count(*) FROM turns").fetchone() == (0,)
