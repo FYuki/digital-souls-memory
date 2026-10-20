@@ -291,7 +291,7 @@ uv run --no-sync python -m digital_souls_memory.evaluation.rescore \
 | 項目 | memory-v2.1の条件 |
 | --- | --- |
 | 候補取得 | 適格候補だけを埋め込み・索引へ渡す。6項加重和の降順、同点ID順で上位20件をrerankerへ送る |
-| reranker有効 | llama.cppのraw relevanceを変換せず使用。relevance >= thresholdで棄却し、relevance降順・同点ID順で返す。合成閾値を再適用しない |
+| reranker有効 | llama.cppのraw relevanceを変換せず使用。relevance < thresholdを棄却し、残りをrelevance降順・同点ID順で返す。合成閾値を再適用しない |
 | 有効時グリッド | raw relevanceの-12〜12を1刻み、既存の3種類の重みと組み合わせた75設定。品質合格を保証する範囲ではない |
 | reranker無効 | 既存の合成スコア順位・包含的閾値・45設定を維持。返却量の判定は新版のトークン相当へ変更 |
 | 計数 | 記憶ID・原文・話者・言語・オフセット・切り出し情報を含む返却JSON配列全体。scoreは含めない。正規JSONの条件は旧版と同じ |
