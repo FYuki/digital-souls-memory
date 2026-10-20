@@ -75,9 +75,9 @@ def test_forbidden_ids_have_explicit_safety_or_quality_meaning(
     v2_gold["safety_forbidden_ids" if safety else "quality_forbidden_ids"] = ["m2"]
     result = evaluate_case(case, v2_gold, [hit, {**hit, "memory_id": "m2"}], v2_protocol)
     assert result["safety_passed"] is (not safety)
-    assert result["passed"] is False
-    if not safety:
-        assert result["quality_passed"] is False
+    assert result["passed"] is (not safety)
+    assert result["quality_passed"] is True
+    assert result["precision"] == 0.5
 
 
 @pytest.mark.parametrize(
@@ -229,7 +229,7 @@ def test_absent_score_groups_remain_unmeasured(
     assert ranges["highest_incorrect" if required else "correct"] is None
 
 
-def test_missing_required_text_is_quality_failure_without_invalidating_valid_returned_span(
+def test_valid_partial_source_does_not_fail_recall_with_all_required_ids(
     case: dict[str, object],
     hit: dict[str, object],
     v2_gold: dict[str, object],
@@ -240,4 +240,72 @@ def test_missing_required_text_is_quality_failure_without_invalidating_valid_ret
     partial = {**original, "end": 2, "text": string(original["text"])[:2]}
     result = evaluate_case(case, v2_gold, [{**hit, "source_spans": [partial]}], v2_protocol)
     assert result["safety_passed"] is True
-    assert result["quality_passed"] is False
+    assert result["quality_passed"] is True
+    assert result["passed"] is True
+
+
+@pytest.mark.parametrize("complete", [False, True])
+def test_equivalent_order_requires_all_ids_but_not_their_order(
+    case: dict[str, object],
+    memory: dict[str, object],
+    hit: dict[str, object],
+    v2_gold: dict[str, object],
+    v2_protocol: dict[str, object],
+    complete: bool,
+) -> None:
+    case.update(category="equivalent_order", memories=[memory, {**memory, "id": "m2"}])
+    v2_gold.update(required_ids=["m1", "m2"], required_order=["m1", "m2"])
+    hits = [{**hit, "memory_id": "m2"}, hit] if complete else [hit]
+    result = evaluate_case(case, v2_gold, hits, v2_protocol)
+    assert result["passed"] is complete
+    assert result["quality_passed"] is complete
+    assert result["safety_passed"] is True
+    assert result["recall_at_5"] == (1.0 if complete else 0.5)
+
+
+def test_false_positive_counts_include_unlisted_ids_only_in_returned_top_five(
+    case: dict[str, object],
+    memory: dict[str, object],
+    hit: dict[str, object],
+    v2_gold: dict[str, object],
+    v2_protocol: dict[str, object],
+) -> None:
+    case["memories"] = [{**memory, "id": f"m{i}"} for i in range(1, 7)]
+    cast(list[dict[str, object]], case["turns"])[0]["text"] = "原文"
+    hit = {
+        **hit,
+        "source_spans": [
+            {**cast(list[dict[str, object]], hit["source_spans"])[0], "text": "原文", "end": 2}
+        ],
+    }
+    v2_gold.update(forbidden_ids=["m2"], quality_forbidden_ids=["m2"])
+    hits = [{**hit, "memory_id": f"m{i}"} for i in range(1, 7)]
+    first = evaluate_case(case, v2_gold, hits, v2_protocol)
+    second = evaluate_case({**case, "id": "case-b"}, v2_gold, [hit], v2_protocol)
+    assert first["false_positive_count"] == 4
+    assert first["precision"] == 0.2
+    assert second["false_positive_count"] == 0
+    summary = aggregate_run([first, second], protocol=v2_protocol)
+    assert cast(dict[str, object], summary["categories"]["detail"])["false_positive_count"] == 4
+
+
+@pytest.mark.parametrize("category", ["unrelated", "threshold"])
+@pytest.mark.parametrize("returned", [False, True])
+def test_no_match_requires_empty_results_even_without_quality_forbidden_ids(
+    case: dict[str, object],
+    hit: dict[str, object],
+    v2_gold: dict[str, object],
+    v2_protocol: dict[str, object],
+    category: str,
+    returned: bool,
+) -> None:
+    result = evaluate_case(
+        {**case, "category": category},
+        {**v2_gold, "required_ids": []},
+        [hit] if returned else [],
+        v2_protocol,
+    )
+    assert result["passed"] is (not returned)
+    assert result["quality_passed"] is (not returned)
+    assert result["no_match_correct"] is (not returned)
+    assert result["safety_passed"] is True

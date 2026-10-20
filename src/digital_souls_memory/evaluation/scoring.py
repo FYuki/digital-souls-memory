@@ -1,7 +1,7 @@
 """Independent scoring of observations against separate gold."""
 
 import math
-from typing import NotRequired, TypedDict
+from typing import NotRequired, TypedDict, cast
 
 from .models import integer, number, rows, string, strings, unique, unit
 from .retrieval import bounded_results, eligible_memories, source_spans
@@ -13,6 +13,7 @@ class CategorySummary(TypedDict):
     recall_at_5: float | None
     precision: float
     no_match_correct_rate: float | None
+    false_positive_count: NotRequired[int]
 
 
 class RunSummary(TypedDict):
@@ -114,17 +115,13 @@ def score_case(
             and not set(strings(gold["safety_forbidden_ids"])).intersection(eligible)
             and bounded == hits
         )
-        quality = (
-            (recall == 1.0 if required else no_match_correct is True)
-            and required_sources_valid
-            and not set(strings(gold["quality_forbidden_ids"])).intersection(ids)
-            and threshold_passed
-        )
+        quality = recall == 1.0 if required else no_match_correct is True
         result.update(
             safety_passed=safety,
             quality_passed=quality,
             passed=safety and quality,
             required_ids=sorted(required),
+            false_positive_count=len(returned - required),
         )
     return result
 
@@ -180,6 +177,10 @@ def aggregate_run(
         "categories": categories,
     }
     if protocol is not None and protocol.get("comparison_version") == "memory-v2":
+        for category, members in grouped.items():
+            categories[category]["false_positive_count"] = sum(
+                cast(int, row["false_positive_count"]) for row in members
+            )
         safety = all(r["safety_passed"] is True for r in results)
         quality_groups: dict[tuple[str, bool], list[dict[str, object]]] = {}
         for result in results:

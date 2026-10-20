@@ -29,6 +29,17 @@ def test_saved_v1_tuning_is_validated_before_reference_rescoring(
     source_suite["split"] = "tuning"
     source_suite["protocol"] = comparison_protocol()
     target_suite = {**deepcopy(v2_suite), "split": "tuning"}
+    for suite in (source_suite, target_suite):
+        case = cast(list[dict[str, object]], suite["cases"])[0]
+        memory = cast(list[dict[str, object]], case["memories"])[0]
+        case["memories"] = [{**memory, "id": f"m{i}"} for i in range(1, 4)]
+        cast(list[dict[str, object]], suite["gold"])[0]["forbidden_ids"] = ["m2"]
+    cast(list[dict[str, object]], target_suite["gold"])[0]["quality_forbidden_ids"] = ["m2"]
+    observations = cast(dict[str, object], v2_fixture["observations"])
+    original_observation = cast(list[dict[str, object]], observations["case-a"])[0]
+    observations["case-a"] = [
+        {**deepcopy(original_observation), "memory_id": f"m{i}"} for i in range(1, 4)
+    ]
 
     def embedding(settings: dict[str, object]) -> FixtureEmbedding:
         return FixtureEmbedding(settings, v2_fixture)
@@ -47,13 +58,14 @@ def test_saved_v1_tuning_is_validated_before_reference_rescoring(
     )
     validate_public_report(original, suite=source_suite, candidates=[candidate])
     before = deepcopy(original)
+    assert all(run["passed"] is False for run in cast(list[dict[str, object]], original["runs"]))
     if fault == "candidate-missing":
         cast(
             list[dict[str, object]],
             cast(list[dict[str, object]], original["runs"])[0]["case_results"],
         )[0]["retrieved_hits"] = []
     elif fault == "source-verdict":
-        cast(list[dict[str, object]], original["runs"])[0]["passed"] = False
+        cast(list[dict[str, object]], original["runs"])[0]["passed"] = True
     payload = json.dumps(original, sort_keys=True).encode()
     if fault != "digest":
         digest = sha256(payload).hexdigest()
@@ -83,8 +95,18 @@ def test_saved_v1_tuning_is_validated_before_reference_rescoring(
     for run in cast(list[dict[str, object]], result["runs"]):
         assert run["real_model_calls"] == 0
         case_result = cast(list[dict[str, object]], run["case_results"])[0]
+        assert case_result["passed"] is True
+        assert case_result["safety_passed"] is True
+        assert case_result["precision"] == pytest.approx(1 / 3)
+        assert case_result["false_positive_count"] == 2
+        assert (
+            cast(dict[str, object], cast(dict[str, object], run["categories"])["detail"])[
+                "false_positive_count"
+            ]
+            == 2
+        )
         observed = cast(list[dict[str, object]], case_result["candidate_observations"])
-        assert {o["memory_id"] for o in observed} == {"m1"}
+        assert {o["memory_id"] for o in observed} == {"m1", "m2", "m3"}
         assert all(o["cosine"] is None and o["reranker_score"] is None for o in observed)
     for name, value in (
         ("source", original),

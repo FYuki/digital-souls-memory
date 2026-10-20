@@ -225,6 +225,7 @@ def public_report(report: dict[str, object]) -> dict[str, object]:
                 for key in (
                     "safety_passed",
                     "quality_passed",
+                    "false_positive_count",
                     "required_ids",
                     "eligible_ids",
                     "rerank_ms",

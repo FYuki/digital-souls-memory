@@ -20,6 +20,104 @@ from digital_souls_memory.evaluation.runner import run_evaluation
 pytestmark = pytest.mark.it1
 
 
+@pytest.fixture
+def mixed_recall_report(
+    v2_suite: dict[str, object],
+    v2_fixture: dict[str, object],
+    candidate: dict[str, object],
+    observation_factory: Callable[[str, float], dict[str, object]],
+) -> dict[str, object]:
+    case = cast(list[dict[str, object]], v2_suite["cases"])[0]
+    memory = cast(list[dict[str, object]], case["memories"])[0]
+    case["memories"] = [{**memory, "id": f"m{i}"} for i in range(1, 4)]
+    gold = cast(list[dict[str, object]], v2_suite["gold"])[0]
+    gold.update(forbidden_ids=["m2"], quality_forbidden_ids=["m2"])
+    v2_fixture["observations"] = {
+        str(case["id"]): [observation_factory(f"m{i}", 0.55) for i in range(1, 4)]
+    }
+    return run_evaluation(
+        v2_suite,
+        [candidate],
+        mode="fixture",
+        embedding_factory=lambda settings: FixtureEmbedding(settings, v2_fixture),
+        search_factory=lambda settings: FixtureSearch(v2_fixture),
+    )
+
+
+def test_recall_with_quality_extras_passes_through_runner_and_public_validation(
+    mixed_recall_report: dict[str, object],
+    v2_suite: dict[str, object],
+    candidate: dict[str, object],
+) -> None:
+    published = public_report(mixed_recall_report)
+    validate_public_report(published, suite=v2_suite, candidates=[candidate])
+    for run in cast(list[dict[str, object]], published["runs"]):
+        assert run["execution_error"] is None
+        assert run["passed"] is True
+        result = cast(list[dict[str, object]], run["case_results"])[0]
+        assert result["passed"] is True
+        assert result["safety_passed"] is True
+        assert result["precision"] == pytest.approx(1 / 3)
+
+
+@pytest.mark.parametrize("tamper", [None, "case", "category"])
+def test_false_positive_count_survives_public_roundtrip_and_rejects_tampering(
+    mixed_recall_report: dict[str, object],
+    v2_suite: dict[str, object],
+    candidate: dict[str, object],
+    tamper: str | None,
+) -> None:
+    published = public_report(mixed_recall_report)
+    validate_public_report(published, suite=v2_suite, candidates=[candidate])
+    run = cast(list[dict[str, object]], published["runs"])[0]
+    result = cast(list[dict[str, object]], run["case_results"])[0]
+    category = cast(dict[str, object], cast(dict[str, object], run["categories"])["detail"])
+    assert result["false_positive_count"] == 2
+    assert category["false_positive_count"] == 2
+    if tamper is not None:
+        (result if tamper == "case" else category)["false_positive_count"] = 0
+        with pytest.raises(ValueError):
+            validate_public_report(published, suite=v2_suite, candidates=[candidate])
+
+
+@pytest.mark.parametrize("category", ["unrelated", "threshold"])
+@pytest.mark.parametrize("returned", [False, True])
+def test_runner_no_match_requires_empty_results(
+    v2_suite: dict[str, object],
+    v2_fixture: dict[str, object],
+    candidate: dict[str, object],
+    category: str,
+    returned: bool,
+) -> None:
+    cast(list[dict[str, object]], v2_suite["cases"])[0]["category"] = category
+    cast(list[dict[str, object]], v2_suite["gold"])[0]["required_ids"] = []
+    if not returned:
+        observation = cast(
+            list[dict[str, object]], cast(dict[str, object], v2_fixture["observations"])["case-a"]
+        )[0]
+        observation["score"] = 0.1
+        observation["cosine"] = 0.1
+        observation["components"] = {
+            key: 0.1 for key in cast(dict[str, object], observation["components"])
+        }
+    published = public_report(
+        run_evaluation(
+            v2_suite,
+            [candidate],
+            mode="fixture",
+            embedding_factory=lambda settings: FixtureEmbedding(settings, v2_fixture),
+            search_factory=lambda settings: FixtureSearch(v2_fixture),
+        )
+    )
+    validate_public_report(published, suite=v2_suite, candidates=[candidate])
+    for run in cast(list[dict[str, object]], published["runs"]):
+        assert run["execution_error"] is None
+        assert run["passed"] is (not returned)
+        result = cast(list[dict[str, object]], run["case_results"])[0]
+        assert result["passed"] is (not returned)
+        assert result["safety_passed"] is True
+
+
 class ObservedSearch:
     def __init__(self, observations: list[dict[str, object]]) -> None:
         self.observations = deepcopy(observations)
@@ -66,6 +164,38 @@ class FakeReranker:
     ) -> list[dict[str, object]]:
         self.calls.append((query, deepcopy(documents)))
         return deepcopy(self.scores)
+
+
+def test_runner_rejects_search_returning_a_safety_forbidden_candidate(
+    v2_suite: dict[str, object],
+    v2_fixture: dict[str, object],
+    candidate: dict[str, object],
+    observation_factory: Callable[[str, float], dict[str, object]],
+) -> None:
+    case = cast(list[dict[str, object]], v2_suite["cases"])[0]
+    memory = cast(list[dict[str, object]], case["memories"])[0]
+    case["memories"] = [memory, {**memory, "id": "blocked", "valid_to": case["as_of"]}]
+    cast(list[dict[str, object]], v2_suite["gold"])[0].update(
+        forbidden_ids=["blocked"], safety_forbidden_ids=["blocked"]
+    )
+
+    class ForbiddenSearch(ObservedSearch):
+        def observe(self, query_vector: tuple[float, ...]) -> list[dict[str, object]]:
+            return deepcopy(self.observations)
+
+    report = run_evaluation(
+        v2_suite,
+        [candidate],
+        mode="fixture",
+        embedding_factory=lambda settings: FixtureEmbedding(settings, v2_fixture),
+        search_factory=lambda settings: ForbiddenSearch(
+            [observation_factory("m1", 0.55), observation_factory("blocked", 0.55)]
+        ),
+    )
+    for run in cast(list[dict[str, object]], report["runs"]):
+        assert run["execution_error"] is not None
+        assert run["case_results"] == []
+        assert run["quality_passed"] is None
 
 
 def test_v2_rejects_search_ports_without_all_candidate_observation(

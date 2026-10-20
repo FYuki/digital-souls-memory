@@ -136,3 +136,69 @@ def test_v2_selection_uses_declared_quality_priority_instead_of_violation_totals
     expected = 1 if priority == "worst-repetition" else 0
     selected = selected_candidates(tuning_report, [candidate])
     assert cast(dict[str, object], selected[0]["parameters"]) == parameter_grid()[expected]
+
+
+def test_selection_prefers_no_match_success_while_preserving_recall_with_quality_extras(
+    candidate: dict[str, object],
+    case: dict[str, object],
+    memory: dict[str, object],
+    hit: dict[str, object],
+    v2_gold: dict[str, object],
+    v2_suite: dict[str, object],
+    v2_protocol: dict[str, object],
+) -> None:
+    expanded = tuning_candidates([candidate])
+    runs = []
+    for item in expanded:
+        parameters = cast(dict[str, object], item["parameters"])
+        threshold = cast(float, parameters["threshold"])
+        protocol = {**v2_protocol, **parameters}
+        results = []
+        for index in range(10):
+            identifier = f"recall-{index}"
+            row = {**case, "id": identifier, "memories": [memory, {**memory, "id": "m2"}]}
+            gold = {
+                **v2_gold,
+                "case_id": identifier,
+                "forbidden_ids": ["m2"],
+                "quality_forbidden_ids": ["m2"],
+            }
+            hits = [
+                {**hit, "score": 0.9 if index == 0 else 0.6},
+                {**hit, "memory_id": "m2", "score": 0.7},
+            ]
+            results.append(
+                evaluate_case(
+                    row, gold, [h for h in hits if cast(float, h["score"]) >= threshold], protocol
+                )
+            )
+        for index, score in enumerate((0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55)):
+            identifier = f"no-match-{index}"
+            results.append(
+                evaluate_case(
+                    {**case, "id": identifier, "category": "unrelated"},
+                    {**v2_gold, "case_id": identifier, "required_ids": []},
+                    [{**hit, "score": score}] if score >= threshold else [],
+                    protocol,
+                )
+            )
+        for index in range(1, 4):
+            runs.append(
+                {
+                    "candidate_id": item["id"],
+                    "run_index": index,
+                    "execution_error": None,
+                    "case_results": results,
+                    **aggregate_run(results, protocol=protocol),
+                }
+            )
+    report: dict[str, object] = {
+        "suite": {**v2_suite, "split": "tuning"},
+        "candidates": expanded,
+        "runs": runs,
+    }
+    selected = selected_candidates(report, [candidate])
+    assert selected[0]["parameters"] == {
+        **parameter_grid()[0],
+        "threshold": 0.6,
+    }
