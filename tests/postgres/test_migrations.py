@@ -16,7 +16,10 @@ pytestmark = pytest.mark.postgres
 def test_identity_revision_is_the_single_successor_of_evidence() -> None:
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
     scripts = ScriptDirectory.from_config(config)
-    assert scripts.get_heads() == ["0004"]
+    assert scripts.get_heads() == ["0005"]
+    voice = scripts.get_revision("0005")
+    assert voice is not None
+    assert voice.down_revision == "0004"
     perception = scripts.get_revision("0004")
     assert perception is not None
     assert perception.down_revision == "0003"

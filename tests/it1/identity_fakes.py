@@ -1,6 +1,6 @@
 """Port doubles for registration; domain validation remains in production code."""
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from datetime import datetime
 
@@ -131,6 +131,11 @@ class FakeLLMGateway:
             raise IdentityUnavailable()
         return self.description
 
+    def generate_typical_responses(
+        self, *, temperament: Temperament, profile: PersonalityProfile, exemplars: Sequence[str]
+    ) -> tuple[str, ...]:
+        raise IdentityUnavailable()
+
 
 class FakeReviewer:
     def __init__(self) -> None:
@@ -145,3 +150,13 @@ class FakeReviewer:
         if self.fail:
             raise IdentityUnavailable()
         return self.result
+
+    def review_voice(
+        self,
+        *,
+        temperament: Temperament,
+        profile: PersonalityProfile,
+        exemplars: Sequence[str],
+        responses: Sequence[str],
+    ) -> ReviewResult:
+        raise IdentityUnavailable()

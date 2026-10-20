@@ -1,6 +1,6 @@
 """Storage, rendering and consistency review contracts."""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import datetime
@@ -64,8 +64,21 @@ class LLMGateway(Protocol):
         self, *, aspects: Mapping[str, float], temperament: Temperament, renderer_version: str
     ) -> str: ...
 
+    def generate_typical_responses(
+        self, *, temperament: Temperament, profile: PersonalityProfile, exemplars: Sequence[str]
+    ) -> tuple[str, ...]: ...
+
 
 class Reviewer(Protocol):
     def review_identity(
         self, *, temperament: Temperament, profile: PersonalityProfile
+    ) -> ReviewResult: ...
+
+    def review_voice(
+        self,
+        *,
+        temperament: Temperament,
+        profile: PersonalityProfile,
+        exemplars: Sequence[str],
+        responses: Sequence[str],
     ) -> ReviewResult: ...
