@@ -78,10 +78,10 @@ def test_http_identifiers_support_all_reference_operations(
     report = {**receipt_payload("none", 0), "reported_by": "window/1"}
     assert client.post("/turns/Turn_1/receipts", json=report).status_code == 201
     assert client.get("/turns/Turn_1/receipts").json()[0]["reported_by"] == "window/1"
-    for character in (participant, audience):
-        values = client.get(f"/characters/{character}/turns").json()
-        assert [value["turn_id"] for value in values] == ["Turn_1"]
-        assert values[0] == saved
+    assert client.get(f"/characters/{participant}/turns").json() == []
+    values = client.get(f"/characters/{audience}/turns").json()
+    assert [value["turn_id"] for value in values] == ["Turn_1"]
+    assert values[0] == saved
 
 
 @pytest.mark.parametrize(
@@ -201,6 +201,10 @@ def test_optional_session_end_and_turn_audience(client: TestClient) -> None:
     assert client.post("/turns", json=payload).is_success
     assert client.get("/sessions/session-1").json()["ended_at"] is None
     assert client.get("/turns/turn-1").json()["audience"] == []
+    assert [value["turn_id"] for value in client.get("/characters/char-a/turns").json()] == [
+        "turn-1"
+    ]
+    assert client.get("/characters/char-z/turns").json() == []
 
 
 @pytest.mark.parametrize(
@@ -223,7 +227,7 @@ def test_all_utterances_and_observations_are_registered(
     assert saved["text"] == TEXT
 
 
-def test_character_query_excludes_actor_only_and_unrelated_turns(client: TestClient) -> None:
+def test_character_query_limits_listeners_and_includes_own_turns(client: TestClient) -> None:
     register_turn(client)
     assert client.post(
         "/sessions", json={**session_payload(), "session_id": "private", "participants": ["char-z"]}
@@ -233,9 +237,9 @@ def test_character_query_excludes_actor_only_and_unrelated_turns(client: TestCli
         json={**turn_payload(), "turn_id": "private", "session_id": "private", "audience": []},
     ).is_success
     for character, expected in [
-        ("char-a", {"turn-1"}),
+        ("char-a", set()),
         ("char-b", {"turn-1"}),
-        ("char-c", set()),
+        ("char-c", {"turn-1", "private"}),
         ("nobody", set()),
     ]:
         response = client.get(f"/characters/{character}/turns")
@@ -249,10 +253,12 @@ def test_character_query_excludes_actor_only_and_unrelated_turns(client: TestCli
         (["char-a"], [], "char-c", True),
         (["char-z"], [], "char-c", False),
         (["char-z"], ["char-a"], "char-c", True),
-        (["char-z"], [], "char-a", False),
+        (["char-a"], ["char-b"], "char-c", False),
+        (["char-z"], [], "char-a", True),
+        (["char-z"], ["char-b"], "char-a", True),
     ],
 )
-def test_perception_sources_are_independent_in_http(
+def test_character_query_applies_audience_participants_and_actor_rules(
     client: TestClient, participants: list[str], audience: list[str], actor: str, expected: bool
 ) -> None:
     assert client.post(
@@ -264,6 +270,71 @@ def test_perception_sources_are_independent_in_http(
     assert [value["turn_id"] for value in client.get("/characters/char-a/turns").json()] == (
         ["turn-1"] if expected else []
     )
+
+
+@pytest.mark.parametrize("kind", ["utterance", "observation"])
+def test_actor_exception_does_not_include_other_turns_in_same_session(
+    client: TestClient, kind: str
+) -> None:
+    assert client.post(
+        "/sessions", json={**session_payload(), "participants": ["char-b", "char-c"]}
+    ).is_success
+    for identifier, actor in [("own", "char-a"), ("other", "char-c")]:
+        assert client.post(
+            "/turns",
+            json={**turn_payload(), "turn_id": identifier, "actor": actor, "kind": kind},
+        ).is_success
+    response = client.get("/characters/char-a/turns")
+    assert response.status_code == 200
+    assert [value["turn_id"] for value in response.json()] == ["own"]
+
+
+@pytest.mark.parametrize(
+    "first_occurred,first_recorded,second_occurred,second_recorded,expected",
+    [
+        (1, 0, 0, 1, ["turn-2", "turn-1"]),
+        (0, 1, 0, 0, ["turn-2", "turn-1"]),
+        (0, 0, 0, 0, ["turn-1", "turn-2"]),
+    ],
+    ids=["occurred-time", "recorded-time", "identifier"],
+)
+def test_character_query_orders_turns_across_sessions_and_surfaces(
+    store: FakeEvidenceStore,
+    first_occurred: int,
+    first_recorded: int,
+    second_occurred: int,
+    second_recorded: int,
+    expected: list[str],
+) -> None:
+    times = iter(
+        [
+            RECORDED + timedelta(seconds=second_recorded),
+            RECORDED + timedelta(seconds=first_recorded),
+        ]
+    )
+    with TestClient(create_app(store=store, clock=lambda: next(times))) as client:
+        for identifier, surface in [("session-1", "chat"), ("session-2", "diary")]:
+            assert client.post(
+                "/sessions",
+                json={**session_payload(), "session_id": identifier, "surface": surface},
+            ).is_success
+        for identifier, context, surface, offset in [
+            ("turn-2", "session-2", "diary", second_occurred),
+            ("turn-1", "session-1", "chat", first_occurred),
+        ]:
+            assert client.post(
+                "/turns",
+                json={
+                    **turn_payload(),
+                    "turn_id": identifier,
+                    "session_id": context,
+                    "surface": surface,
+                    "occurred_at": (OCCURRED + timedelta(seconds=offset)).isoformat(),
+                },
+            ).is_success
+        response = client.get("/characters/char-b/turns")
+        assert response.status_code == 200
+        assert [value["turn_id"] for value in response.json()] == expected
 
 
 def test_receipts_append_without_changing_generated_text(client: TestClient) -> None:
@@ -367,7 +438,10 @@ def test_instruction_text_remains_data(client: TestClient) -> None:
     saved = client.get("/turns/turn-1").json()
     for field in ("text", "actor", "sensitivity", "classifier_version"):
         assert saved[field] == payload[field]
-    assert client.get("/characters/char-c/turns").json() == []
+    assert [value["turn_id"] for value in client.get("/characters/char-c/turns").json()] == [
+        "turn-1"
+    ]
+    assert client.get("/characters/char-a/turns").json() == []
 
 
 def test_invalid_labels_are_validated_before_default_storage_is_resolved(

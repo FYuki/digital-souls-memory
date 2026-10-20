@@ -107,7 +107,8 @@ class DeliveryReceipt:
 
 def can_perceive(character_id: str, session: Session, turn: Turn) -> bool:
     return session.session_id == turn.session_id and (
-        character_id in session.participants or character_id in turn.audience
+        character_id == turn.actor
+        or character_id in (turn.audience if turn.audience else session.participants)
     )
 
 

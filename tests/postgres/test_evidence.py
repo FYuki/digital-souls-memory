@@ -22,6 +22,7 @@ from digital_souls_memory.evidence.ports import (
 from digital_souls_memory.evidence.use_cases import EvidenceService
 from tests.evidence_support import (
     INSTRUCTION,
+    OCCURRED,
     RECORDED,
     TEXT,
     receipt,
@@ -65,7 +66,7 @@ def test_managed_lists_span_fetch_windows_and_close_connections(
     source = (
         owner.list_receipts("turn-1")
         if operation == "receipts"
-        else owner.list_perceived_turns("char-a")
+        else owner.list_perceived_turns("char-b")
     )
 
     def consume() -> None:
@@ -92,7 +93,7 @@ def test_managed_lists_span_fetch_windows_and_close_connections(
                 else:
                     assert restored == sorted(
                         [turn()] + [turn(f"turn-{index + 1:03}") for index in range(1, 257)],
-                        key=lambda value: (value.recorded_at, value.turn_id),
+                        key=lambda value: (value.occurred_at, value.recorded_at, value.turn_id),
                     )
 
     if finish == "error":
@@ -106,21 +107,43 @@ def test_managed_lists_span_fetch_windows_and_close_connections(
     assert all(connection.closed for connection in store.connections)
 
 
-@pytest.mark.parametrize("later_first", [False, True])
-def test_turns_are_ordered_by_recorded_time_then_identifier(
-    app_database_url: str, later_first: bool
+@pytest.mark.parametrize(
+    "first_occurred,first_recorded,second_occurred,second_recorded,expected",
+    [
+        (1, 0, 0, 1, ["turn-2", "turn-1"]),
+        (0, 1, 0, 0, ["turn-2", "turn-1"]),
+        (0, 0, 0, 0, ["turn-1", "turn-2"]),
+    ],
+    ids=["occurred-time", "recorded-time", "identifier"],
+)
+def test_turns_are_ordered_by_occurred_time_recorded_time_then_identifier(
+    app_database_url: str,
+    first_occurred: int,
+    first_recorded: int,
+    second_occurred: int,
+    second_recorded: int,
+    expected: list[str],
 ) -> None:
     store = PostgresEvidenceStore(app_database_url)
     store.add_session(session())
-    store.add_turn(turn("turn-2"))
-    first = turn("turn-1")
+    store.add_session(replace(session("session-2"), surface="synthetic-diary"))
     store.add_turn(
-        replace(first, recorded_at=RECORDED + timedelta(seconds=1)) if later_first else first
-    )
-    with store.list_perceived_turns("char-a") as values:
-        assert [value.turn_id for value in values] == (
-            ["turn-2", "turn-1"] if later_first else ["turn-1", "turn-2"]
+        replace(
+            turn("turn-2", "session-2"),
+            surface="synthetic-diary",
+            occurred_at=OCCURRED + timedelta(seconds=second_occurred),
+            recorded_at=RECORDED + timedelta(seconds=second_recorded),
         )
+    )
+    store.add_turn(
+        replace(
+            turn("turn-1"),
+            occurred_at=OCCURRED + timedelta(seconds=first_occurred),
+            recorded_at=RECORDED + timedelta(seconds=first_recorded),
+        )
+    )
+    with store.list_perceived_turns("char-b") as values:
+        assert [value.turn_id for value in values] == expected
 
 
 def seed(url: str) -> PostgresEvidenceStore:
@@ -145,9 +168,9 @@ def test_adapter_query_limits_perception_at_store_boundary(app_database_url: str
     store.add_session(session("private", ("char-z",)))
     store.add_turn(turn("private", "private", audience=()))
     for character, expected in [
-        ("char-a", {"turn-1"}),
+        ("char-a", set()),
         ("char-b", {"turn-1"}),
-        ("char-c", set()),
+        ("char-c", {"turn-1", "private"}),
         ("nobody", set()),
     ]:
         with store.list_perceived_turns(character) as values:
@@ -160,10 +183,12 @@ def test_adapter_query_limits_perception_at_store_boundary(app_database_url: str
         (("char-a",), (), "char-c", True),
         (("char-z",), (), "char-c", False),
         (("char-z",), ("char-a",), "char-c", True),
-        (("char-z",), (), "char-a", False),
+        (("char-a",), ("char-b",), "char-c", False),
+        (("char-z",), (), "char-a", True),
+        (("char-z",), ("char-b",), "char-a", True),
     ],
 )
-def test_perception_sources_are_independent_in_postgres(
+def test_perception_applies_audience_participants_and_actor_rules_in_postgres(
     app_database_url: str,
     participants: tuple[str, ...],
     audience: tuple[str, ...],
@@ -175,6 +200,18 @@ def test_perception_sources_are_independent_in_postgres(
     store.add_turn(turn(actor=actor, audience=audience))
     with store.list_perceived_turns("char-a") as values:
         assert [value.turn_id for value in values] == (["turn-1"] if expected else [])
+
+
+@pytest.mark.parametrize("kind", ["utterance", "observation"])
+def test_actor_exception_does_not_include_other_turns_in_same_session(
+    app_database_url: str, kind: str
+) -> None:
+    store = PostgresEvidenceStore(app_database_url)
+    store.add_session(session(participants=("char-b", "char-c")))
+    store.add_turn(turn("own", actor="char-a", kind=kind))
+    store.add_turn(turn("other", actor="char-c", kind=kind))
+    with store.list_perceived_turns("char-a") as values:
+        assert [value.turn_id for value in values] == ["own"]
 
 
 def test_receipts_append_and_never_truncate_generated_text(app_database_url: str) -> None:

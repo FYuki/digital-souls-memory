@@ -37,9 +37,13 @@ DB の通常 UPDATE / DELETE もトリガーで拒否します。作者削除は
 呼出し側は完全な JSON 配列の受信を成功条件としてください。
 完了・失敗・切断時にカーソルと接続を閉じます。
 
-キャラ別取得は、Session の `participants` **または** Turn の `audience` に
-指定キャラが含まれる行を取得元で限定します。`actor` の一致だけでは返しません。
-キャラ別取得の順序は `recorded_at`、`turn_id` です。
+キャラ別取得は、Turn の `audience` が空でなければ、その中に指定キャラが含まれる
+行を取得元で限定します。Session の参加者でなくても `audience` に含まれれば取得でき、
+参加者でも `audience` の外なら取得できません。`audience` が空の場合は Session の
+`participants` に含まれるキャラが取得できます。
+加えて、当該 Turn の `actor` 本人は参加者・`audience` の外でも自分の発話・行為を
+取得できます。この例外は同じ Session の他者の Turn へは広がりません。
+キャラ別取得の順序は `occurred_at`、`recorded_at`、`turn_id` の昇順です。
 この入口は Core 向けで、キャラ ID は認証主体を表すものではありません。
 
 ## 入力

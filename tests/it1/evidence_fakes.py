@@ -3,7 +3,7 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from digital_souls_memory.evidence.domain import DeliveryReceipt, Session, Turn
+from digital_souls_memory.evidence.domain import DeliveryReceipt, Session, Turn, can_perceive
 from digital_souls_memory.evidence.ports import EvidenceConflict
 
 
@@ -47,8 +47,8 @@ class FakeEvidenceStore:
         yield (
             value
             for value in sorted(
-                self.turns.values(), key=lambda value: (value.recorded_at, value.turn_id)
+                self.turns.values(),
+                key=lambda value: (value.occurred_at, value.recorded_at, value.turn_id),
             )
-            if character_id in self.sessions[value.session_id].participants
-            or character_id in value.audience
+            if can_perceive(character_id, self.sessions[value.session_id], value)
         )

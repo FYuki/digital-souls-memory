@@ -131,8 +131,9 @@ class PostgresEvidenceStore:
                 cursor.itersize = 128
                 cursor.execute(
                     "SELECT t.* FROM turns t JOIN sessions s ON s.session_id = t.session_id "
-                    "WHERE %s = ANY(s.participants) OR %s = ANY(t.audience) "
-                    "ORDER BY t.recorded_at, t.turn_id",
-                    (character_id, character_id),
+                    "WHERE t.actor = %s OR %s = ANY(t.audience) "
+                    "OR (cardinality(t.audience) = 0 AND %s = ANY(s.participants)) "
+                    "ORDER BY t.occurred_at, t.recorded_at, t.turn_id",
+                    (character_id, character_id, character_id),
                 )
                 yield (Turn(**row) for row in cursor)

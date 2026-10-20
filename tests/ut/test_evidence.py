@@ -52,10 +52,29 @@ def test_labels_are_required_without_defaulting(field: str, invalid: object) -> 
 
 
 @pytest.mark.parametrize(
-    "character,expected", [("char-a", True), ("char-b", True), ("char-c", False), ("x", False)]
+    "character,expected", [("char-a", False), ("char-b", True), ("char-c", True), ("x", False)]
 )
-def test_perception_is_participants_or_audience(character: str, expected: bool) -> None:
+def test_explicit_audience_limits_participants_but_allows_listeners_and_actor(
+    character: str, expected: bool
+) -> None:
     assert can_perceive(character, session(), turn()) is expected
+
+
+@pytest.mark.parametrize("character,expected", [("char-a", True), ("char-z", False)])
+def test_empty_audience_uses_session_participants(character: str, expected: bool) -> None:
+    assert can_perceive(character, session(), turn(audience=())) is expected
+
+
+@pytest.mark.parametrize("kind", ["utterance", "observation"])
+@pytest.mark.parametrize("audience", [(), ("char-b",)])
+def test_actor_perceives_only_own_turn_outside_participants_and_audience(
+    kind: str, audience: tuple[str, ...]
+) -> None:
+    context = session(participants=("char-b", "char-c"))
+    own = turn("own", actor="char-a", kind=kind, audience=audience)
+    other = turn("other", actor="char-c", audience=("char-b",))
+    assert can_perceive("char-a", context, own)
+    assert not can_perceive("char-a", context, other)
 
 
 @pytest.mark.parametrize("actor", ["char-a", "char-b", "synthetic-viewer"])
@@ -63,7 +82,7 @@ def test_self_ai_and_viewer_utterances_are_not_excluded(actor: str) -> None:
     value = turn(actor=actor)
     assert value.actor == actor
     assert value.kind == "utterance"
-    assert can_perceive("char-a", session(), value)
+    assert can_perceive(actor, session(), value)
 
 
 def test_experience_can_be_recorded_as_observation() -> None:
@@ -139,5 +158,6 @@ def test_turn_timestamps_require_timezone(field: str) -> None:
             replace(turn(), recorded_at=naive)
 
 
-def test_perception_does_not_use_an_unrelated_session() -> None:
-    assert not can_perceive("char-a", session("other"), turn())
+@pytest.mark.parametrize("character", ["char-a", "char-b", "char-c"])
+def test_perception_does_not_use_an_unrelated_session(character: str) -> None:
+    assert not can_perceive(character, session("other"), turn())
