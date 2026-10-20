@@ -1,5 +1,7 @@
 # Evidence API
 
+[ADR 0022](decisions/0022-perceived-by.md) により知覚範囲の表し方を変更予定です。
+
 この API の呼出し元は Core です。登録前の機微分類も Core の責務です。
 Memory は本文を命令として解釈せず、翻訳・空白除去・Unicode 正規化を行いません。
 
