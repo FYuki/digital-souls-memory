@@ -1,0 +1,629 @@
+[
+  {
+    "case_id": "tuning-synonym-daily-01",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-daily-02",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-daily-03",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-daily-04",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-daily-05",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-daily-06",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-07",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-08",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-09",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-synonym-10",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-daily-01",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-daily-02",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-daily-03",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-daily-04",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-daily-05",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-daily-06",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-07",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-08",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-09",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-paraphrase-10",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-daily-01",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-daily-02",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-daily-03",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-daily-04",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-daily-05",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-daily-06",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-07",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-08",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-09",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-10",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-11",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-en-query-12",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-daily-01",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-daily-02",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-daily-03",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-daily-04",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-daily-05",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-daily-06",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-07",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-08",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-09",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-10",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-11",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-cross-ja-query-12",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": []
+  },
+  {
+    "case_id": "tuning-unrelated-near-daily-01",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-daily-02",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-daily-03",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-daily-04",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-daily-05",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-tech-01",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-tech-02",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-tech-03",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-tech-04",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-near-tech-05",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-01",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-02",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-03",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-04",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-05",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-06",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-07",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-daily-08",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-tech-01",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-tech-02",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-tech-03",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-unrelated-far-tech-04",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-deleted-source",
+    "required_ids": [
+      "visible"
+    ],
+    "forbidden_ids": [
+      "hidden"
+    ]
+  },
+  {
+    "case_id": "tuning-deleted-memory",
+    "required_ids": [
+      "visible"
+    ],
+    "forbidden_ids": [
+      "hidden"
+    ]
+  },
+  {
+    "case_id": "tuning-binding-character",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [
+      "hidden"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-daily-01",
+    "required_ids": [
+      "nearby"
+    ],
+    "forbidden_ids": [
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-daily-02",
+    "required_ids": [
+      "nearby"
+    ],
+    "forbidden_ids": [
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-daily-03",
+    "required_ids": [
+      "nearby"
+    ],
+    "forbidden_ids": [
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-tech-04",
+    "required_ids": [
+      "nearby"
+    ],
+    "forbidden_ids": [
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-tech-05",
+    "required_ids": [
+      "nearby"
+    ],
+    "forbidden_ids": [
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-tech-06",
+    "required_ids": [
+      "nearby"
+    ],
+    "forbidden_ids": [
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-daily-07",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-daily-08",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-daily-09",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-tech-10",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-tech-11",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-threshold-near-tech-12",
+    "required_ids": [],
+    "forbidden_ids": [
+      "nearby",
+      "adjacent"
+    ]
+  },
+  {
+    "case_id": "tuning-equivalent-order",
+    "required_ids": [
+      "recent",
+      "older",
+      "unknown"
+    ],
+    "forbidden_ids": [],
+    "required_order": [
+      "older",
+      "recent",
+      "unknown"
+    ]
+  }
+]
