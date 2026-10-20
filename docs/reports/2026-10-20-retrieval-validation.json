@@ -1,0 +1,322 @@
+{
+  "created_at": "2026-10-20T05:25:54.617871+00:00",
+  "memory_commit": "f99d278f2ae71feb0755a718313c9e3075792a75",
+  "memory_dirty": true,
+  "python": "Python 3.12.3",
+  "uv": "uv 0.8.22",
+  "real_model_calls": 0,
+  "quality_passed": null,
+  "gates": [
+    {
+      "command": [
+        "uv",
+        "lock",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.007,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "sync",
+        "--frozen"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.007,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "bash",
+        "-n",
+        "tools/with-test-postgres.sh"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "config",
+        "--no-interpolate",
+        "--quiet"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.034,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "-f",
+        "compose.retrieval-evaluation.yml",
+        "config",
+        "--no-interpolate",
+        "--quiet"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.032,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "ruff",
+        "check",
+        "src",
+        "tests",
+        "migrations"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.016,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests",
+        "migrations"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.014,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "mypy"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.981,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-m",
+        "ut",
+        "-q"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.906,
+      "result": "PASS",
+      "test_summary": "126 passed, 68 deselected, 1 warning in 1.61s"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "pytest",
+        "-m",
+        "it1",
+        "-q"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.96,
+      "result": "PASS",
+      "test_summary": "57 passed, 137 deselected, 1 warning in 0.64s"
+    },
+    {
+      "command": [
+        "bash",
+        "tools/with-test-postgres.sh"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 6.406,
+      "result": "PASS",
+      "test_summary": "11 passed, 183 deselected, 1 warning in 2.45s"
+    },
+    {
+      "command": [
+        "uv",
+        "build",
+        "--no-build-isolation"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.547,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "export",
+        "--frozen",
+        "--no-dev",
+        "--no-emit-project",
+        "--format",
+        "requirements-txt"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.006,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "venv",
+        "--python",
+        ".venv/bin/python",
+        "/tmp/issue9-implement-package-check3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.006,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        "/tmp/issue9-implement-package-check3/bin/python",
+        "--require-hashes",
+        "-r",
+        "/tmp/issue9-implement-runtime.txt"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.061,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        "/tmp/issue9-implement-package-check3/bin/python",
+        "--no-deps",
+        "dist/digital_souls_memory-0.1.0-py3-none-any.whl"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.013,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "/tmp/issue9-implement-package-check3/bin/python",
+        "-I",
+        "-c",
+        "from digital_souls_memory.api import create_app; from digital_souls_memory.evaluation.cli import main; from digital_souls_memory.evaluation.adapters.postgres import PostgresSearch; assert create_app().title == 'Digital Souls Memory'; assert callable(main); assert callable(PostgresSearch)"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.518,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.002,
+      "result": "PASS"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "HEAD",
+        "--",
+        "migrations",
+        "src/digital_souls_memory/api.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "result": "PASS"
+    }
+  ],
+  "files_sha256": {
+    ".github/workflows/ci.yml": "0816d5694ebecc8ca0759046c7fbaa4177bb9dce8d4babcc3164475a708c1a9a",
+    "compose.retrieval-evaluation.yml": "2bee632627b277a1b364b699f036c68d61a85ceb66a2adef6c30f92dd79b6344",
+    "docker/retrieval-postgres/Dockerfile": "86302aacc326ef02ddfe7f0d8ca883859638a8311e6af02f2b6e5873275ddcaf",
+    "docker/retrieval-postgres/packages.lock": "5b9eaf3875f19539bde25c8063be11d2a98214a567b246536db3d4caa69bc7f3",
+    "evals/retrieval/acceptance/cases.json": "92b93edd24d0eae5b3ce4c6d329b169c60fe5a70b01e6fafaf67bec8bd6023b6",
+    "evals/retrieval/acceptance/gold.json": "caf86c0d0fbf5218fafd729aac969a17f509a3cd13b927e77a67b42d945b1519",
+    "evals/retrieval/acceptance/suite.json": "3c8b05394dd0fde5fe1551d40d46c4e38caa2f3e1de18ab1f7f8dd5cb442a006",
+    "evals/retrieval/boundary-fixtures.json": "8d7ece0c1e98275ed77f0cdccadcbd443ebaba44993b1bdd14aa42415a9fbdfe",
+    "evals/retrieval/candidates.json": "a9643f83ba2dbca0cf485f9cd13512ad6f2f3da543db2139382260f5427d3327",
+    "evals/retrieval/protocol.json": "8e396df88bf28b559b7c1a537861cd467c921376bf15c94cbb05cf2b69ef3ece",
+    "evals/retrieval/provenance.json": "73463f9417550eaf0540f770abb612c4ae978c1cb30fd689bfda5c3ae4cac775",
+    "evals/retrieval/smoke/candidates.json": "4cbb3434894beaba9f94b4935a07bbea57381f34cc64db9627bb1bc6ffd038ce",
+    "evals/retrieval/smoke/fixture.json": "b74f046cf5d4a58bc1a2abefca6cc2f100ec9e325b4fce6583a0709e9d7bc003",
+    "evals/retrieval/smoke/suite.json": "8b6eb9b437a75f4bf35734ce4dd4b4bf16a5ee46243c467c8c2e73045e075f60",
+    "evals/retrieval/source-inventory.json": "7484e277789fb528109597ddaed88f9ad4e40fe7bc50e638b7890157481bb524",
+    "evals/retrieval/tuning/cases.json": "6e60052196984c2722540765d6065175b9328667ce8c9b0640e94ec27bbe37b0",
+    "evals/retrieval/tuning/gold.json": "4aa520a2adeb21f0cee355750f2759d7ec07fdc7d034f09e7724e6ebc7913a7a",
+    "evals/retrieval/tuning/suite.json": "af3ea5271e0603a0726ef6bc0f39bd87bf086a18072cf4559b9ef6a0bcd423ad",
+    "migrations/env.py": "8428415f3a09bc46a00851f0539e77826d2a7749d7d6a7a981339ae4c65df40f",
+    "migrations/script.py.mako": "3da21b705d161b56bd9946f12eae751bad9451ef1eb5989f415c2c08b7488b11",
+    "migrations/versions/0001_enable_vector.py": "10258b191da48e607f1e6252f3d5dc0432006fa930ab6e799fbc1f2b3a5b31d3",
+    "pyproject.toml": "0cc3fe1fea492cee383115b77dd857425099ef3bb33ebc063d564866a4b0ba7e",
+    "src/digital_souls_memory/__init__.py": "415385eeaaf21e07d0b74104d18dfcbf2c55197e47fc9ada1caae513669d3b62",
+    "src/digital_souls_memory/api.py": "9f1a858b95c886751a3c014b335e08dcb0c205583c72909bd337cd295c2683f8",
+    "src/digital_souls_memory/evaluation/__init__.py": "6a3cfe1f15d34221bfa71ad6807f170bbb2a623ea2530db8b30483f3e50ee1ef",
+    "src/digital_souls_memory/evaluation/adapters/__init__.py": "0b0e88fff473dde27ec5760950bb90323548a2abca234f8a2ceecd90d6cc92f4",
+    "src/digital_souls_memory/evaluation/adapters/fixture.py": "f9441178a4b60d47f9c5471a9c320bebfdadd65773de0a6ee92e54614ae988a8",
+    "src/digital_souls_memory/evaluation/adapters/llamacpp.py": "64eaf338bf85abc61eed43ed4466c0cbaae8286a19f3df7b0c2d1d9120f0d013",
+    "src/digital_souls_memory/evaluation/adapters/postgres.py": "4c8087974b58521f8ea9ebfc1e691402c1cf8d881ded6067209e2d9a75d79601",
+    "src/digital_souls_memory/evaluation/adapters/real.py": "1a06c8d54a6eda5bdccde00c9f5de8fcd931739888960d2c134a203924f19bdb",
+    "src/digital_souls_memory/evaluation/adapters/resources.py": "31ae2a87efe1b1c30fe5f73eba3bef62d93ae52297d31789a76c44c37a584c80",
+    "src/digital_souls_memory/evaluation/cli.py": "9066267b5cbfdd4ff84ac7c47ce8a5e1728068c90bd939ee9612084f385bba2f",
+    "src/digital_souls_memory/evaluation/comparison.py": "a3c04f4f56dc55d2a284ab7944efda139a4ce1bdfdf0cd5a160ba743b69e1130",
+    "src/digital_souls_memory/evaluation/models.py": "9c2b88f06bc0b946847fb8e36131cd95ca062845c089b935d9dbde8804b91c54",
+    "src/digital_souls_memory/evaluation/ports.py": "c2ffd97569822fb3cca6c97423f997ad8789d4b9ac8c8f6ffa0c32429e7f2a98",
+    "src/digital_souls_memory/evaluation/report.py": "23e29e6897b1cb0c04b92a96e19bccd8fb66638fccd5e88bca1bcfa6611eb0b7",
+    "src/digital_souls_memory/evaluation/retrieval.py": "e815e196c73a3b7c732a0c9eb7a410da8705095301948dfab5947ac5328b8d61",
+    "src/digital_souls_memory/evaluation/runner.py": "3d5cf4ffcf0edf24664baffb290178b4c84fd9f7e853506e103f4ce31aa7b604",
+    "src/digital_souls_memory/evaluation/scoring.py": "51b23e283c93db0b5cf26225c90188fdc228dc2587b329eb60e574d1e4a6f19e",
+    "src/digital_souls_memory/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/conftest.py": "5ac87e76b19f6fcf4941a163c33ee14ce448a8bcf644f93c2161497686e8b450",
+    "tests/evaluation/test_candidates.py": "1fc46496e642f43f6118ef79e4607e61542644a4f35bb7339691aab80e097035",
+    "tests/evaluation/test_cli_ports.py": "f42ee5596f96fdc98b0fbdfdf602cbc07f1a1fdd2d6e551dcd8cedced0f10473",
+    "tests/evaluation/test_comparison.py": "a5776e87f074647f59ca64b1adc81c7c63a781a45b51086c8f0906282de34a5c",
+    "tests/evaluation/test_domain.py": "40058fbd1ace87ce3045264f590ab211577b237e3ce331efdb0f648cab78a487",
+    "tests/evaluation/test_inputs.py": "e0224c384a91b95bb0c0fddd1eaf7ab11f092f1d7e011bd32563a7554f9e7841",
+    "tests/evaluation/test_llamacpp.py": "7814bbf5aad21744003b7ff142a4b1c7a5903360d301c13cefe80f58e13cdb18",
+    "tests/evaluation/test_manifest.py": "47fb38f4b10bac2dad6e832df683eafb3ddef4119ecdd5e46b0ba7edf63c385b",
+    "tests/evaluation/test_postgres.py": "9ed7ff7c763c777eec14344299903408f87c99c6f1a77d45978df55f317d1400",
+    "tests/evaluation/test_provenance.py": "220c785af297f669ae17c4175a489f04ea3d1436377cc3a858f130b6865c0b14",
+    "tests/evaluation/test_public_report.py": "3da6d31c3b5530d029648131745279fcae3e8abb4431f9739564ce785cb56e3b",
+    "tests/evaluation/test_real_ports.py": "e231e2acce6b485c8d24094a265a9b737e219462b5300870f48fa180feae41c8",
+    "tests/evaluation/test_resources.py": "7618ae96e267be83ee17b071916ff78bfc1ee7127ed002d1508938006bc55d40",
+    "tests/evaluation/test_retrieval.py": "f99b22e2c3185ce2ef371c9008619a57e758bcb902529e50eafb5fea635d7d18",
+    "tests/evaluation/test_runner.py": "3ca365fc48bdad121fffd6552c4eab1bfe87e40ece51364dc726e6d6a7b73b75",
+    "tests/evaluation/test_scoring.py": "ffcea286d7346892779814764ab73846bb5a87b1dc74eb34c533c3ddfb666f91",
+    "tests/it1/test_health_http.py": "b188855eec99d0f22bdd111d9d92062fed175e184abbebbeeea08204905d33d7",
+    "tests/postgres/test_migrations.py": "8ff6a65497fbb00791bac25479bd53289825c0cbcb3e82ae17ed6c648077484d",
+    "tests/ut/test_health_unit.py": "5aaf692127f0891df4570fa20ae063dacd4fa33b150e9002e57c6fdb3fd6df59",
+    "tests/ut/test_required_suites.py": "3928c10dca5e24b7b4e11703c2deaf495cc7155ee4d4d11bd56774b1767dd984",
+    "tools/with-test-postgres.sh": "6d396f829e3e4d17e7af6c180ca5803d20a0edabba58ecc88bdd5a16df2bf800",
+    "uv.lock": "16fc436589e544210f14173d9dca1f42573206324f59035652fdcd64dd7dff90"
+  },
+  "core_commit": "b062a49a32d261d0ce472938c40711c6cb41d7c0",
+  "fixture_execution": {
+    "command": "uv run --no-sync memory-evaluate-retrieval --suite evals/retrieval/smoke/suite.json --candidates evals/retrieval/smoke/candidates.json --fixture evals/retrieval/smoke/fixture.json --mode fixture --output <new-output.json>",
+    "exit_code": 0,
+    "public_revalidation": "PASS",
+    "real_model_calls": 0,
+    "quality_passed": null,
+    "report_sha256": "fc198cd13283f791fed5b2249f4e7e0ccf2caaf85e14693993fcc7aa69c266c6"
+  }
+}

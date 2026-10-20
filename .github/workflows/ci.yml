@@ -28,6 +28,7 @@ jobs:
         run: |
           bash -n tools/with-test-postgres.sh
           docker compose config --no-interpolate --quiet
+          docker compose -f compose.retrieval-evaluation.yml config --no-interpolate --quiet
           uv run --no-sync ruff check src tests migrations
           uv run --no-sync ruff format --check src tests migrations
           uv run --no-sync mypy
@@ -42,27 +43,11 @@ jobs:
           uv venv .package-check
           uv pip install --python .package-check/bin/python --require-hashes -r "$RUNNER_TEMP/memory-runtime.txt"
           uv pip install --python .package-check/bin/python --no-deps dist/*.whl
-          .package-check/bin/python -I -c "from digital_souls_memory.api import create_app; assert create_app().title == 'Digital Souls Memory'"
+          .package-check/bin/python -I -c "from digital_souls_memory.api import create_app; from digital_souls_memory.evaluation.cli import main; assert create_app().title == 'Digital Souls Memory'; assert callable(main)"
 
   postgres:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    services:
-      postgres:
-        image: pgvector/pgvector:0.8.2-pg18-bookworm@sha256:42e7f6b4e1eceb02ff14e3e6bc6108bbe259abbe83879dc1845d0da1ddeb555d
-        env:
-          POSTGRES_USER: memory_synthetic
-          POSTGRES_DB: memory_synthetic
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U memory_synthetic -d memory_synthetic"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      MEMORY_TEST_DATABASE_URL: postgresql://memory_synthetic@127.0.0.1:5432/memory_synthetic
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -75,5 +60,5 @@ jobs:
           python -m pip install uv==0.8.22
           uv lock --check
           uv sync --frozen
-      - name: Required real PostgreSQL migrations (synthetic data)
-        run: uv run --no-sync pytest -m postgres -q
+      - name: Required real PostgreSQL migrations and retrieval extensions (synthetic data)
+        run: bash tools/with-test-postgres.sh

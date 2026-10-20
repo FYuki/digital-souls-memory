@@ -1,0 +1,507 @@
+[
+  {
+    "split": "acceptance",
+    "case_id": "equivalent-band-order",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "tie-null",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      },
+      {
+        "memory_id": "tie-d",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      },
+      {
+        "memory_id": "tie-c",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      },
+      {
+        "memory_id": "tie-b",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      },
+      {
+        "memory_id": "tie-a",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      }
+    ],
+    "expected_order": [
+      "tie-a",
+      "tie-b",
+      "tie-c",
+      "tie-d",
+      "tie-null"
+    ]
+  },
+  {
+    "split": "acceptance",
+    "case_id": "below-threshold",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "below-threshold-record",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": []
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-daily-01",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.51,
+          "lexical": 0.51,
+          "recency": 0.51,
+          "importance": 0.51,
+          "self_relevance": 0.51,
+          "trust": 0.51
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": [
+      "nearby"
+    ]
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-daily-02",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.51,
+          "lexical": 0.51,
+          "recency": 0.51,
+          "importance": 0.51,
+          "self_relevance": 0.51,
+          "trust": 0.51
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": [
+      "nearby"
+    ]
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-daily-03",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.51,
+          "lexical": 0.51,
+          "recency": 0.51,
+          "importance": 0.51,
+          "self_relevance": 0.51,
+          "trust": 0.51
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": [
+      "nearby"
+    ]
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-tech-04",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.51,
+          "lexical": 0.51,
+          "recency": 0.51,
+          "importance": 0.51,
+          "self_relevance": 0.51,
+          "trust": 0.51
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": [
+      "nearby"
+    ]
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-tech-05",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.51,
+          "lexical": 0.51,
+          "recency": 0.51,
+          "importance": 0.51,
+          "self_relevance": 0.51,
+          "trust": 0.51
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": [
+      "nearby"
+    ]
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-tech-06",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.51,
+          "lexical": 0.51,
+          "recency": 0.51,
+          "importance": 0.51,
+          "self_relevance": 0.51,
+          "trust": 0.51
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": [
+      "nearby"
+    ]
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-daily-07",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": []
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-daily-08",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": []
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-daily-09",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": []
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-tech-10",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": []
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-tech-11",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": []
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-threshold-near-tech-12",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "nearby",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      },
+      {
+        "memory_id": "adjacent",
+        "components": {
+          "semantic": 0.49,
+          "lexical": 0.49,
+          "recency": 0.49,
+          "importance": 0.49,
+          "self_relevance": 0.49,
+          "trust": 0.49
+        }
+      }
+    ],
+    "expected_order": []
+  },
+  {
+    "split": "tuning",
+    "case_id": "tuning-equivalent-order",
+    "threshold": 0.5,
+    "observations": [
+      {
+        "memory_id": "older",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      },
+      {
+        "memory_id": "recent",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      },
+      {
+        "memory_id": "unknown",
+        "components": {
+          "semantic": 0.75,
+          "lexical": 0.75,
+          "recency": 0.75,
+          "importance": 0.75,
+          "self_relevance": 0.75,
+          "trust": 0.75
+        }
+      }
+    ],
+    "expected_order": [
+      "older",
+      "recent",
+      "unknown"
+    ]
+  }
+]

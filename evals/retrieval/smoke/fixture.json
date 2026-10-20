@@ -1,0 +1,24 @@
+{
+  "vectors": {
+    "passage": {
+      "A meeting at the blue station in November": [
+        1,
+        0
+      ]
+    },
+    "query": {
+      "What date and exact place did we agree on?": [
+        1,
+        0
+      ]
+    }
+  },
+  "observations": {
+    "case-a": [
+      {
+        "memory_id": "m1",
+        "score": 0.55
+      }
+    ]
+  }
+}

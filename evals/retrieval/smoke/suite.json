@@ -1,0 +1,80 @@
+{
+  "cases": [
+    {
+      "id": "case-a",
+      "category": "detail",
+      "character_id": "character",
+      "query": "What date and exact place did we agree on?",
+      "as_of": "2026-10-20T00:00:00Z",
+      "sessions": [
+        {
+          "session_id": "s1",
+          "participants": [
+            "user",
+            "character"
+          ]
+        }
+      ],
+      "turns": [
+        {
+          "turn_id": "t1",
+          "session_id": "s1",
+          "actor": "user",
+          "kind": "utterance",
+          "text": "約束は2026年11月3日、『青い駅』で。",
+          "language": "ja",
+          "audience": [],
+          "sensitivity": "non_sensitive",
+          "classifier_version": "synthetic-v1",
+          "occurred_at": "2026-10-19T00:00:00Z",
+          "recorded_at": "2026-10-19T00:00:01Z"
+        }
+      ],
+      "memories": [
+        {
+          "id": "m1",
+          "kind": "Fact",
+          "content": "A meeting at the blue station in November",
+          "source_turn_ids": [
+            "t1"
+          ],
+          "derivation": {
+            "model": "synthetic",
+            "prompt_version": "1"
+          },
+          "valid_from": "2026-10-19T00:00:00Z",
+          "valid_to": null,
+          "last_reinforced_at": "2026-10-19T00:00:00Z",
+          "importance": 0.5,
+          "self_relevance": 0.5,
+          "trust": 0.5
+        }
+      ]
+    }
+  ],
+  "gold": [
+    {
+      "case_id": "case-a",
+      "required_ids": [
+        "m1"
+      ],
+      "forbidden_ids": []
+    }
+  ],
+  "protocol": {
+    "threshold": 0.5,
+    "top_k": 5,
+    "token_budget": 1500,
+    "repetitions": 3,
+    "weights": {
+      "semantic": 0.4,
+      "lexical": 0.2,
+      "recency": 0.1,
+      "importance": 0.1,
+      "self_relevance": 0.1,
+      "trust": 0.1
+    },
+    "percentile_method": "linear"
+  },
+  "split": "acceptance"
+}

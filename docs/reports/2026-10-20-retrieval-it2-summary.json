@@ -1,0 +1,1981 @@
+{
+  "created_at": "2026-10-20T07:18:37.514099+00:00",
+  "status": "PARTIAL_ACCEPTANCE_EXECUTION_ERRORS",
+  "quality_gate": "Every category and repetition must pass 100%; no relaxation",
+  "suite_counts": {
+    "tuning": 82,
+    "acceptance": 55
+  },
+  "candidates": [
+    {
+      "id": "bge-m3-pg_bigm",
+      "status": "QUALITY_FAIL",
+      "complete": true,
+      "execution_errors_per_run": [
+        null,
+        null,
+        null
+      ],
+      "parameters": {
+        "threshold": 0.75,
+        "weights": {
+          "semantic": 0.75,
+          "lexical": 0.05,
+          "recency": 0.05,
+          "importance": 0.05,
+          "self_relevance": 0.05,
+          "trust": 0.05
+        }
+      },
+      "passed_cases_per_run": [
+        26,
+        26,
+        26
+      ],
+      "cases_per_run": [
+        55,
+        55,
+        55
+      ],
+      "real_model_calls_per_run": [
+        110,
+        110,
+        110
+      ],
+      "latency_per_run": [
+        {
+          "p50_ms": 11.98903500335291,
+          "p95_ms": 15.76230360151385,
+          "target_p95_met": true,
+          "required_p95_met": true
+        },
+        {
+          "p50_ms": 12.111981999623822,
+          "p95_ms": 15.235308200863074,
+          "target_p95_met": true,
+          "required_p95_met": true
+        },
+        {
+          "p50_ms": 11.637308001809288,
+          "p95_ms": 15.441091498723834,
+          "target_p95_met": true,
+          "required_p95_met": true
+        }
+      ],
+      "recall_at_5_mean": 0.36363636363636365,
+      "precision_mean": 0.2909090909090909,
+      "no_match_correct_rate": 1,
+      "forbidden_returned_case_count": 0,
+      "source_requirement_failed_case_count": 9,
+      "categories_per_run": [
+        {
+          "synonym": {
+            "case_count": 10,
+            "passed_count": 5,
+            "recall_at_5": 0.5,
+            "precision": 0.5,
+            "no_match_correct_rate": null
+          },
+          "paraphrase": {
+            "case_count": 10,
+            "passed_count": 3,
+            "recall_at_5": 0.3,
+            "precision": 0.3,
+            "no_match_correct_rate": null
+          },
+          "cross_language": {
+            "case_count": 10,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "unrelated": {
+            "case_count": 10,
+            "passed_count": 10,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          },
+          "negation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "multisource": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "multisource_revocation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_source": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_memory": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "binding_character": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "long_text": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "update": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "fact_attachment": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_version": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_revocation": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_direct": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_derived": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "equivalent_order": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "threshold": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          }
+        },
+        {
+          "synonym": {
+            "case_count": 10,
+            "passed_count": 5,
+            "recall_at_5": 0.5,
+            "precision": 0.5,
+            "no_match_correct_rate": null
+          },
+          "paraphrase": {
+            "case_count": 10,
+            "passed_count": 3,
+            "recall_at_5": 0.3,
+            "precision": 0.3,
+            "no_match_correct_rate": null
+          },
+          "cross_language": {
+            "case_count": 10,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "unrelated": {
+            "case_count": 10,
+            "passed_count": 10,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          },
+          "negation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "multisource": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "multisource_revocation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_source": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_memory": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "binding_character": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "long_text": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "update": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "fact_attachment": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_version": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_revocation": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_direct": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_derived": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "equivalent_order": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "threshold": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          }
+        },
+        {
+          "synonym": {
+            "case_count": 10,
+            "passed_count": 5,
+            "recall_at_5": 0.5,
+            "precision": 0.5,
+            "no_match_correct_rate": null
+          },
+          "paraphrase": {
+            "case_count": 10,
+            "passed_count": 3,
+            "recall_at_5": 0.3,
+            "precision": 0.3,
+            "no_match_correct_rate": null
+          },
+          "cross_language": {
+            "case_count": 10,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "unrelated": {
+            "case_count": 10,
+            "passed_count": 10,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          },
+          "negation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "multisource": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "multisource_revocation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_source": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_memory": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "binding_character": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "long_text": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "update": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "fact_attachment": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_version": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_revocation": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_direct": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_derived": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "equivalent_order": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "threshold": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          }
+        }
+      ],
+      "failed_cases": {
+        "paraphrase-weekend-ja": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-herb": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "multisource-picnic": {
+          "category": "multisource",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "deleted-source": {
+          "category": "deleted_source",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "long-text-explicit-detail": {
+          "category": "long_text",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-02": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-03": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-04": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-08": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-10": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-03": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-04": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-06": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-08": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-09": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-10": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-02": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-03": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-04": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-05": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-06": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-07": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-08": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-09": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-10": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "valid-fact-attachment": {
+          "category": "fact_attachment",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": false,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "stale-fact-link": {
+          "category": "fact_version",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": false,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "revoked-fact-source": {
+          "category": "fact_revocation",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": false,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "equivalent-band-order": {
+          "category": "equivalent_order",
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": false
+        }
+      },
+      "resources": {
+        "db_cpu_ms_per_run": [
+          239.588,
+          237.957,
+          227.884
+        ],
+        "model_cpu_ms_per_run": [
+          1643.369,
+          1056.288,
+          1054.536
+        ],
+        "harness_cpu_ms_per_run": [
+          358.88730599999974,
+          349.4655059999996,
+          332.4673960000002
+        ],
+        "db_sampled_ram_mib": {
+          "min": 128.73828125,
+          "max": 160.765625
+        },
+        "model_sampled_ram_mib": {
+          "min": 1394.640625,
+          "max": 2232.64453125
+        },
+        "gpu_total_used_mib": {
+          "min": 3245.0,
+          "max": 3269.0
+        },
+        "harness_process_lifetime_peak_rss_mib": [
+          377.1484375,
+          377.1484375,
+          377.1484375
+        ]
+      },
+      "index_bytes_per_case": {
+        "min": 16384.0,
+        "max": 16384.0,
+        "median": 16384.0
+      },
+      "index_creation_ms_per_case": {
+        "min": 0.2674120005394798,
+        "max": 1.002321998385014,
+        "median": 0.3468140021141153
+      },
+      "index_ms_per_case": {
+        "min": 2.582264001830481,
+        "max": 7.012648002273636,
+        "median": 4.219407997879898
+      },
+      "passage_embedding_ms_per_case": {
+        "min": 5.868668999028159,
+        "max": 401.77136399870506,
+        "median": 14.358847001858521
+      }
+    },
+    {
+      "id": "bge-m3-pgroonga",
+      "status": "QUALITY_FAIL",
+      "complete": true,
+      "execution_errors_per_run": [
+        null,
+        null,
+        null
+      ],
+      "parameters": {
+        "threshold": 0.75,
+        "weights": {
+          "semantic": 0.75,
+          "lexical": 0.05,
+          "recency": 0.05,
+          "importance": 0.05,
+          "self_relevance": 0.05,
+          "trust": 0.05
+        }
+      },
+      "passed_cases_per_run": [
+        26,
+        26,
+        26
+      ],
+      "cases_per_run": [
+        55,
+        55,
+        55
+      ],
+      "real_model_calls_per_run": [
+        110,
+        110,
+        110
+      ],
+      "latency_per_run": [
+        {
+          "p50_ms": 11.512570999911986,
+          "p95_ms": 16.13132219936233,
+          "target_p95_met": true,
+          "required_p95_met": true
+        },
+        {
+          "p50_ms": 12.025986998196458,
+          "p95_ms": 14.969589898828415,
+          "target_p95_met": true,
+          "required_p95_met": true
+        },
+        {
+          "p50_ms": 11.930198001209646,
+          "p95_ms": 15.155104599762124,
+          "target_p95_met": true,
+          "required_p95_met": true
+        }
+      ],
+      "recall_at_5_mean": 0.36363636363636365,
+      "precision_mean": 0.2909090909090909,
+      "no_match_correct_rate": 1,
+      "forbidden_returned_case_count": 0,
+      "source_requirement_failed_case_count": 9,
+      "categories_per_run": [
+        {
+          "synonym": {
+            "case_count": 10,
+            "passed_count": 5,
+            "recall_at_5": 0.5,
+            "precision": 0.5,
+            "no_match_correct_rate": null
+          },
+          "paraphrase": {
+            "case_count": 10,
+            "passed_count": 3,
+            "recall_at_5": 0.3,
+            "precision": 0.3,
+            "no_match_correct_rate": null
+          },
+          "cross_language": {
+            "case_count": 10,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "unrelated": {
+            "case_count": 10,
+            "passed_count": 10,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          },
+          "negation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "multisource": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "multisource_revocation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_source": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_memory": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "binding_character": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "long_text": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "update": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "fact_attachment": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_version": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_revocation": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_direct": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_derived": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "equivalent_order": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "threshold": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          }
+        },
+        {
+          "synonym": {
+            "case_count": 10,
+            "passed_count": 5,
+            "recall_at_5": 0.5,
+            "precision": 0.5,
+            "no_match_correct_rate": null
+          },
+          "paraphrase": {
+            "case_count": 10,
+            "passed_count": 3,
+            "recall_at_5": 0.3,
+            "precision": 0.3,
+            "no_match_correct_rate": null
+          },
+          "cross_language": {
+            "case_count": 10,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "unrelated": {
+            "case_count": 10,
+            "passed_count": 10,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          },
+          "negation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "multisource": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "multisource_revocation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_source": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_memory": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "binding_character": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "long_text": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "update": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "fact_attachment": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_version": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_revocation": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_direct": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_derived": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "equivalent_order": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "threshold": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          }
+        },
+        {
+          "synonym": {
+            "case_count": 10,
+            "passed_count": 5,
+            "recall_at_5": 0.5,
+            "precision": 0.5,
+            "no_match_correct_rate": null
+          },
+          "paraphrase": {
+            "case_count": 10,
+            "passed_count": 3,
+            "recall_at_5": 0.3,
+            "precision": 0.3,
+            "no_match_correct_rate": null
+          },
+          "cross_language": {
+            "case_count": 10,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "unrelated": {
+            "case_count": 10,
+            "passed_count": 10,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          },
+          "negation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "multisource": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "multisource_revocation": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_source": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "deleted_memory": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "binding_character": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "long_text": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "update": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "fact_attachment": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_version": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "fact_revocation": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 0.0,
+            "precision": 0.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_direct": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "semantic_derived": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "equivalent_order": {
+            "case_count": 1,
+            "passed_count": 0,
+            "recall_at_5": 1.0,
+            "precision": 1.0,
+            "no_match_correct_rate": null
+          },
+          "threshold": {
+            "case_count": 1,
+            "passed_count": 1,
+            "recall_at_5": null,
+            "precision": 0.0,
+            "no_match_correct_rate": 1.0
+          }
+        }
+      ],
+      "failed_cases": {
+        "paraphrase-weekend-ja": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-herb": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "multisource-picnic": {
+          "category": "multisource",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "deleted-source": {
+          "category": "deleted_source",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "long-text-explicit-detail": {
+          "category": "long_text",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-02": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-03": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-04": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-08": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "synonym-10": {
+          "category": "synonym",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-03": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-04": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-06": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-08": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-09": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "paraphrase-10": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-02": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-03": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-04": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-05": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-06": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-07": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-08": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-09": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-10": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "valid-fact-attachment": {
+          "category": "fact_attachment",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": false,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "stale-fact-link": {
+          "category": "fact_version",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": false,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "revoked-fact-source": {
+          "category": "fact_revocation",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": false,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "equivalent-band-order": {
+          "category": "equivalent_order",
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": false
+        }
+      },
+      "resources": {
+        "db_cpu_ms_per_run": [
+          506.545,
+          430.097,
+          427.834
+        ],
+        "model_cpu_ms_per_run": [
+          980.87,
+          1084.864,
+          1110.196
+        ],
+        "harness_cpu_ms_per_run": [
+          381.73511700000074,
+          382.3021969999996,
+          377.3782279999995
+        ],
+        "db_sampled_ram_mib": {
+          "min": 129.2109375,
+          "max": 343.9765625
+        },
+        "model_sampled_ram_mib": {
+          "min": 2231.015625,
+          "max": 2231.93359375
+        },
+        "gpu_total_used_mib": {
+          "min": 3268.0,
+          "max": 3273.0
+        },
+        "harness_process_lifetime_peak_rss_mib": [
+          377.1484375,
+          377.1484375,
+          377.1484375
+        ]
+      },
+      "index_bytes_per_case": {
+        "min": 30576640.0,
+        "max": 39227392.0,
+        "median": 35033088.0
+      },
+      "index_creation_ms_per_case": {
+        "min": 1.8181919986091089,
+        "max": 58.24980100078392,
+        "median": 2.058010002656374
+      },
+      "index_ms_per_case": {
+        "min": 5.816318000142928,
+        "max": 102.62940900065587,
+        "median": 7.675639000808587
+      },
+      "passage_embedding_ms_per_case": {
+        "min": 5.832175000250572,
+        "max": 32.163844000024255,
+        "median": 14.75828500042553
+      }
+    },
+    {
+      "id": "multilingual-e5-large-pg_bigm",
+      "status": "EXECUTION_ERROR",
+      "complete": false,
+      "execution_errors_per_run": [
+        "execution_error",
+        "execution_error",
+        "execution_error"
+      ],
+      "parameters": {
+        "threshold": 0.8,
+        "weights": {
+          "semantic": 0.75,
+          "lexical": 0.05,
+          "recency": 0.05,
+          "importance": 0.05,
+          "self_relevance": 0.05,
+          "trust": 0.05
+        }
+      },
+      "passed_cases_per_run": [
+        8,
+        8,
+        8
+      ],
+      "cases_per_run": [
+        10,
+        10,
+        10
+      ],
+      "real_model_calls_per_run": [
+        21,
+        21,
+        21
+      ],
+      "latency_per_run": [
+        null,
+        null,
+        null
+      ],
+      "recall_at_5_mean": null,
+      "precision_mean": null,
+      "no_match_correct_rate": null,
+      "forbidden_returned_case_count": 0,
+      "source_requirement_failed_case_count": 0,
+      "categories_per_run": [
+        null,
+        null,
+        null
+      ],
+      "failed_cases": {
+        "paraphrase-weekend-ja": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-herb": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        }
+      },
+      "resources": {
+        "db_cpu_ms_per_run": [
+          92.551,
+          97.522,
+          98.251
+        ],
+        "model_cpu_ms_per_run": [
+          446.936,
+          154.574,
+          164.614
+        ],
+        "harness_cpu_ms_per_run": [
+          93.45881599999916,
+          80.20834299999979,
+          81.09012900000056
+        ],
+        "db_sampled_ram_mib": {
+          "min": 145.44921875,
+          "max": 176.84765625
+        },
+        "model_sampled_ram_mib": {
+          "min": 619.3828125,
+          "max": 620.12890625
+        },
+        "gpu_total_used_mib": {
+          "min": 3445.0,
+          "max": 3445.0
+        },
+        "harness_process_lifetime_peak_rss_mib": [
+          439.41796875,
+          439.41796875,
+          439.41796875
+        ]
+      },
+      "index_bytes_per_case": {
+        "min": 16384.0,
+        "max": 16384.0,
+        "median": 16384.0
+      },
+      "index_creation_ms_per_case": {
+        "min": 0.2577399973233696,
+        "max": 0.5651259998558089,
+        "median": 0.3256324998801574
+      },
+      "index_ms_per_case": {
+        "min": 2.4410810001427308,
+        "max": 4.7419550028280355,
+        "median": 3.8049300001148367
+      },
+      "passage_embedding_ms_per_case": {
+        "min": 5.435672999738017,
+        "max": 88.53020900278352,
+        "median": 11.146206999910646
+      }
+    },
+    {
+      "id": "multilingual-e5-large-pgroonga",
+      "status": "EXECUTION_ERROR",
+      "complete": false,
+      "execution_errors_per_run": [
+        "execution_error",
+        "execution_error",
+        "execution_error"
+      ],
+      "parameters": {
+        "threshold": 0.8,
+        "weights": {
+          "semantic": 0.75,
+          "lexical": 0.05,
+          "recency": 0.05,
+          "importance": 0.05,
+          "self_relevance": 0.05,
+          "trust": 0.05
+        }
+      },
+      "passed_cases_per_run": [
+        8,
+        8,
+        8
+      ],
+      "cases_per_run": [
+        10,
+        10,
+        10
+      ],
+      "real_model_calls_per_run": [
+        21,
+        21,
+        21
+      ],
+      "latency_per_run": [
+        null,
+        null,
+        null
+      ],
+      "recall_at_5_mean": null,
+      "precision_mean": null,
+      "no_match_correct_rate": null,
+      "forbidden_returned_case_count": 0,
+      "source_requirement_failed_case_count": 0,
+      "categories_per_run": [
+        null,
+        null,
+        null
+      ],
+      "failed_cases": {
+        "paraphrase-weekend-ja": {
+          "category": "paraphrase",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        },
+        "cross-language-herb": {
+          "category": "cross_language",
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "threshold_passed": true,
+          "sources_valid": true,
+          "forbidden_returned": [],
+          "no_match_correct": null,
+          "order_passed": true
+        }
+      },
+      "resources": {
+        "db_cpu_ms_per_run": [
+          142.506,
+          138.726,
+          139.343
+        ],
+        "model_cpu_ms_per_run": [
+          150.547,
+          174.011,
+          176.148
+        ],
+        "harness_cpu_ms_per_run": [
+          87.1747420000002,
+          86.83540500000042,
+          89.49507799999967
+        ],
+        "db_sampled_ram_mib": {
+          "min": 145.66796875,
+          "max": 206.98828125
+        },
+        "model_sampled_ram_mib": {
+          "min": 619.546875,
+          "max": 620.3046875
+        },
+        "gpu_total_used_mib": {
+          "min": 3445.0,
+          "max": 3451.0
+        },
+        "harness_process_lifetime_peak_rss_mib": [
+          439.41796875,
+          439.41796875,
+          439.41796875
+        ]
+      },
+      "index_bytes_per_case": {
+        "min": 30576640.0,
+        "max": 39227392.0,
+        "median": 35033088.0
+      },
+      "index_creation_ms_per_case": {
+        "min": 1.7593029988347553,
+        "max": 2.2870929969940335,
+        "median": 2.109339999151416
+      },
+      "index_ms_per_case": {
+        "min": 5.763758999819402,
+        "max": 8.088557999144541,
+        "median": 7.342102000620798
+      },
+      "passage_embedding_ms_per_case": {
+        "min": 5.712245001632255,
+        "max": 19.064559997787,
+        "median": 10.569919500994729
+      }
+    }
+  ],
+  "evidence_validation": [
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-tuning.json",
+      "sha256": "c8f2adbf885f0a490e96c8f85cde8ea2acd80cdac54c51f369be3b91a5dc8e42",
+      "validation": "PASS",
+      "archived_file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-tuning.json.gz"
+    },
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-acceptance.json",
+      "sha256": "f52e1705e8cfeab7fae819b64d014f6e637b8b5ad868766214b9ce6216392310",
+      "validation": "PASS"
+    },
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-multilingual-e5-large-tuning.json",
+      "sha256": "331d06d839d74f28564d6eef2d8aa039fedf1c9b0e390985362e483a5ee42d1e",
+      "validation": "PASS",
+      "archived_file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-multilingual-e5-large-tuning.json.gz"
+    },
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-multilingual-e5-large-acceptance.json",
+      "sha256": "bd7e05dc1e5ee697816f319ceac1d30b707a7905bf7381ecdafc181d9ef72e12",
+      "validation": "PASS"
+    }
+  ],
+  "limitations": [
+    "Recall latency includes query embedding and DB retrieval; excludes scoring, product HTTP and ProvisionRecord writes",
+    "Index and build metrics are per-case synthetic fixtures; no production-scale or approximate-index claim",
+    "Token budget uses UTF-8 bytes as a token estimate, not a tokenizer measurement",
+    "VRAM is whole-GPU; RAM peaks are sampled, not guaranteed continuous peaks",
+    "DB and OS caches are not reset; vector and result caches are disabled"
+  ],
+  "diagnostic": "2026-10-20-retrieval-it2-e5-long-input-diagnostic.json",
+  "recommendation": {
+    "adoption": "保留。ADR 0021 は Proposed。品質PASSの候補はない。",
+    "excluded_candidate": "multilingual-e5-large：898トークンでHTTP 400、n_ctx=512。Turn分割は今回の比較前提を変えるため採用候補から除外。",
+    "next_step": "TAKTでMemory 26/55とCore 61/62の乖離について評価ハーネス側の原因を調査し、再評価後にモデル・全文検索方式を判断する。",
+    "lexical_limit": "選択されたlexical重み0.05では方式間の品質差が出ておらず、pg_bigm / PGroongaの採否は未決定。"
+  },
+  "tuning_totals": {
+    "runs": 540,
+    "completed_cases": 44280,
+    "real_model_calls": 88560,
+    "execution_errors": 0,
+    "quality_passed": false
+  },
+  "acceptance_totals": {
+    "attempted_runs": 12,
+    "complete_runs": 6,
+    "execution_error_runs": 6,
+    "completed_case_observations": 390,
+    "real_model_calls": 786,
+    "quality_passed_candidates": 0
+  },
+  "archives": [
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-tuning.json.gz",
+      "sha256": "5abc28e6c8ad6d85198522297d02807d77ba1dddd9839f5275b53f605e4621aa",
+      "uncompressed_file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-tuning.json",
+      "uncompressed_sha256": "c8f2adbf885f0a490e96c8f85cde8ea2acd80cdac54c51f369be3b91a5dc8e42",
+      "uncompressed_bytes": 74015289,
+      "compressed_bytes": 5772185
+    },
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-acceptance.json.gz",
+      "sha256": "b33e11d6cba0322dab04634e270e90086e15c3efea0781c08f50f6bb3a1312e5",
+      "uncompressed_file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-acceptance.json",
+      "uncompressed_sha256": "f52e1705e8cfeab7fae819b64d014f6e637b8b5ad868766214b9ce6216392310",
+      "uncompressed_bytes": 568932,
+      "compressed_bytes": 56906
+    },
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-multilingual-e5-large-tuning.json.gz",
+      "sha256": "a6c231a0d0fbb9a31936177e3de1cc1c0c8acd0cbc27df296083c7f9198a0d90",
+      "uncompressed_file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-multilingual-e5-large-tuning.json",
+      "uncompressed_sha256": "331d06d839d74f28564d6eef2d8aa039fedf1c9b0e390985362e483a5ee42d1e",
+      "uncompressed_bytes": 87153123,
+      "compressed_bytes": 6590377
+    },
+    {
+      "file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-multilingual-e5-large-acceptance.json.gz",
+      "sha256": "1db054ec28b77dd518f8f1ac9dded1f1cd7cd3d758c19a0884e13b56c19c53cb",
+      "uncompressed_file": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-multilingual-e5-large-acceptance.json",
+      "uncompressed_sha256": "bd7e05dc1e5ee697816f319ceac1d30b707a7905bf7381ecdafc181d9ef72e12",
+      "uncompressed_bytes": 140364,
+      "compressed_bytes": 11137
+    }
+  ],
+  "artifact_storage": "Outside the repository; relative names identify local eval-artifacts. Verify SHA-256 before use."
+}
