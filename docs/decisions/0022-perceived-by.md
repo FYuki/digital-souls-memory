@@ -25,9 +25,11 @@
 | actor | 発言・行為の主体。キャラ ID または利用者 ID |
 | perceived_by | utterance では話された範囲を知覚したキャラ ID、observation では経験を知覚したキャラ ID、thought では actor 本人だけの文字列配列。キャラクターのみ。重複と空白のみの ID は不可。どのキャラも知覚しない場合は空配列可。actor がキャラなら本人を常に含む |
 | addressees | 誰に向けた発言かを示す利用者 ID・キャラ ID の文字列配列。重複と空白のみの ID は不可 |
-| address_mode | 必須。direct（特定の相手宛て）／broadcast（全体宛て）／self（独り言）。direct は addressees が1件以上、broadcast と self は空配列のみ |
+| address_mode | direct（特定の相手宛て）／broadcast（全体宛て）／self（独り言）。actor がキャラなら必須で、省略・null は拒否する。actor が利用者なら省略可で、省略・null は broadcast とする。direct は addressees が1件以上、broadcast と self は空配列のみ（利用者の未指定時も含む） |
 | reply_to_turn_id | 任意・単一。存在する Turn を参照し、どの発言への返答かを示す |
 
+actor がキャラの Turn では address_mode を必須とし、省略・null は拒否する。actor が利用者の Turn では省略・null を broadcast として扱い、その場合 addressees は空配列でなければならない。
+キャラの発話の宛て方は Core が必ず把握している一方、利用者の発言は窓口によって宛て方を判断できないことがあるため、この区別を設ける。
 Core は登録時にこれらを確定する。Turn は追記専用（E1）であり、宛先・知覚・返信先を登録後に変更しない。
 reply_to_turn_id は会話の対応づけと並行会話での取り違え防止に使い、知覚を付与する根拠にはしない。
 Relationship・Commitment・利用者ごとの Fact の相手は addressees と actor から決める。
@@ -108,6 +110,7 @@ Phase 1 は ADR 0019 に従い作者だけが利用者を指定して要求し�
 
 - **participants／audience による知覚判定**：参加者というだけでささやきまで知覚してしまうため採用しない。
 - **perceived_by だけを保持する**：利用者を含む返答の相手と返信先が失われるため、addressees・address_mode・reply_to_turn_id を分けて持つ。
+- **全 Turn で address_mode を必須にする**：利用者の発言は窓口が宛て方を判断できないことがあるため採用しない。
 - **空の addressees だけで全体宛てと独り言を表す**：Relationship・Commitment の抽出可否を判別できないため採用しない。broadcast に特定の相手を併記する方式も採用しない。
 - **Memory が在席履歴を再構成する／メンバー変更ごとに Session を分割する**：サービス間の責務と重複し、出入りのノイズや接続履歴の断片化を招くため採用しない。
 - **全窓口で10分保留する**：テキスト窓口は配達範囲を報告しないため、届いた全文の抽出を毎回10分遅らせるだけになる。報告しない Session は即時全文確定とする。
@@ -116,7 +119,7 @@ Phase 1 は ADR 0019 に従い作者だけが利用者を指定して要求し�
 
 ## 影響
 
-Core は Session 登録時に配達報告宣言を、Turn 登録時に kind・主体・宛先・知覚・返信先を渡す必要がある。Memory はこれらを在席から推測しない。
+Core は Session 登録時に配達報告宣言を、Turn 登録時に kind・主体・宛先・知覚・返信先を上記の必須・省略規則に従って渡す必要がある。Memory はこれらを在席から推測しない。
 キャラ別の抽出・想起・資料登録・内省は同じ M6 と発言者別の本文範囲を守る。
 共通台帳の全文保存と、キャラ別に根拠として使える範囲を区別する。
 取得順序は occurred_at、recorded_at、turn_id のままとする。

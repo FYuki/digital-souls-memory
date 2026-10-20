@@ -63,10 +63,12 @@ Evidence はキャラを所有者として持たない共通台帳です。知�
 | エンティティ | 主要属性 |
 | --- | --- |
 | Session | session\_id, started\_at, ended\_at, surface（Web／Windows／配信／ゲーム／日記など）, reports\_delivery（必須の真偽値。窓口が Core 経由で登録時に宣言し、後から変更しない）。窓口の接続単位で1セッション |
-| Turn | turn\_id, session\_id, surface（出典窓口）, actor（発話・行為の主体。キャラ ID または利用者 ID）, kind（utterance：声に出す発言／observation：経験・観測／thought：口に出さない内心）, text（生成した全文を逐語で）, perceived\_by\[\]（utterance では話された範囲、observation では経験を知覚したキャラ ID のみ。thought は actor 本人のみ。発言者がキャラなら本人を常に含む。空可・重複不可・空白のみ不可）, addressees\[\]（利用者 ID・キャラ ID。重複不可・空白のみ不可）, address\_mode（必須：direct／broadcast／self。direct は宛先1件以上、broadcast／self は宛先空のみ。self も声に出すため知覚は通常の規則）, reply\_to\_turn\_id（任意・単一。登録時のみ、存在する Turn への返信）, language, register（一人称・敬語・呼称のメタ情報）, sensitivity（Core が付けた機微ラベル）, classifier\_version, occurred\_at, recorded\_at |
+| Turn | turn\_id, session\_id, surface（出典窓口）, actor（発話・行為の主体。キャラ ID または利用者 ID）, kind（utterance：声に出す発言／observation：経験・観測／thought：口に出さない内心）, text（生成した全文を逐語で）, perceived\_by\[\]（utterance では話された範囲、observation では経験を知覚したキャラ ID のみ。thought は actor 本人のみ。発言者がキャラなら本人を常に含む。空可・重複不可・空白のみ不可）, addressees\[\]（利用者 ID・キャラ ID。重複不可・空白のみ不可）, address\_mode（direct／broadcast／self。actor がキャラなら必須で省略・null は拒否。利用者なら省略可で省略・null は broadcast とし、宛先は空のみ。direct は宛先1件以上、broadcast／self は宛先空のみ。self も声に出すため知覚は通常の規則）, reply\_to\_turn\_id（任意・単一。登録時のみ、存在する Turn への返信）, language, register（一人称・敬語・呼称のメタ情報）, sensitivity（Core が付けた機微ラベル）, classifier\_version, occurred\_at, recorded\_at |
 | DeliveryReceipt | turn\_id, status（full／partial／none）, spoken\_until, reported\_by（窓口）, reported\_at。reports\_delivery=false の Session の Turn と kind=thought への登録は HTTP 422 で拒否する。それ以外は Turn を書き換えずに、相手にどこまで届いたかを追記で記録する（[ADR 0005](decisions/0005-record-all-generated-text.md)） |
 | ProvisionRecord（提供記録） | provision\_id, kind（resident／turn）, character\_id, session\_id, surface, 要求の内容（検索文または起点の turn\_id）, 返した派生記憶・原文区間・VerbatimAnchor・VoiceExemplar・Motivation の ID, temperament\_version, personality\_version, 各候補のスコア, 処理時間, provided\_at。Memory が何を渡したかの記録で、使われたかどうかは記録しない（[ADR 0018](decisions/0018-provision-record.md)） |
 | Episode | episode\_id, turn\_span\[\], topic, time\_range。話題による分割は窓口ごとの裏処理で LLM が行う |
+
+address_mode は actor がキャラなら必須で、省略・null は拒否します。actor が利用者なら省略可で、省略・null は broadcast として扱い、addressees は空配列でなければなりません。キャラの発話の宛て方は Core が必ず把握している一方、利用者の発言は窓口によって宛て方を判断できないことがあるためです。
 
 Core は Turn の登録時に perceived_by・addressees・address_mode・reply_to_turn_id を確定し、登録後は変更しません（E1）。聞き手が指定された発言は指定されたキャラだけ、指定がなければその場のキャラが知覚します。発言者がキャラなら本人を perceived_by に常に含めます（M3）。どのキャラも知覚しない場合だけ空配列にできます。宛先と知覚は独立しており、addressees・address_mode・reply_to_turn_id は M6 の判定に使いません。利用者宛てのささやきなら、addressees はその利用者、perceived_by は発言者本人のみです。窓口をまたぐ利用者 ID の同一人物への対応づけは Core の責務です。
 
@@ -212,7 +214,7 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 ユーザーの話し終わりからキャラの話し始めまでの目標値を2秒、必達値を4秒とします。ターン想起の仮の予算は、目標値が p50 150ms／p95 300ms、必達値が p95 600ms です。性能試験（ST）の合否は必達値で判定し、目標値は計測して推移を記録します（[ADR 0017](decisions/0017-recall-latency-budget.md)）。
 
 1. **セッション開始時**：窓口が Core 経由で reports_delivery を必須指定して Session を登録する。テキスト窓口は false、配達範囲を報告する窓口は true とし、後から変えない。Core が常駐コンテキスト API を呼び、CoreIdentity、Temperament、PersonalityProfile の記述文、active な Motivation、CharacterProfile、VoiceExemplar の候補を受け取ってキャッシュする。自動の人格更新は次のセッションから適用し、その開始時に新版を取得する。
-2. **ユーザー発話**：Core が機微判定を行い、perceived_by・addressees・address_mode・任意の reply_to_turn_id を確定して Turn を登録する（原文・言語・話者・時刻・機微ラベルも保持）。宛先から知覚を推測しない。
+2. **ユーザー発話**：Core が機微判定を行い、perceived_by・addressees・任意の address_mode・任意の reply_to_turn_id を確定して Turn を登録する（原文・言語・話者・時刻・機微ラベルも保持）。address_mode の省略・null は broadcast とし、その場合 addressees は空配列に限る。宛先から知覚を推測しない。
 3. **ターン想起**：Core がターン想起 API を呼ぶ。Memory は派生記憶をキーに検索し、ヒットした原文区間を値として返す（M2）。組み立て済みのコンテキスト片と素材（記憶・原文の一覧）のどちらで返すかを指定できる。約束や記念日なら VerbatimAnchor の原文を必ず含める。返した内容を ProvisionRecord に残す（M4）。Core は目標の2秒を守るため 400ms で打ち切り、記憶なしで続ける。必達の4秒は打ち切り後の経路でも満たす。
 4. **応答生成**：Core が応答を生成する。記憶に根拠がなければ「覚えていない」と返す経路を Core のプロンプトに持たせる。
 5. **キャラ発話の登録**：Core が生成全文に機微判定を行い、本人を含む perceived_by・addressees・address_mode・任意の reply_to_turn_id とともに Turn を登録する。reports_delivery=false なら即時全文確定とし、Receipt を拒否する。true のキャラ発話は相手に届いた範囲を DeliveryReceipt で追記し、未着中は他キャラの抽出を保留して recorded_at から既定10分（設定可）で全文のみなし確定とする。宣言による確定・保留・実 Receipt 確定・みなし確定を区別し、全文や宛先は書き換えない。Core が内心を記録する場合は kind=thought / perceived_by=[actor] とし、Receipt は付けない。
