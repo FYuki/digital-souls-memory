@@ -1,6 +1,6 @@
 # AIキャラクター記憶ドメインモデル
 
-2026-10-19 確定、2026-10-20 改訂（Core との境界、提供記録、想起の予算、Phase 1 の範囲を反映）
+2026-10-19 確定、2026-10-20 改訂（Core との境界、提供記録、想起の目標値・必達値、再強化の判定、Phase 1 の範囲を反映）
 
 この文書は決定した内容だけを記述します。検討の経緯と採用しなかった案は[決定記録（ADR）](decisions/)にあります。2つの調査の突き合わせは [ADR 0014](decisions/0014-domain-model-reconciliation.md) を参照してください。
 
@@ -195,14 +195,14 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 
 ### 速いループ：応答（毎ターン）
 
-ユーザーの話し終わりからキャラの話し始めまでを2秒以内にします。ターン想起の仮の予算は p50 150ms／p95 300ms です（[ADR 0017](decisions/0017-recall-latency-budget.md)）。
+ユーザーの話し終わりからキャラの話し始めまでの目標値を2秒、必達値を4秒とします。ターン想起の仮の予算は、目標値が p50 150ms／p95 300ms、必達値が p95 600ms です。性能試験（ST）の合否は必達値で判定し、目標値は計測して推移を記録します（[ADR 0017](decisions/0017-recall-latency-budget.md)）。
 
 1. **セッション開始時**：Core が常駐コンテキスト API を呼び、CoreIdentity、Temperament、PersonalityProfile の記述文、active な Motivation、CharacterProfile、VoiceExemplar の候補を受け取ってキャッシュする。自動の人格更新は次のセッションから適用し、その開始時に新版を取得する。
 2. **ユーザー発話**：Core が機微判定をしてから Turn を登録する（原文・言語・話者・時刻・機微ラベル）。
-3. **ターン想起**：Core がターン想起 API を呼ぶ。Memory は派生記憶をキーに検索し、ヒットした原文区間を値として返す（M2）。組み立て済みのコンテキスト片と素材（記憶・原文の一覧）のどちらで返すかを指定できる。約束や記念日なら VerbatimAnchor の原文を必ず含める。返した内容を ProvisionRecord に残す（M4）。Core は 400ms で打ち切り、記憶なしで続ける。
+3. **ターン想起**：Core がターン想起 API を呼ぶ。Memory は派生記憶をキーに検索し、ヒットした原文区間を値として返す（M2）。組み立て済みのコンテキスト片と素材（記憶・原文の一覧）のどちらで返すかを指定できる。約束や記念日なら VerbatimAnchor の原文を必ず含める。返した内容を ProvisionRecord に残す（M4）。Core は目標の2秒を守るため 400ms で打ち切り、記憶なしで続ける。必達の4秒は打ち切り後の経路でも満たす。
 4. **応答生成**：Core が応答を生成する。記憶に根拠がなければ「覚えていない」と返す経路を Core のプロンプトに持たせる。
 5. **キャラ発話の登録**：Core が生成した全文にも登録前に機微判定を行い、Turn として登録し、相手に届いた範囲を DeliveryReceipt で追記する。
-6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。
+6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。抽出時に新しい Turn と既存の DerivedMemory を照合し、再強化か事実の更新かを判定する。再強化の対象・更新方法は「検索と忘却」に従う。
 
 ### 遅いループ：内省から人格更新まで（イベント駆動）
 
@@ -221,7 +221,13 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 
 ### 検索と忘却
 
-検索スコアは、意味の近さ・語彙一致・新しさ・重要度・自己関連度・信頼度の加重和とし、係数の合計を1、新しさの係数を0.1以下にします。忘却は新しさの項の減衰としてだけ表現し、原文と派生記憶は消しません。VerbatimAnchor と Commitment は減衰の対象外です。新しさの起点は occurred\_at と last\_reinforced\_at の新しいほうで、再強化は同じ内容が新しい Turn で再び話題になったときだけ行います。想起で提供しただけでは更新しません（[ADR 0012](decisions/0012-retrieval-scoring-and-recency.md)）。
+検索スコアは、意味の近さ・語彙一致・新しさ・重要度・自己関連度・信頼度の加重和とし、係数の合計を1、新しさの係数を0.1以下にします。忘却は新しさの項の減衰としてだけ表現し、原文と派生記憶は消しません。VerbatimAnchor と Commitment は減衰・再強化の対象外です。新しさの起点は occurred\_at と last\_reinforced\_at の新しいほうで、再強化は同じ内容が新しい Turn で再び話題になったときだけ行います。想起で提供しただけでは更新しません（[ADR 0012](decisions/0012-retrieval-scoring-and-recency.md)）。
+
+再強化の判定は、窓口ごとの非同期の裏処理で、派生記憶の抽出（ゲート M5 経由）時に行います。新しい Turn から記憶を抽出するときに既存の DerivedMemory と照合し、同じ内容の言い直しか補強（MemoryRelation の extends、または同一の Fact の再表明）と判定したら、その DerivedMemory を再強化します。
+
+根拠にできるのは、そのキャラの知覚範囲（M6）の Turn のうち、キャラ自身以外の actor の発話と observation だけです。キャラ自身の発話も抽出・検索の対象（M3）ですが、再強化には使いません。想起で渡した記憶をキャラが口にして再強化されると、検索による自己強化と同じ循環が起きるためです。
+
+再強化では last\_reinforced\_at をその Turn の occurred\_at に更新し、その Turn を source\_turn\_ids に追加します。処理した時刻は使わず、occurred\_at が既存の last\_reinforced\_at より古ければ時刻は更新しません。内容が更新された場合（MemoryRelation の updates：事実が変わった）は再強化ではなく、旧事実の valid\_to を閉じて新事実を追加します（P4）。
 
 ### 削除フロー
 
@@ -243,7 +249,7 @@ Phase 2 では完全な削除連鎖が未実装のため、根拠を削除した
 | 記憶 | 情報抽出・複数セッション推論・時間推論・知識更新・棄権 | 長期記憶の基本性能 | LongMemEval, LoCoMo |
 | 記憶 | Source Fidelity | 原文・話者・言語・引用の正確さ | Codex |
 | 記憶 | Self-Recall | キャラ自身の過去発話を思い出せる割合 | Zep の single-session-assistant |
-| 記憶 | Recall Latency | ターン想起の p50／p95 | ADR 0017 |
+| 記憶 | Recall Latency | ターン想起の目標値 p50 150ms／p95 300ms と必達値 p95 600ms。ST の合否は必達値で判定し、目標値は計測して推移を記録します | [ADR 0017](decisions/0017-recall-latency-budget.md) |
 | 内省 | Reflection Grounding Precision／Recall | 内省の主張が原文で支持される割合／重要な証拠を拾えた割合 | Codex |
 | 内省 | Synthetic Corroboration Rate | 葉の重複を数え直したときに確信度が過大だった内省の割合 | 本モデル |
 | 人格 | Persona Consistency Rate | コア人格と現行特性に矛盾しない応答の割合 | Codex, PersonaGym |
