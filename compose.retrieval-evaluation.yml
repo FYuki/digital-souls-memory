@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: memory-retrieval-postgres:pg18-vector0.8.2-pgroonga4.1.0-bigm735dceb
+    build:
+      context: docker/retrieval-postgres
+    network_mode: none
+    environment:
+      POSTGRES_USER: memory_synthetic
+      POSTGRES_DB: memory_synthetic
+      POSTGRES_HOST_AUTH_METHOD: trust
+    tmpfs:
+      - /var/lib/postgresql

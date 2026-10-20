@@ -1,0 +1,24 @@
+{
+  "created_at": "2026-10-20T07:21:33.688736+00:00",
+  "case_id": "long-text-explicit-detail",
+  "model_alias": "multilingual-e5-large",
+  "model_sha256": "6fc086a43fa9f9a766ee664312ecf2f301ff24c89f866c64936e5b4c5099b3be",
+  "llama_cpp_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+  "configured_ctx_size": 2048,
+  "observed_server_context_size": 512,
+  "observed_prompt_tokens": 898,
+  "http_status": 400,
+  "error": {
+    "code": 400,
+    "message": "input (898 tokens) is larger than the max context size (512 tokens). skipping",
+    "type": "exceed_context_size_error",
+    "n_prompt_tokens": 898,
+    "n_ctx": 512
+  },
+  "startup_observation": "slot context 2048 exceeds model training context 512; llama.cpp caps n_ctx_slot to 512",
+  "startup_log_sha256": "c54138ab3f5df369519181e1a83ad0fcbb57592e3fed7f48b530df279c58eb05",
+  "real_model_request": true,
+  "synthetic_input_only": true,
+  "actions": "同じ固定GGUFと起動引数で長文1件を再送しHTTP 400を再現。評価コード・固定データ・goldは変更しない。コンテナ削除済み。",
+  "conclusion": "起動ctx値を2048にしても512へ制限される。分割・切り詰め・別モデル化は実施せず、親の判断と必要ならTAKTのテスト付き変更へ戻す。"
+}

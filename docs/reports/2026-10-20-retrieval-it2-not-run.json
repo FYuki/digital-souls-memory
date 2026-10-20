@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-10-20T05:22:23.851809+00:00",
+  "execution_status": "NOT RUN",
+  "quality_passed": null,
+  "real_model_calls": 0,
+  "memory_commit": "f99d278f2ae71feb0755a718313c9e3075792a75",
+  "memory_dirty": true,
+  "core_commit": "b062a49a32d261d0ce472938c40711c6cb41d7c0",
+  "core_dirty": null,
+  "comparison": {
+    "embedding_families": [
+      "bge-m3",
+      "multilingual-e5-large"
+    ],
+    "extensions": [
+      "pg_bigm",
+      "pgroonga"
+    ],
+    "repetitions": 3
+  },
+  "reasons": [
+    "前段計画の試行履歴ではNVMLがOSに拒否され、GPU deviceがなく、実行前のGPU資源余裕が未確認。今回この失敗試行を反復していない。",
+    "実モデルidentity・ロード前/ロード後/実行中/モデル解放後の実VRAM・4構成各3回の実測証跡は未取得。"
+  ],
+  "remaining_case_reconstruction": 0,
+  "evidence_note": "fixture実行結果とは別の未実行記録。runやmodel identityを補完した結果ではない。",
+  "implementation": "実検索・real CLI・固定比較条件・45通りのtuning選定・返却量・実行中資源計測・公開再検証を実装。通常試験の成功は実品質の証明ではない。",
+  "prior_observation": {
+    "source": "今回入力の計画「確認事項/試行履歴」および前段の本NOT RUN記録",
+    "recorded_at": "2026-10-20T04:49:38.040757+00:00",
+    "directly_retested": false
+  },
+  "fixed_inputs_sha256": {
+    "evals/retrieval/protocol.json": "8e396df88bf28b559b7c1a537861cd467c921376bf15c94cbb05cf2b69ef3ece",
+    "evals/retrieval/candidates.json": "a9643f83ba2dbca0cf485f9cd13512ad6f2f3da543db2139382260f5427d3327",
+    "evals/retrieval/acceptance/suite.json": "3c8b05394dd0fde5fe1551d40d46c4e38caa2f3e1de18ab1f7f8dd5cb442a006",
+    "evals/retrieval/tuning/suite.json": "af3ea5271e0603a0726ef6bc0f39bd87bf086a18072cf4559b9ef6a0bcd423ad"
+  },
+  "core_identity_note": "core_commitは移設元の固定参照版。現在のCore checkoutのcommit/dirty状態は今回未確認。Core runtimeは使用していない。"
+}
