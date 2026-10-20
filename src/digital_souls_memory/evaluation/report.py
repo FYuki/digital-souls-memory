@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 import re
+from contextlib import ExitStack
 from copy import deepcopy
 from pathlib import PurePosixPath
 
@@ -18,10 +19,13 @@ from .models import (
     validate_candidate,
     validate_suite,
 )
+from .ports import TokenCounterFactory
 from .retrieval import (
     composite_score,
     eligible_memories,
+    rerank_candidates,
     select_observations,
+    source_spans,
     validate_observations,
 )
 from .scoring import aggregate_run, evaluate_case, percentile, stage_latency
@@ -49,20 +53,25 @@ def validate_manifest(manifest: dict[str, object]) -> None:
         raise ValueError("GPU preflight evidence required")
 
 
-def validate_report(report: dict[str, object]) -> None:
+def validate_report(
+    report: dict[str, object], *, token_counter_factory: TokenCounterFactory | None = None
+) -> None:
     mode = report["mode"]
     if mode not in ("fixture", "real"):
         raise ValueError("Unknown evidence mode")
     suite = record(report["suite"])
     validate_suite(suite, tuning_case_ids=set())
     protocol = record(suite["protocol"])
+    if protocol.get("comparison_version") == "memory-v2.1" and token_counter_factory is None:
+        raise ValueError("Explicit token counter factory required for report validation")
     cases = {string(case["id"]): case for case in rows(suite["cases"])}
     gold = {string(item["case_id"]): item for item in rows(suite["gold"])}
     candidates = rows(report["candidates"])
     unique(candidates, "id")
     for candidate in candidates:
         validate_candidate(
-            candidate, require_context=protocol.get("comparison_version") == "memory-v2"
+            candidate,
+            require_context=protocol.get("comparison_version") in ("memory-v2", "memory-v2.1"),
         )
     expected = {
         (string(candidate["id"]), index)
@@ -76,7 +85,7 @@ def validate_report(report: dict[str, object]) -> None:
     for run in runs:
         candidate = next(c for c in candidates if c["id"] == run["candidate_id"])
         resolved = resolved_protocol(protocol, candidate)
-        if resolved.get("comparison_version") == "memory-v2":
+        if resolved.get("comparison_version") in ("memory-v2", "memory-v2.1"):
             calls = run["real_reranker_calls"]
             if type(calls) is not int or calls < 0 or (mode == "fixture" and calls != 0):
                 raise ValueError("Invalid reranker call count")
@@ -102,25 +111,41 @@ def validate_report(report: dict[str, object]) -> None:
         for result in results:
             identifier = string(result["case_id"])
             retrieved = rows(result["retrieved_hits"])
-            if resolved.get("comparison_version") == "memory-v2":
+            if resolved.get("comparison_version") in ("memory-v2", "memory-v2.1"):
                 case = cases[identifier]
                 observations = rows(result["candidate_observations"])
                 validate_observations(observations, case, resolved)
-                if any(
-                    (o["reranker_score"] is not None) is not run["reranker_enabled"]
-                    for o in observations
-                ):
+                measured = {o["memory_id"] for o in observations if o["reranker_score"] is not None}
+                expected_measured = (
+                    (
+                        {o["memory_id"] for o in rerank_candidates(observations)}
+                        if resolved.get("comparison_version") == "memory-v2.1"
+                        else {o["memory_id"] for o in observations}
+                    )
+                    if run["reranker_enabled"]
+                    else set()
+                )
+                if measured != expected_measured:
                     raise ValueError("Reranker observation mismatch")
                 if result["eligible_ids"] != sorted(
                     string(m["id"]) for m in eligible_memories(case)
                 ):
                     raise ValueError("Eligibility evidence mismatch")
                 expected_hits = select_observations(observations, resolved)
-                score_fields = ("memory_id", "score", "components")
+                score_fields = (
+                    ("memory_id", "score", "components", "reranker_score")
+                    if resolved.get("comparison_version") == "memory-v2.1"
+                    else ("memory_id", "score", "components")
+                )
                 if [{key: hit[key] for key in score_fields} for hit in expected_hits] != [
                     {key: hit[key] for key in score_fields} for hit in retrieved
                 ]:
                     raise ValueError("Candidate to retrieval evidence mismatch")
+                if resolved.get("comparison_version") == "memory-v2.1" and any(
+                    hit["source_spans"] != source_spans(case, memory_id=string(hit["memory_id"]))
+                    for hit in retrieved
+                ):
+                    raise ValueError("Retrieved source range mismatch")
                 duration = sum(
                     number(result[k])
                     for k in ("query_embedding_ms", "search_ms", "rerank_ms", "result_selection_ms")
@@ -132,7 +157,16 @@ def validate_report(report: dict[str, object]) -> None:
                     hit["components"], resolved["weights"]
                 ):
                     raise ValueError("Component score mismatch")
-            computed = evaluate_case(cases[identifier], gold[identifier], retrieved, resolved)
+            with ExitStack() as resources:
+                counter = (
+                    resources.enter_context(token_counter_factory(deepcopy(candidate)))
+                    if resolved.get("comparison_version") == "memory-v2.1"
+                    and token_counter_factory is not None
+                    else None
+                )
+                computed = evaluate_case(
+                    cases[identifier], gold[identifier], retrieved, resolved, token_counter=counter
+                )
             if any(result[key] != value for key, value in computed.items()):
                 raise ValueError("Forged case verdict")
             for key in (
@@ -158,7 +192,7 @@ def validate_report(report: dict[str, object]) -> None:
         summary = aggregate_run(results, protocol=resolved)
         if any(run[key] != value for key, value in summary.items()):
             raise ValueError("Forged aggregate")
-        if resolved.get("comparison_version") == "memory-v2":
+        if resolved.get("comparison_version") in ("memory-v2", "memory-v2.1"):
             if run["stage_latency"] != stage_latency(results):
                 raise ValueError("Invalid stage latency summary")
         if mode == "real" and run["quality_passed"] is not summary["passed"]:
@@ -182,8 +216,10 @@ def validate_report(report: dict[str, object]) -> None:
         raise ValueError("Inconsistent report verdict")
 
 
-def public_report(report: dict[str, object]) -> dict[str, object]:
-    validate_report(report)
+def public_report(
+    report: dict[str, object], *, token_counter_factory: TokenCounterFactory | None = None
+) -> dict[str, object]:
+    validate_report(report, token_counter_factory=token_counter_factory)
     suite = record(report["suite"])
     inputs = {
         "suite": suite,
@@ -202,7 +238,8 @@ def public_report(report: dict[str, object]) -> dict[str, object]:
     for run in rows(report["runs"]):
         results: list[dict[str, object]] = []
         for result in rows(run["case_results"]):
-            hits = _public_hits(rows(result["hits"]))
+            include_relevance = record(suite["protocol"]).get("comparison_version") == "memory-v2.1"
+            hits = _public_hits(rows(result["hits"]), include_relevance=include_relevance)
             projected = {
                 key: result[key]
                 for key in (
@@ -219,9 +256,11 @@ def public_report(report: dict[str, object]) -> dict[str, object]:
                 )
             }
             projected["hits"] = hits
-            projected["retrieved_hits"] = _public_hits(rows(result["retrieved_hits"]))
+            projected["retrieved_hits"] = _public_hits(
+                rows(result["retrieved_hits"]), include_relevance=include_relevance
+            )
             projected["return_budget"] = deepcopy(result["return_budget"])
-            if record(suite["protocol"]).get("comparison_version") == "memory-v2":
+            if record(suite["protocol"]).get("comparison_version") in ("memory-v2", "memory-v2.1"):
                 for key in (
                     "safety_passed",
                     "quality_passed",
@@ -363,18 +402,26 @@ def _public_candidate(candidate: dict[str, object]) -> dict[str, object]:
     return projected
 
 
-def _public_hits(hits: list[dict[str, object]]) -> list[dict[str, object]]:
+def _public_hits(
+    hits: list[dict[str, object]], *, include_relevance: bool = False
+) -> list[dict[str, object]]:
     return [
         {
             "memory_id": hit["memory_id"],
             "score": hit["score"],
             **({"components": deepcopy(hit["components"])} if "components" in hit else {}),
+            **({"reranker_score": hit["reranker_score"]} if include_relevance else {}),
             "source_spans": [
                 {
                     "turn_id": span["turn_id"],
                     "start": span["start"],
                     "end": span["end"],
                     "sha256": hashlib.sha256(string(span["text"]).encode()).hexdigest(),
+                    **{
+                        key: span[key]
+                        for key in ("truncated", "original_start", "original_end")
+                        if key in span
+                    },
                 }
                 for span in rows(hit["source_spans"])
             ],
@@ -384,7 +431,11 @@ def _public_hits(hits: list[dict[str, object]]) -> list[dict[str, object]]:
 
 
 def validate_public_report(
-    report: dict[str, object], *, suite: dict[str, object], candidates: list[dict[str, object]]
+    report: dict[str, object],
+    *,
+    suite: dict[str, object],
+    candidates: list[dict[str, object]],
+    token_counter_factory: TokenCounterFactory | None = None,
 ) -> None:
     restored = {**deepcopy(report), "suite": suite, "candidates": candidates}
     cases = {string(case["id"]): case for case in rows(suite["cases"])}
@@ -407,7 +458,7 @@ def validate_public_report(
             results.append(restored_result)
         restored_runs.append({**run, "case_results": results})
     restored["runs"] = restored_runs
-    computed = public_report(restored)
+    computed = public_report(restored, token_counter_factory=token_counter_factory)
     if computed != report:
         raise ValueError("Public evidence mismatch")
 
@@ -430,6 +481,11 @@ def _restore_hit(hit: dict[str, object], turns: dict[str, dict[str, object]]) ->
                 "text": text,
                 "actor": turn["actor"],
                 "language": turn["language"],
+                **{
+                    key: span[key]
+                    for key in ("truncated", "original_start", "original_end")
+                    if key in span
+                },
             }
         )
     return {**hit, "source_spans": spans}

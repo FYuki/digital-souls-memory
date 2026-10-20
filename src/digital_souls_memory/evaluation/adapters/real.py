@@ -6,10 +6,43 @@ from ipaddress import ip_address
 from psycopg.conninfo import conninfo_to_dict
 
 from ..models import record, string, validate_candidate, validate_endpoint, validate_reranker
-from ..ports import EmbeddingFactory, RerankerFactory, SearchFactory
+from ..ports import EmbeddingFactory, RerankerFactory, SearchFactory, TokenCounterFactory
 from .llamacpp import LlamaCppEmbedding
 from .postgres import PostgresSearch
 from .reranker import LlamaCppReranker
+from .token_counter import LlamaCppTokenCounter
+
+
+def real_token_counter_factory(
+    config: dict[str, object], candidates: list[dict[str, object]]
+) -> TokenCounterFactory:
+    endpoints = deepcopy(record(config["endpoints"]))
+    identities = record(config["model_identities"])
+    for candidate in candidates:
+        validate_candidate(candidate)
+        alias = string(candidate["model_alias"])
+        validate_endpoint(string(endpoints[alias]))
+        observed = record(identities[alias])
+        fields = (
+            "model_alias",
+            "sha256",
+            "revision",
+            "dimensions",
+            "pooling",
+            "query_prefix",
+            "passage_prefix",
+            "quantization",
+            "max_context_length",
+        )
+        if any(candidate.get(k) != observed.get(k) for k in fields):
+            raise ValueError("Tokenizer identity mismatch")
+
+    def counter(candidate: dict[str, object]) -> LlamaCppTokenCounter:
+        return LlamaCppTokenCounter(
+            candidate, endpoint=string(endpoints[string(candidate["model_alias"])])
+        )
+
+    return counter
 
 
 def real_factories(

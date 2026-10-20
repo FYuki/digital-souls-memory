@@ -49,7 +49,15 @@ class ResourceObserver(Protocol):
     def observation(self) -> dict[str, object]: ...
 
 
+class TokenCounter(Protocol):
+    @property
+    def method(self) -> str: ...
+
+    def count(self, text: str) -> int: ...
+
+
 type EmbeddingFactory = Callable[[dict[str, object]], AbstractContextManager[Embedding]]
 type SearchFactory = Callable[[dict[str, object]], AbstractContextManager[Search]]
 type ResourceFactory = Callable[[dict[str, object]], AbstractContextManager[ResourceObserver]]
 type RerankerFactory = Callable[[dict[str, object]], AbstractContextManager[Reranker]]
+type TokenCounterFactory = Callable[[dict[str, object]], AbstractContextManager[TokenCounter]]

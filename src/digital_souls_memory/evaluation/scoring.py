@@ -3,7 +3,10 @@
 import math
 from typing import NotRequired, TypedDict, cast
 
+from .context import bounded_results as token_bounded_results
+from .context import token_count
 from .models import integer, number, rows, string, strings, unique, unit
+from .ports import TokenCounter
 from .retrieval import bounded_results, eligible_memories, source_spans
 
 
@@ -32,9 +35,12 @@ def score_case(
     *,
     threshold: object,
     protocol: dict[str, object] | None = None,
+    token_counter: TokenCounter | None = None,
 ) -> dict[str, object]:
-    v2 = protocol is not None and protocol.get("comparison_version") == "memory-v2"
-    minimum = unit(threshold)
+    v21 = protocol is not None and protocol.get("comparison_version") == "memory-v2.1"
+    v2 = protocol is not None and protocol.get("comparison_version") in ("memory-v2", "memory-v2.1")
+    reranked = v21 and any(hit.get("reranker_score") is not None for hit in hits)
+    minimum = number(threshold) if v21 else unit(threshold)
     known = unique(rows(case["memories"]), "id")
     ids = [string(hit["memory_id"]) for hit in hits]
     if len(set(ids)) != len(ids) or not set(ids) <= known:
@@ -57,16 +63,43 @@ def score_case(
             continue
         originals = source_spans(case, memory_id=identifier)
         for span in spans:
-            original = next((s for s in originals if s["turn_id"] == span["turn_id"]), None)
+            original = next(
+                (
+                    s
+                    for s in originals
+                    if s["turn_id"] == span["turn_id"]
+                    and type(span["start"]) is int
+                    and type(span["end"]) is int
+                    and int(str(s["start"]))
+                    <= int(str(span["start"]))
+                    < int(str(span["end"]))
+                    <= int(str(s["end"]))
+                ),
+                None,
+            )
             start, end = span["start"], span["end"]
             if (
                 original is None
                 or type(start) is not int
                 or type(end) is not int
-                or not 0 <= start < end <= len(string(original["text"]))
-                or span["text"] != string(original["text"])[start:end]
+                or span["text"]
+                != string(original["text"])[
+                    start - int(str(original["start"])) : end - int(str(original["start"]))
+                ]
                 or span["actor"] != original["actor"]
                 or span["language"] != original["language"]
+            ):
+                sources_valid = False
+            if (
+                original is not None
+                and "truncated" in span
+                and (
+                    type(span["truncated"]) is not bool
+                    or span.get("original_start") != original["start"]
+                    or span.get("original_end") != original["end"]
+                    or span["truncated"]
+                    is not (start != original["start"] or end != original["end"])
+                )
             ):
                 sources_valid = False
         if not spans:
@@ -81,7 +114,12 @@ def score_case(
             required_sources_valid = False
     if not v2:
         sources_valid = sources_valid and required_sources_valid
-    threshold_passed = all(number(hit["score"]) >= minimum for hit in hits)
+    threshold_passed = all(
+        hit.get("reranker_score") is not None and number(hit["reranker_score"]) >= minimum
+        if reranked
+        else number(hit["score"]) >= minimum
+        for hit in hits
+    )
     no_match_correct = not returned if not required else None
     order_passed = v2 or "required_order" not in gold or ids == strings(gold["required_order"])
     passed = (
@@ -106,16 +144,27 @@ def score_case(
     }
     if v2:
         assert protocol is not None
-        bounded, _ = bounded_results(
-            hits, limit=integer(protocol["top_k"]), budget=integer(protocol["token_budget"])
-        )
+        if v21:
+            if token_counter is None:
+                raise ValueError("Explicit token counter required")
+            count = token_count(hits, token_counter)
+            within_budget = len(hits) <= integer(protocol["top_k"]) and count <= integer(
+                protocol["token_budget"]
+            )
+        else:
+            bounded, _ = bounded_results(
+                hits, limit=integer(protocol["top_k"]), budget=integer(protocol["token_budget"])
+            )
+            within_budget = bounded == hits
         safety = (
             sources_valid
             and not set(strings(gold["safety_forbidden_ids"])).intersection(ids)
             and not set(strings(gold["safety_forbidden_ids"])).intersection(eligible)
-            and bounded == hits
+            and within_budget
         )
         quality = recall == 1.0 if required else no_match_correct is True
+        if v21:
+            quality = quality and required_sources_valid and threshold_passed
         result.update(
             safety_passed=safety,
             quality_passed=quality,
@@ -131,12 +180,32 @@ def evaluate_case(
     gold: dict[str, object],
     hits: list[dict[str, object]],
     protocol: dict[str, object],
+    *,
+    token_counter: TokenCounter | None = None,
 ) -> dict[str, object]:
-    selected, budget = bounded_results(
-        hits, limit=integer(protocol["top_k"]), budget=integer(protocol["token_budget"])
-    )
+    if protocol.get("comparison_version") == "memory-v2.1":
+        if token_counter is None:
+            raise ValueError("Explicit token counter required")
+        selected, budget = token_bounded_results(
+            hits,
+            case=case,
+            limit=integer(protocol["top_k"]),
+            budget=integer(protocol["token_budget"]),
+            token_counter=token_counter,
+        )
+    else:
+        selected, budget = bounded_results(
+            hits, limit=integer(protocol["top_k"]), budget=integer(protocol["token_budget"])
+        )
     return {
-        **score_case(case, gold, selected, threshold=protocol["threshold"], protocol=protocol),
+        **score_case(
+            case,
+            gold,
+            selected,
+            threshold=protocol["threshold"],
+            protocol=protocol,
+            token_counter=token_counter,
+        ),
         "retrieved_hits": hits,
         "return_budget": budget,
     }
@@ -176,7 +245,7 @@ def aggregate_run(
         "passed": all(result["passed"] is True for result in results),
         "categories": categories,
     }
-    if protocol is not None and protocol.get("comparison_version") == "memory-v2":
+    if protocol is not None and protocol.get("comparison_version") in ("memory-v2", "memory-v2.1"):
         for category, members in grouped.items():
             categories[category]["false_positive_count"] = sum(
                 cast(int, row["false_positive_count"]) for row in members

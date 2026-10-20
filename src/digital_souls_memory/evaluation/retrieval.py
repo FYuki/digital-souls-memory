@@ -1,8 +1,8 @@
 """Pure eligibility, source recovery and scoring rules for comparison fixtures."""
 
-import json
 import unicodedata
 
+from .context import context_payload
 from .models import (
     COMPONENTS,
     number,
@@ -47,16 +47,26 @@ def source_spans(case: dict[str, object], *, memory_id: str) -> list[dict[str, o
     memories = {string(memory["id"]): memory for memory in eligible_memories(case)}
     memory = memories[memory_id]
     turns = {string(turn["turn_id"]): turn for turn in rows(case["turns"])}
+    ranges = (
+        rows(memory["source_spans"])
+        if "source_spans" in memory
+        else [
+            {"turn_id": identifier, "start": 0, "end": len(string(turns[identifier]["text"]))}
+            for identifier in strings(memory["source_turn_ids"])
+        ]
+    )
     return [
         {
-            "turn_id": identifier,
-            "start": 0,
-            "end": len(string(turns[identifier]["text"])),
-            "text": turns[identifier]["text"],
-            "actor": turns[identifier]["actor"],
-            "language": turns[identifier]["language"],
+            "turn_id": span["turn_id"],
+            "start": span["start"],
+            "end": span["end"],
+            "text": string(turns[string(span["turn_id"])]["text"])[
+                int(str(span["start"])) : int(str(span["end"]))
+            ],
+            "actor": turns[string(span["turn_id"])]["actor"],
+            "language": turns[string(span["turn_id"])]["language"],
         }
-        for identifier in strings(memory["source_turn_ids"])
+        for span in ranges
     ]
 
 
@@ -154,6 +164,16 @@ def select_observations(
     observations: list[dict[str, object]], protocol: dict[str, object]
 ) -> list[dict[str, object]]:
     reranked = [o["reranker_score"] is not None for o in observations]
+    if protocol.get("comparison_version") == "memory-v2.1" and any(reranked):
+        return sorted(
+            (
+                o
+                for o in observations
+                if o["reranker_score"] is not None
+                and number(o["reranker_score"]) >= number(protocol["threshold"])
+            ),
+            key=lambda o: (-number(o["reranker_score"]), string(o["memory_id"])),
+        )
     if any(reranked) and not all(reranked):
         raise ValueError("Incomplete reranker evidence")
     return sorted(
@@ -165,6 +185,10 @@ def select_observations(
     )
 
 
+def rerank_candidates(observations: list[dict[str, object]]) -> list[dict[str, object]]:
+    return sorted(observations, key=lambda o: (-number(o["score"]), string(o["memory_id"])))[:20]
+
+
 def bounded_results(
     hits: list[dict[str, object]], *, limit: int, budget: int
 ) -> tuple[list[dict[str, object]], dict[str, object]]:
@@ -173,18 +197,7 @@ def bounded_results(
 
     def encoded_size(items: list[dict[str, object]]) -> int:
         # Scores are observations, not part of the context offered to a caller.
-        fragments = [
-            {"memory_id": h["memory_id"], "source_spans": h["source_spans"]} for h in items
-        ]
-        return len(
-            json.dumps(
-                fragments,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-                allow_nan=False,
-            ).encode("utf-8")
-        )
+        return len(context_payload(items).encode("utf-8"))
 
     for hit in hits:
         if len(selected) >= limit:

@@ -17,10 +17,17 @@ from .models import (
 )
 
 
-def parameter_grid() -> list[dict[str, object]]:
+def parameter_grid(
+    *, protocol: dict[str, object] | None = None, reranker_enabled: bool = False
+) -> list[dict[str, object]]:
+    relevance = (
+        protocol is not None
+        and protocol.get("comparison_version") == "memory-v2.1"
+        and reranker_enabled
+    )
     return [
         {
-            "threshold": threshold / 100,
+            "threshold": threshold if relevance else threshold / 100,
             "weights": {
                 "semantic": semantic / 100,
                 "lexical": (SEMANTIC_LEXICAL_PERCENTAGE - semantic) / 100,
@@ -31,7 +38,7 @@ def parameter_grid() -> list[dict[str, object]]:
             },
         }
         for semantic in SEMANTIC_PERCENTAGES
-        for threshold in THRESHOLD_PERCENTAGES
+        for threshold in (tuple(range(-12, 13)) if relevance else THRESHOLD_PERCENTAGES)
     ]
 
 
@@ -52,18 +59,24 @@ def resolved_protocol(
     resolved = deepcopy(protocol)
     if "parameters" in candidate:
         parameters = record(candidate["parameters"])
-        if parameters not in parameter_grid():
+        if parameters not in parameter_grid(
+            protocol=protocol, reranker_enabled="reranker" in candidate
+        ):
             raise ValueError("Parameters must belong to the fixed tuning grid")
         resolved.update(parameters)
     validate_protocol(resolved)
     return resolved
 
 
-def tuning_candidates(candidates: list[dict[str, object]]) -> list[dict[str, object]]:
+def tuning_candidates(
+    candidates: list[dict[str, object]], *, protocol: dict[str, object] | None = None
+) -> list[dict[str, object]]:
     return [
         {**deepcopy(candidate), "id": f"{candidate['id']}.p{index:02d}", "parameters": parameters}
         for candidate in candidates
-        for index, parameters in enumerate(parameter_grid())
+        for index, parameters in enumerate(
+            parameter_grid(protocol=protocol, reranker_enabled="reranker" in candidate)
+        )
     ]
 
 
@@ -72,17 +85,23 @@ def selected_candidates(
 ) -> list[dict[str, object]]:
     if record(report["suite"])["split"] != "tuning":
         raise ValueError("Selection may only consume tuning observations")
-    expanded = tuning_candidates(candidates)
+    protocol = record(record(report["suite"]).get("protocol", {}))
+    expanded = tuning_candidates(candidates, protocol=protocol)
     by_id = {string(c["id"]): c for c in expanded}
     if rows(report["candidates"]) != expanded:
         raise ValueError("Complete fixed grid required for selection")
     runs = rows(report["runs"])
     if any(run["execution_error"] is not None for run in runs):
         raise ValueError("Incomplete tuning cannot select parameters")
-    if record(record(report["suite"]).get("protocol", {})).get("comparison_version") == "memory-v2":
+    if protocol.get("comparison_version") in ("memory-v2", "memory-v2.1"):
         selected = []
         for candidate in candidates:
-            options = [f"{candidate['id']}.p{i:02d}" for i in range(len(parameter_grid()))]
+            options = [
+                f"{candidate['id']}.p{i:02d}"
+                for i in range(
+                    len(parameter_grid(protocol=protocol, reranker_enabled="reranker" in candidate))
+                )
+            ]
             safe = []
             for identifier in options:
                 members = [run for run in runs if run["candidate_id"] == identifier]
