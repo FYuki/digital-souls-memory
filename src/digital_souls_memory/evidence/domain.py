@@ -25,7 +25,21 @@ def _members(values: tuple[str, ...]) -> tuple[str, ...]:
         raise EvidenceValidationError("Expected a collection of identifiers")
     for value in values:
         _nonblank(value)
+    if len(set(values)) != len(values):
+        raise EvidenceValidationError("Duplicate identifiers")
     return tuple(values)
+
+
+def resolve_address_mode(
+    *, address_mode: str | None, actor_is_character: bool, addressees: tuple[str, ...]
+) -> str:
+    if address_mode is None and not actor_is_character:
+        address_mode = "broadcast"
+    if address_mode not in ("direct", "broadcast", "self"):
+        raise EvidenceValidationError("Invalid address mode")
+    if (address_mode == "direct") != bool(addressees):
+        raise EvidenceValidationError("Address mode does not match addressees")
+    return address_mode
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -34,7 +48,7 @@ class Session:
     started_at: datetime
     ended_at: datetime | None
     surface: str
-    participants: tuple[str, ...]
+    reports_delivery: bool
 
     def __post_init__(self) -> None:
         _nonblank(self.session_id)
@@ -42,7 +56,8 @@ class Session:
         _aware(self.started_at)
         if self.ended_at is not None:
             _aware(self.ended_at)
-        object.__setattr__(self, "participants", _members(self.participants))
+        if type(self.reports_delivery) is not bool:
+            raise EvidenceValidationError("Expected a boolean delivery declaration")
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -53,7 +68,10 @@ class Turn:
     actor: str
     kind: str
     text: str
-    audience: tuple[str, ...]
+    perceived_by: tuple[str, ...]
+    addressees: tuple[str, ...]
+    address_mode: str
+    reply_to_turn_id: str | None
     language: str
     register: Mapping[str, str]
     sensitivity: str
@@ -72,7 +90,7 @@ class Turn:
             self.classifier_version,
         ):
             _nonblank(value)
-        if self.kind not in ("utterance", "observation"):
+        if self.kind not in ("utterance", "observation", "thought"):
             raise EvidenceValidationError("Invalid turn kind")
         if not isinstance(self.text, str):
             raise EvidenceValidationError("Expected text")
@@ -82,7 +100,15 @@ class Turn:
         ):
             raise EvidenceValidationError("Expected string register metadata")
         object.__setattr__(self, "register", MappingProxyType(dict(self.register)))
-        object.__setattr__(self, "audience", _members(self.audience))
+        object.__setattr__(self, "perceived_by", _members(self.perceived_by))
+        object.__setattr__(self, "addressees", _members(self.addressees))
+        resolve_address_mode(
+            address_mode=self.address_mode, actor_is_character=True, addressees=self.addressees
+        )
+        if self.reply_to_turn_id is not None:
+            _nonblank(self.reply_to_turn_id)
+        if self.kind == "thought" and self.perceived_by != (self.actor,):
+            raise EvidenceValidationError("Thought requires exactly actor perception")
         _aware(self.occurred_at)
         _aware(self.recorded_at)
 
@@ -106,10 +132,7 @@ class DeliveryReceipt:
 
 
 def can_perceive(character_id: str, session: Session, turn: Turn) -> bool:
-    return session.session_id == turn.session_id and (
-        character_id == turn.actor
-        or character_id in (turn.audience if turn.audience else session.participants)
-    )
+    return session.session_id == turn.session_id and character_id in turn.perceived_by
 
 
 def validate_receipt(receipt: DeliveryReceipt, text: str) -> None:

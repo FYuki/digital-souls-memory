@@ -15,7 +15,7 @@ import anyio
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.routing import APIRoute
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictInt, StrictStr
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr
 from starlette.concurrency import run_in_threadpool
 from starlette.types import Receive, Scope, Send
 
@@ -130,11 +130,12 @@ class _EvidenceListResponse[T](Response):
 
 
 class SessionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     session_id: Identifier
     started_at: AwareDatetime
     ended_at: AwareDatetime | None = None
     surface: Nonblank
-    participants: list[Identifier]
+    reports_delivery: StrictBool
 
     def to_domain(self) -> Session:
         return Session(
@@ -142,7 +143,7 @@ class SessionRequest(BaseModel):
             started_at=self.started_at,
             ended_at=self.ended_at,
             surface=self.surface,
-            participants=tuple(self.participants),
+            reports_delivery=self.reports_delivery,
         )
 
 
@@ -150,14 +151,17 @@ class SessionResponse(SessionRequest):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TurnRequest(BaseModel):
+class _TurnFields(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     turn_id: Identifier
     session_id: Identifier
     surface: Nonblank
     actor: Nonblank
-    kind: Literal["utterance", "observation"]
+    kind: Literal["utterance", "observation", "thought"]
     text: StrictStr
-    audience: list[Identifier] = Field(default_factory=list)
+    perceived_by: list[Identifier]
+    addressees: list[Identifier]
+    reply_to_turn_id: Identifier | None = None
     language: Nonblank
     speech_register: dict[StrictStr, StrictStr] = Field(alias="register")
     sensitivity: Nonblank
@@ -165,8 +169,19 @@ class TurnRequest(BaseModel):
     occurred_at: AwareDatetime
 
 
-class TurnResponse(TurnRequest):
+class TurnRequest(_TurnFields):
+    address_mode: Literal["direct", "broadcast", "self"] | None = Field(
+        default=None,
+        description=(
+            "登録キャラ actor では必須・非 null。利用者 actor は省略・null の場合、"
+            "addressees が空のときだけ broadcast として保存する。"
+        ),
+    )
+
+
+class TurnResponse(_TurnFields):
     model_config = ConfigDict(from_attributes=True)
+    address_mode: Literal["direct", "broadcast", "self"]
     recorded_at: AwareDatetime
 
 
@@ -212,7 +227,10 @@ def evidence_router(service: Callable[[], EvidenceService]) -> APIRouter:
             actor=request.actor,
             kind=request.kind,
             text=request.text,
-            audience=tuple(request.audience),
+            perceived_by=tuple(request.perceived_by),
+            addressees=tuple(request.addressees),
+            address_mode=request.address_mode,
+            reply_to_turn_id=request.reply_to_turn_id,
             language=request.language,
             register=request.speech_register,
             sensitivity=request.sensitivity,

@@ -5,6 +5,7 @@ from contextlib import contextmanager
 
 from digital_souls_memory.evidence.domain import DeliveryReceipt, Session, Turn, can_perceive
 from digital_souls_memory.evidence.ports import EvidenceConflict
+from tests.it1.identity_fakes import FakeIdentityStore
 
 
 class FakeEvidenceStore:
@@ -52,3 +53,13 @@ class FakeEvidenceStore:
             )
             if can_perceive(character_id, self.sessions[value.session_id], value)
         )
+
+
+def registered_identities() -> "FakeIdentityStore":
+    from digital_souls_memory.identity.domain import CoreIdentity
+    from tests.evidence_support import RECORDED
+
+    store = FakeIdentityStore()
+    for identifier in ("char-a", "char-b", "char-c", "char-z", "char_a", "char_b"):
+        store.cores[(identifier, 1)] = CoreIdentity(identifier, ("誠実",), (), 1, RECORDED)
+    return store
