@@ -61,8 +61,8 @@ def test_voice_revision_upgrade_repeat_downgrade_and_reapply_preserve_existing_d
                     table: conn.execute(f"SELECT * FROM {table}").fetchall()
                     for table in ("sessions", "turns", "core_identities")
                 }
-            command.upgrade(config, "head")
-            command.upgrade(config, "head")
+            command.upgrade(config, "0005")
+            command.upgrade(config, "0005")
             assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0005",)
             for table, rows in before.items():
                 assert conn.execute(f"SELECT * FROM {table}").fetchall() == rows
@@ -73,7 +73,7 @@ def test_voice_revision_upgrade_repeat_downgrade_and_reapply_preserve_existing_d
                 assert conn.execute("SELECT to_regclass(%s)", (table,)).fetchone() == (None,)
             for table, rows in before.items():
                 assert conn.execute(f"SELECT * FROM {table}").fetchall() == rows
-            command.upgrade(config, "head")
+            command.upgrade(config, "0005")
             assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0005",)
             for table, rows in before.items():
                 assert conn.execute(f"SELECT * FROM {table}").fetchall() == rows
