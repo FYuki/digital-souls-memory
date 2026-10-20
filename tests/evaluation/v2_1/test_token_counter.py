@@ -85,9 +85,8 @@ def test_real_counter_uses_embedding_identity_and_endpoint_before_transport(
     mismatch: bool,
     rejected: Callable[[], pytest.RaisesExc[BaseException]],
 ) -> None:
-    from digital_souls_memory.evaluation.adapters.token_counter import LlamaCppTokenCounter
-
     from digital_souls_memory.evaluation.adapters.real import real_token_counter_factory
+    from digital_souls_memory.evaluation.adapters.token_counter import LlamaCppTokenCounter
 
     alias = str(candidate["model_alias"])
     config: dict[str, object] = {
