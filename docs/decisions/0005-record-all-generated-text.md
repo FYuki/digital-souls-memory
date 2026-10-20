@@ -25,10 +25,14 @@
 
 [ADR 0022](0022-perceived-by.md) により、perceived_by は「話された範囲を知覚したキャラ」を表す。
 生成した全文のうち話されなかった部分を知覚できるのは発言者本人だけとする。
-発言者以外のキャラの派生記憶・内省では、Turn.text を DeliveryReceipt の spoken_until までで切った範囲だけを根拠にする。
+報告する Session での発言者以外のキャラの派生記憶・内省では、Turn.text を DeliveryReceipt の spoken_until までで切った範囲だけを根拠にする。
 none は他キャラにとって根拠となる本文がなく、発言者本人は生成全文を根拠にできる。
 
-DeliveryReceipt を待つキャラ発話の未着中は、発言者以外のキャラの抽出を保留する。
+Session 登録時に窓口が reports_delivery（必須の真偽値）を宣言し、登録後は変えない。
+false の Session は Turn 登録時点で全文が届いたものとし、保留せず、矛盾する DeliveryReceipt は HTTP 422 で拒否する。
+true の Session で DeliveryReceipt を待つキャラ発話の未着中は、発言者以外のキャラの抽出を保留する。
 recorded_at から既定10分（設定可）経過しても未着なら全文が届いたとみなす。
 保留中とみなし確定を区別して記録し、みなし確定を実際の配達確認と同一視しない。
 この扱いでも Turn は書き換えず、DeliveryReceipt は別レコードとして追記する。
+
+口に出さない内心を kind=thought として本人だけの知覚にする ADR 0022 の決定も、未発話部分を本人の思考とみなす本決定と同じ考え方に沿う。thought には配達報告を付けない。

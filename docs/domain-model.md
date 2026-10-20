@@ -62,15 +62,17 @@ Evidence はキャラを所有者として持たない共通台帳です。知�
 
 | エンティティ | 主要属性 |
 | --- | --- |
-| Session | session\_id, started\_at, ended\_at, surface（Web／Windows／配信／ゲーム／日記など）。窓口の接続単位で1セッション |
-| Turn | turn\_id, session\_id, surface（出典窓口）, actor（発話・行為の主体。キャラ ID または利用者 ID）, kind（utterance／observation）, text（生成した全文を逐語で）, perceived\_by\[\]（話された範囲を知覚したキャラ ID のみ。発言者がキャラなら本人を常に含む。空可・重複不可・空白のみ不可）, addressees\[\]（利用者 ID・キャラ ID。重複不可・空白のみ不可）, address\_mode（必須：direct／broadcast／self。direct は宛先1件以上、broadcast／self は宛先空のみ）, reply\_to\_turn\_id（任意・単一。登録時のみ、存在する Turn への返信）, language, register（一人称・敬語・呼称のメタ情報）, sensitivity（Core が付けた機微ラベル）, classifier\_version, occurred\_at, recorded\_at |
-| DeliveryReceipt | turn\_id, status（full／partial／none）, spoken\_until, reported\_by（窓口）, reported\_at。Turn を書き換えずに、相手にどこまで届いたかを追記で記録する（[ADR 0005](decisions/0005-record-all-generated-text.md)） |
+| Session | session\_id, started\_at, ended\_at, surface（Web／Windows／配信／ゲーム／日記など）, reports\_delivery（必須の真偽値。窓口が Core 経由で登録時に宣言し、後から変更しない）。窓口の接続単位で1セッション |
+| Turn | turn\_id, session\_id, surface（出典窓口）, actor（発話・行為の主体。キャラ ID または利用者 ID）, kind（utterance：声に出す発言／observation：経験・観測／thought：口に出さない内心）, text（生成した全文を逐語で）, perceived\_by\[\]（utterance では話された範囲、observation では経験を知覚したキャラ ID のみ。thought は actor 本人のみ。発言者がキャラなら本人を常に含む。空可・重複不可・空白のみ不可）, addressees\[\]（利用者 ID・キャラ ID。重複不可・空白のみ不可）, address\_mode（必須：direct／broadcast／self。direct は宛先1件以上、broadcast／self は宛先空のみ。self も声に出すため知覚は通常の規則）, reply\_to\_turn\_id（任意・単一。登録時のみ、存在する Turn への返信）, language, register（一人称・敬語・呼称のメタ情報）, sensitivity（Core が付けた機微ラベル）, classifier\_version, occurred\_at, recorded\_at |
+| DeliveryReceipt | turn\_id, status（full／partial／none）, spoken\_until, reported\_by（窓口）, reported\_at。reports\_delivery=false の Session の Turn と kind=thought への登録は HTTP 422 で拒否する。それ以外は Turn を書き換えずに、相手にどこまで届いたかを追記で記録する（[ADR 0005](decisions/0005-record-all-generated-text.md)） |
 | ProvisionRecord（提供記録） | provision\_id, kind（resident／turn）, character\_id, session\_id, surface, 要求の内容（検索文または起点の turn\_id）, 返した派生記憶・原文区間・VerbatimAnchor・VoiceExemplar・Motivation の ID, temperament\_version, personality\_version, 各候補のスコア, 処理時間, provided\_at。Memory が何を渡したかの記録で、使われたかどうかは記録しない（[ADR 0018](decisions/0018-provision-record.md)） |
 | Episode | episode\_id, turn\_span\[\], topic, time\_range。話題による分割は窓口ごとの裏処理で LLM が行う |
 
 Core は Turn の登録時に perceived_by・addressees・address_mode・reply_to_turn_id を確定し、登録後は変更しません（E1）。聞き手が指定された発言は指定されたキャラだけ、指定がなければその場のキャラが知覚します。発言者がキャラなら本人を perceived_by に常に含めます（M3）。どのキャラも知覚しない場合だけ空配列にできます。宛先と知覚は独立しており、addressees・address_mode・reply_to_turn_id は M6 の判定に使いません。利用者宛てのささやきなら、addressees はその利用者、perceived_by は発言者本人のみです。窓口をまたぐ利用者 ID の同一人物への対応づけは Core の責務です。
 
-perceived_by は「話された範囲を知覚した者」を表します。生成全文は保存しますが、話されなかった部分を知覚できるのは発言者本人だけです。他キャラの派生記憶・内省は DeliveryReceipt の spoken_until までの text だけを根拠にします。Receipt を待つキャラ発話が未着なら他キャラの抽出を保留し、recorded_at から既定10分（設定可）を過ぎても未着なら全文が届いたとみなします。保留中・Receipt による確定・みなし確定を区別して記録し、みなし確定を配達確認と同一視しません（[ADR 0005](decisions/0005-record-all-generated-text.md)、[ADR 0022](decisions/0022-perceived-by.md)）。
+utterance の perceived_by は「話された範囲を知覚した者」を表します。生成全文は保存しますが、話されなかった部分を知覚できるのは発言者本人だけです。reports_delivery=false の Session（グループチャットなど）は Turn 登録時点で全文が届いたものとし、保留しません。この Session の Turn への Receipt は宣言と矛盾するため HTTP 422 で拒否します。reports_delivery=true のキャラ発話では、他キャラの派生記憶・内省は DeliveryReceipt の spoken_until までの text だけを根拠にします。未着なら他キャラの抽出を保留し、recorded_at から既定10分（設定可）を過ぎても未着なら全文が届いたとみなします。報告不要による即時全文確定・保留中・Receipt による確定・みなし確定を区別して記録し、みなし確定を配達確認と同一視しません。通常の利用者発話・observation は Receipt 待ちにしません（[ADR 0005](decisions/0005-record-all-generated-text.md)、[ADR 0022](decisions/0022-perceived-by.md)）。
+
+kind=thought は actor がキャラであることと perceived_by=[actor] を必須とし、発言者本人の記憶にだけ使います。Session の報告宣言にかかわらず Receipt は不要で、Receipt の登録は HTTP 422 で拒否します。内心を生成・登録するかは Core が決めます。address_mode=self は声に出す独り言であり、キャラ・利用者どちらの発言でもその場のキャラが通常の規則で知覚し、Core が perceived_by に含めます。
 
 Session.participants と Turn.audience は廃止し、Memory は在席・視聴者一覧・出入りのログを持ちません。配信サービスとグループチャットサービスが管理し、キャラにとって意味のある来訪・加入だけ窓口側が Core 経由で observation の Turn（例：「Bが入ってきた」）として登録します。キャラが反応したときやセッション終了時でよく、リアルタイム登録は不要です。
 
@@ -92,7 +94,7 @@ Session.participants と Turn.audience は廃止し、Memory は在席・視聴�
 | MemoryRelation | from, to, type（updates／extends／derives／contradicts） |
 | CharacterProfile | 常駐させる ProfileEntry の集合、トークン上限 |
 
-Relationship・Commitment・利用者ごとの Fact の相手は addressees と actor から決めます。address_mode=self の Turn は Relationship の抽出対象から外します。全体宛て（broadcast）と独り言（self）は、どちらも addressees が空でも区別します。1対1の返答は direct・宛先は利用者・知覚は本人・reply_to_turn_id は利用者の発言、グループで利用者 A に返答する場合は direct・宛先は A・知覚はその場のキャラ全員となります。
+Relationship・Commitment・利用者ごとの Fact の相手は addressees と actor から決めます。self の発言は Relationship・Commitment の抽出対象から外します。キャラ本人の self は Phase 2 の内省で Belief・Motivation の根拠として使います。self と broadcast の区別は抽出のためであり、知覚範囲を変えるためではありません。全体宛て（broadcast）と独り言（self）は、どちらも addressees が空でも区別します。1対1の返答は direct・宛先は利用者・知覚は本人・reply_to_turn_id は利用者の発言、グループで利用者 A に返答する場合は direct・宛先は A・知覚はその場のキャラ全員となります。
 
 想起の制限（何をどこで話してよいか）は、Fact／Preference のキャラ間公開範囲の方向で、記憶の内容ごとに制御します。取得場所や現在の場所では絞り込みません。
 
@@ -182,7 +184,7 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 | M3 | キャラ自身の発話も抽出・検索の対象にする | Zep |
 | M4 | 想起はセッションで現在有効な版を使い、自動の人格更新は次のセッションから適用する。常駐コンテキストとターン想起の応答ごとに ProvisionRecord を残し、何を渡したかを後から確認できるようにする | TimeChara, Zep |
 | M5 | 記憶への追加にはゲートを設け、自己生成物を無選別に追加しない | Xiong et al. 2025 |
-| M6 | キャラ別の派生記憶・内省は、そのキャラが perceived_by に含まれる Turn（発言者本人は常に含む）からだけ作る。発言者以外のキャラは、話された範囲（spoken_until まで）だけを根拠にする | [ADR 0022](decisions/0022-perceived-by.md) |
+| M6 | キャラ別の派生記憶・内省は、そのキャラが perceived_by に含まれる Turn（発言者本人は常に含む）からだけ作る。発言者以外のキャラは、Session の報告宣言と DeliveryReceipt から定まる配達範囲だけを根拠にする。thought はキャラ actor 本人だけが知覚する | [ADR 0022](decisions/0022-perceived-by.md) |
 | R1 | 内省の各主張は、根拠をたどると少なくとも1つの Turn に着地する | ExpeL, Generative Agents |
 | R2 | 内省は撤回・改訂でき、履歴を残す。新しい原文と矛盾したら contested に遷移する | ExpeL, TierMem |
 | R3 | 独立証拠の数は、根拠をたどった先の原文の葉の数で数える。同じ葉に戻る内省を複数件と数えない | Codex |
@@ -209,12 +211,12 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 
 ユーザーの話し終わりからキャラの話し始めまでの目標値を2秒、必達値を4秒とします。ターン想起の仮の予算は、目標値が p50 150ms／p95 300ms、必達値が p95 600ms です。性能試験（ST）の合否は必達値で判定し、目標値は計測して推移を記録します（[ADR 0017](decisions/0017-recall-latency-budget.md)）。
 
-1. **セッション開始時**：Core が常駐コンテキスト API を呼び、CoreIdentity、Temperament、PersonalityProfile の記述文、active な Motivation、CharacterProfile、VoiceExemplar の候補を受け取ってキャッシュする。自動の人格更新は次のセッションから適用し、その開始時に新版を取得する。
+1. **セッション開始時**：窓口が Core 経由で reports_delivery を必須指定して Session を登録する。テキスト窓口は false、配達範囲を報告する窓口は true とし、後から変えない。Core が常駐コンテキスト API を呼び、CoreIdentity、Temperament、PersonalityProfile の記述文、active な Motivation、CharacterProfile、VoiceExemplar の候補を受け取ってキャッシュする。自動の人格更新は次のセッションから適用し、その開始時に新版を取得する。
 2. **ユーザー発話**：Core が機微判定を行い、perceived_by・addressees・address_mode・任意の reply_to_turn_id を確定して Turn を登録する（原文・言語・話者・時刻・機微ラベルも保持）。宛先から知覚を推測しない。
 3. **ターン想起**：Core がターン想起 API を呼ぶ。Memory は派生記憶をキーに検索し、ヒットした原文区間を値として返す（M2）。組み立て済みのコンテキスト片と素材（記憶・原文の一覧）のどちらで返すかを指定できる。約束や記念日なら VerbatimAnchor の原文を必ず含める。返した内容を ProvisionRecord に残す（M4）。Core は目標の2秒を守るため 400ms で打ち切り、記憶なしで続ける。必達の4秒は打ち切り後の経路でも満たす。
 4. **応答生成**：Core が応答を生成する。記憶に根拠がなければ「覚えていない」と返す経路を Core のプロンプトに持たせる。
-5. **キャラ発話の登録**：Core が生成全文に機微判定を行い、本人を含む perceived_by・addressees・address_mode・任意の reply_to_turn_id とともに Turn を登録する。相手に届いた範囲を DeliveryReceipt で追記し、全文や宛先は書き換えない。Receipt 未着の間は他キャラの抽出を保留し、recorded_at から既定10分（設定可）で全文のみなし確定とする。保留とみなし確定を区別して記録する。
-6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。キャラ別の根拠は M6 と配達範囲に限り、発言者本人以外は spoken_until までの本文だけを使う。相手は addressees と actor で決め、self から Relationship を抽出しない。抽出時に新しい Turn と既存の DerivedMemory を照合し、再強化か事実の更新かを判定する。再強化の対象・更新方法は「検索と忘却」に従う。
+5. **キャラ発話の登録**：Core が生成全文に機微判定を行い、本人を含む perceived_by・addressees・address_mode・任意の reply_to_turn_id とともに Turn を登録する。reports_delivery=false なら即時全文確定とし、Receipt を拒否する。true のキャラ発話は相手に届いた範囲を DeliveryReceipt で追記し、未着中は他キャラの抽出を保留して recorded_at から既定10分（設定可）で全文のみなし確定とする。宣言による確定・保留・実 Receipt 確定・みなし確定を区別し、全文や宛先は書き換えない。Core が内心を記録する場合は kind=thought / perceived_by=[actor] とし、Receipt は付けない。
+6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。キャラ別の根拠は M6 と Session の報告宣言に応じた配達範囲に限る。thought は発言者本人の記憶にだけ使い、相手は addressees と actor で決め、self から Relationship・Commitment を抽出しない。抽出時に新しい Turn と既存の DerivedMemory を照合し、再強化か事実の更新かを判定する。再強化の対象・更新方法は「検索と忘却」に従う。
 
 ### 遅いループ：内省から人格更新まで（イベント駆動）
 
