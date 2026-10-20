@@ -31,4 +31,39 @@ AIキャラクターの一貫性と成長を支える記憶サービスです。
 
 ## セットアップ
 
-実装後に追記します。
+Python **3.12.3**、uv **0.8.22** を使います。DB を利用する場合は Docker Engine と Compose v2 も必要です。
+
+```sh
+python3 -m pip install uv==0.8.22
+uv sync --frozen
+uv run --no-sync uvicorn digital_souls_memory.api:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+`GET http://127.0.0.1:8000/health` は `{"status":"ok"}` を返します。
+DB 接続・実モデル・認証情報を必要としない liveness です。
+Phase 0 で実装するのはこの基盤までで、ドメインモデル・想起 API・LLM 接続は Phase 1 で扱います。
+
+開発 DB は次の手順で起動・初期化します。パスワードと接続 URL はローカル環境で指定し、
+リポジトリには保存しません。URL 内のパスワードは必要に応じて URL エンコードしてください。
+
+```sh
+# MEMORY_POSTGRES_PASSWORD と MEMORY_DATABASE_URL を環境へ設定する。
+# URL の形式: postgresql://memory:<URLエンコード済みパスワード>@127.0.0.1:55432/memory
+docker compose up -d --wait postgres
+uv run --no-sync alembic upgrade head
+uv run --no-sync alembic current
+# 開発 DB を停止する（volume は保持）
+docker compose down
+```
+
+PostgreSQL / pgvector イメージはタグと digest で固定しています。初期 migration は
+`vector` 拡張のみを有効にし、日本語全文検索の方式は Phase 1 で比較します。
+
+```sh
+uv run --no-sync pytest -m ut -q
+uv run --no-sync pytest -m it1 -q
+# 開発 DB と独立した、使い捨ての合成 PostgreSQL 試験
+bash tools/with-test-postgres.sh
+```
+
+lint・format・型検査・wheel 検証とブランチ運用は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。

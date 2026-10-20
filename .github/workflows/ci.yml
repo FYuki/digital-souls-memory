@@ -1,0 +1,79 @@
+name: Foundation checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'epic/**']
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version-file: .python-version
+      - name: Install locked toolchain
+        run: |
+          python -m pip install uv==0.8.22
+          uv lock --check
+          uv sync --frozen
+      - name: Lint, format and strict types
+        run: |
+          bash -n tools/with-test-postgres.sh
+          docker compose config --no-interpolate --quiet
+          uv run --no-sync ruff check src tests migrations
+          uv run --no-sync ruff format --check src tests migrations
+          uv run --no-sync mypy
+      - name: Required UT (no network)
+        run: uv run --no-sync pytest -m ut -q
+      - name: Required IT1 (no network)
+        run: uv run --no-sync pytest -m it1 -q
+      - name: Build and install locked wheel
+        run: |
+          uv build --no-build-isolation
+          uv export --frozen --no-dev --no-emit-project --format requirements-txt > "$RUNNER_TEMP/memory-runtime.txt"
+          uv venv .package-check
+          uv pip install --python .package-check/bin/python --require-hashes -r "$RUNNER_TEMP/memory-runtime.txt"
+          uv pip install --python .package-check/bin/python --no-deps dist/*.whl
+          .package-check/bin/python -I -c "from digital_souls_memory.api import create_app; assert create_app().title == 'Digital Souls Memory'"
+
+  postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.2-pg18-bookworm@sha256:42e7f6b4e1eceb02ff14e3e6bc6108bbe259abbe83879dc1845d0da1ddeb555d
+        env:
+          POSTGRES_USER: memory_synthetic
+          POSTGRES_DB: memory_synthetic
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U memory_synthetic -d memory_synthetic"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MEMORY_TEST_DATABASE_URL: postgresql://memory_synthetic@127.0.0.1:5432/memory_synthetic
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version-file: .python-version
+      - name: Install locked toolchain
+        run: |
+          python -m pip install uv==0.8.22
+          uv lock --check
+          uv sync --frozen
+      - name: Required real PostgreSQL migrations (synthetic data)
+        run: uv run --no-sync pytest -m postgres -q
