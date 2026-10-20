@@ -1,0 +1,6416 @@
+[
+  {
+    "id": "synonym-warm-drink-ja",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが好む温かい飲料は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-tea",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-plant",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-tea:1:0",
+        "session_id": "conversation-tea",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、温かい紅茶を飲むのが好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-tea:1:1",
+        "session_id": "conversation-tea",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-plant:1:0",
+        "session_id": "conversation-plant",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、窓辺の鉢でミントを育てています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-plant:1:1",
+        "session_id": "conversation-plant",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "tea-preference",
+        "kind": "Episode",
+        "content": "架空のアオは、温かい紅茶を飲むのが好きです。",
+        "source_turn_ids": [
+          "conversation-tea:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "mint-plant",
+        "kind": "Episode",
+        "content": "架空のアオは、窓辺の鉢でミントを育てています。",
+        "source_turn_ids": [
+          "conversation-plant:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-weekend-ja",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは休日にどのように体を動かしますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-cycle",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-read",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-cycle:1:0",
+        "session_id": "conversation-cycle",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、週末になると自転車で川沿いを走ります。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-cycle:1:1",
+        "session_id": "conversation-cycle",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-read:1:0",
+        "session_id": "conversation-read",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、平日の夜に短編小説を読んでいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-read:1:1",
+        "session_id": "conversation-read",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "weekend-cycle",
+        "kind": "Episode",
+        "content": "架空のアオは、週末になると自転車で川沿いを走ります。",
+        "source_turn_ids": [
+          "conversation-cycle:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "evening-read",
+        "kind": "Episode",
+        "content": "架空のアオは、平日の夜に短編小説を読んでいます。",
+        "source_turn_ids": [
+          "conversation-read:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-herb",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "Which herb does the fictional Aoi grow on the windowsill?",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-herb",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-flower",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-herb:1:0",
+        "session_id": "conversation-herb",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、窓辺の鉢でミントを育てています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-herb:1:1",
+        "session_id": "conversation-herb",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-flower:1:0",
+        "session_id": "conversation-flower",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、庭の花壇でヒマワリを育てています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-flower:1:1",
+        "session_id": "conversation-flower",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "windowsill-mint",
+        "kind": "Episode",
+        "content": "架空のアオは、窓辺の鉢でミントを育てています。",
+        "source_turn_ids": [
+          "conversation-herb:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "garden-sunflower",
+        "kind": "Episode",
+        "content": "架空のアオは、庭の花壇でヒマワリを育てています。",
+        "source_turn_ids": [
+          "conversation-flower:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-observatory",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオがこれまでに訪れた天文台の名前は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-tea-only",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-music-only",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-tea-only:1:0",
+        "session_id": "conversation-tea-only",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、朝に紅茶を飲みます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-tea-only:1:1",
+        "session_id": "conversation-tea-only",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-music-only:1:0",
+        "session_id": "conversation-music-only",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、休日にピアノの音楽を聴きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-music-only:1:1",
+        "session_id": "conversation-music-only",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "tea-only-memory",
+        "kind": "Episode",
+        "content": "架空のアオは、朝に紅茶を飲みます。",
+        "source_turn_ids": [
+          "conversation-tea-only:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "music-only-memory",
+        "kind": "Episode",
+        "content": "架空のアオは、休日にピアノの音楽を聴きます。",
+        "source_turn_ids": [
+          "conversation-music-only:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "negated-coffee-preference",
+    "category": "negation",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが苦手で飲まない飲み物は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-dislike-coffee",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-like-tea",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-dislike-coffee:1:0",
+        "session_id": "conversation-dislike-coffee",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、コーヒーが苦手なので飲みません。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-dislike-coffee:1:1",
+        "session_id": "conversation-dislike-coffee",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-like-tea:1:0",
+        "session_id": "conversation-like-tea",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、紅茶を好んで飲みます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-like-tea:1:1",
+        "session_id": "conversation-like-tea",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "coffee-dislike",
+        "kind": "Episode",
+        "content": "架空のアオは、コーヒーが苦手なので飲みません。",
+        "source_turn_ids": [
+          "conversation-dislike-coffee:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "tea-like",
+        "kind": "Episode",
+        "content": "架空のアオは、紅茶を好んで飲みます。",
+        "source_turn_ids": [
+          "conversation-like-tea:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "multisource-picnic",
+    "category": "multisource",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが公園へ持っていく食べ物と飲み物は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "picnic-thread",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "picnic-thread:1:0",
+        "session_id": "picnic-thread",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、公園へサンドイッチを持っていきます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "picnic-thread:1:1",
+        "session_id": "picnic-thread",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "picnic-thread:2:0",
+        "session_id": "picnic-thread",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、公園へ麦茶を持っていきます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "picnic-thread:2:1",
+        "session_id": "picnic-thread",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "picnic-items",
+        "kind": "Episode",
+        "content": "架空のアオは、公園へサンドイッチを持っていきます。飲み物は麦茶です。",
+        "source_turn_ids": [
+          "picnic-thread:1:0",
+          "picnic-thread:2:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "multisource-partial-revocation",
+    "category": "multisource_revocation",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが公園へ持っていく食べ物は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "partial-thread",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "partial-thread:1:0",
+        "session_id": "partial-thread",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、公園へサンドイッチを持っていきます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "partial-thread:1:1",
+        "session_id": "partial-thread",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "old-combined",
+        "kind": "Episode",
+        "content": "架空のアオは、公園へサンドイッチとりんごジュースを持っていきます。",
+        "source_turn_ids": [
+          "partial-thread:1:0",
+          "partial-thread:2:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "remaining-food-only",
+        "kind": "Episode",
+        "content": "架空のアオは、公園へサンドイッチを持っていきます。",
+        "source_turn_ids": [
+          "partial-thread:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "deleted-source",
+    "category": "deleted_source",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが公開範囲内で選んだメモ帳の色は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-deleted-source-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-deleted-source-safe",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-deleted-source-safe:1:0",
+        "session_id": "conversation-deleted-source-safe",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオの参照可能なメモ帳は青色です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-deleted-source-safe:1:1",
+        "session_id": "conversation-deleted-source-safe",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "deleted-source-hidden",
+        "kind": "Episode",
+        "content": "架空のアオの取り下げ対象のメモ帳は紫色です。",
+        "source_turn_ids": [
+          "conversation-deleted-source-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "deleted-source-visible",
+        "kind": "Episode",
+        "content": "架空のアオの参照可能なメモ帳は青色です。",
+        "source_turn_ids": [
+          "conversation-deleted-source-safe:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "deleted-memory",
+    "category": "deleted_memory",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが今使っているメモ帳の色は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-old-book",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-current-book",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-current-book:1:0",
+        "session_id": "conversation-current-book",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、今は青色のメモ帳を使っています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-current-book:1:1",
+        "session_id": "conversation-current-book",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "removed-notebook",
+        "kind": "Episode",
+        "content": "架空のアオの以前のメモ帳は紫色でした。",
+        "source_turn_ids": [
+          "conversation-old-book:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "current-notebook",
+        "kind": "Episode",
+        "content": "架空のアオは、今は青色のメモ帳を使っています。",
+        "source_turn_ids": [
+          "conversation-current-book:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "binding-character",
+    "category": "binding_character",
+    "character_id": "synthetic-aoi",
+    "query": "この範囲の架空のアオが好きな果物は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-binding-character-local",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-binding-character-foreign",
+        "participants": [
+          "user",
+          "synthetic-other-character"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-binding-character-local:1:0",
+        "session_id": "conversation-binding-character-local",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "この範囲の架空のアオは、りんごが好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-binding-character-local:1:1",
+        "session_id": "conversation-binding-character-local",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-binding-character-foreign:1:0",
+        "session_id": "conversation-binding-character-foreign",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "別の範囲の架空の人物は、ぶどうが好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-binding-character-foreign:1:1",
+        "session_id": "conversation-binding-character-foreign",
+        "actor": "synthetic-other-character",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "binding-character-own",
+        "kind": "Episode",
+        "content": "この範囲の架空のアオは、りんごが好きです。",
+        "source_turn_ids": [
+          "conversation-binding-character-local:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "binding-character-other",
+        "kind": "Episode",
+        "content": "別の範囲の架空の人物は、ぶどうが好きです。",
+        "source_turn_ids": [
+          "conversation-binding-character-foreign:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "long-text-explicit-detail",
+    "category": "long_text",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが小物入れにつけた目印の色は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-long-note",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-long-note:1:0",
+        "session_id": "conversation-long-note",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオの作業記録の第1項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第2項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第3項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第4項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第5項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第6項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第7項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第8項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第9項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第10項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第11項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第12項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第13項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第14項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第15項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第16項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第17項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第18項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオは、小物入れの目印に橙色のリボンを結びました。補足1として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足2として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足3として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足4として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足5として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足6として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足7として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足8として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足9として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足10として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足11として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足12として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-long-note:1:1",
+        "session_id": "conversation-long-note",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "long-note-memory",
+        "kind": "Episode",
+        "content": "架空のアオの作業記録の第1項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第2項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第3項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第4項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第5項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第6項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第7項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第8項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第9項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第10項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第11項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第12項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第13項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第14項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第15項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第16項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第17項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオの作業記録の第18項は、机を片付けて道具を棚に戻したという日常の整理についてです。架空のアオは、小物入れの目印に橙色のリボンを結びました。補足1として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足2として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足3として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足4として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足5として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足6として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足7として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足8として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足9として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足10として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足11として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。補足12として、作業を終えたあとはノートに日付を記入し、照明を消して部屋を出ます。",
+        "source_turn_ids": [
+          "conversation-long-note:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-02",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが使う筆記具は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは鉛筆でメモを書きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは鉛筆でメモを書きます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-03",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオの愛用する履物は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは散歩にスニーカーを履きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは散歩にスニーカーを履きます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-04",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが乗る二輪車は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは自転車で通学します。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは自転車で通学します。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-05",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが読む書籍の種類は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは歴史小説を読みます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは歴史小説を読みます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-06",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが使う雨具は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは雨の日に黄色い傘を使います。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは雨の日に黄色い傘を使います。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-07",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが朝に食べる果実は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは朝にりんごを食べます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは朝にりんごを食べます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-08",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが飼育する生き物は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは金魚を育てています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは金魚を育てています。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-09",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオの好きな楽曲のジャンルは？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオはジャズの音楽が好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオはジャズの音楽が好きです。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "synonym-10",
+    "category": "synonym",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが休息に使う場所は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは休憩を図書館で過ごします。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは休憩を図書館で過ごします。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-02",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは疲れたときに気分を切り替えるため何をしますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは疲れたら庭を散歩して気分転換します。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは疲れたら庭を散歩して気分転換します。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-03",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが寝坊を防ぐために使っている方法は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは寝坊しないよう目覚まし時計を二つ置きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは寝坊しないよう目覚まし時計を二つ置きます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-04",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは本を読む途中で中断した場所をどう覚えますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは本の読みかけのページに青いしおりを挟みます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは本の読みかけのページに青いしおりを挟みます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-05",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは友人の祝いの日にどんな贈り物を作りますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは友人の誕生日に手作りのクッキーを渡します。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは友人の誕生日に手作りのクッキーを渡します。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-06",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは忘れたくない用事をどこに書いておきますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは忘れないよう予定を壁のカレンダーに書きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは忘れないよう予定を壁のカレンダーに書きます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-07",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは外が暑い日にどうやって涼みますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは暑い日に扇風機で涼みます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは暑い日に扇風機で涼みます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-08",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは使った調理器具をいつきれいにしますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは料理を終えた直後に鍋を洗います。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは料理を終えた直後に鍋を洗います。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-09",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは雨で外に出られない日に何をして過ごしますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは雨の日には家で折り紙を折ります。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは雨の日には家で折り紙を折ります。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "paraphrase-10",
+    "category": "paraphrase",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは写真を撮るとき何を被写体に選びますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは写真の題材として夕焼けの空を選びます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは写真の題材として夕焼けの空を選びます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-02",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "What instrument does fictional Aoi practice?",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオはフルートを練習しています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオはフルートを練習しています。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-03",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "Where does fictional Aoi go jogging?",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは海岸でジョギングします。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは海岸でジョギングします。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-04",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "What soup does fictional Aoi cook?",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオはかぼちゃのスープを作ります。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオはかぼちゃのスープを作ります。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-05",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "What flower does fictional Aoi like?",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは白いユリが好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは白いユリが好きです。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-06",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "What color is fictional Aoi's backpack?",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオのリュックは赤色です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオのリュックは赤色です。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-07",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは冬に何を編みますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "Fictional Aoi knits scarves in winter.",
+        "language": "en",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "Fictional Aoi knits scarves in winter.",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-08",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは何曜日に水泳へ行きますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "Fictional Aoi goes swimming on Tuesday.",
+        "language": "en",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "Fictional Aoi goes swimming on Tuesday.",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-09",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが好む季節は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "Fictional Aoi prefers autumn.",
+        "language": "en",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "Fictional Aoi prefers autumn.",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "cross-language-10",
+    "category": "cross_language",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは何の絵を描きますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "Fictional Aoi draws mountains.",
+        "language": "en",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "Fictional Aoi draws mountains.",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-02",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオの宇宙旅行の目的地は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは陶芸を習っています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは陶芸を習っています。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-03",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオの受賞した文学賞は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは青いマグカップを使います。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは青いマグカップを使います。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-04",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオの船舶操縦資格は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは毎週花に水をやります。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは毎週花に水をやります。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-05",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが登頂した山の高さは？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオはレモンのケーキを焼きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオはレモンのケーキを焼きます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-06",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが作ったゲームのタイトルは？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは緑の手袋を持っています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは緑の手袋を持っています。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-07",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが観測した彗星の名前は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは刺繍を楽しんでいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは刺繍を楽しんでいます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-08",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが翻訳した論文の題名は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは桃のゼリーが好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは桃のゼリーが好きです。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-09",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオのロボットの型番は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは丸いクッションを使います。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは丸いクッションを使います。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "unrelated-10",
+    "category": "unrelated",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが発見した遺跡は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "relevant-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "distractor-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "relevant-source:1:0",
+        "session_id": "relevant-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは土曜日にパンを焼きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "relevant-source:1:1",
+        "session_id": "relevant-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:0",
+        "session_id": "distractor-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは食器を棚にしまいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "distractor-source:1:1",
+        "session_id": "distractor-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "target",
+        "kind": "Episode",
+        "content": "架空のアオは土曜日にパンを焼きます。",
+        "source_turn_ids": [
+          "relevant-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "distractor",
+        "kind": "Episode",
+        "content": "架空のアオは食器を棚にしまいます。",
+        "source_turn_ids": [
+          "distractor-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "updated-morning-drink",
+    "category": "update",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが今、朝に飲んでいるお茶は何ですか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "conversation-morning",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "conversation-morning-update",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "conversation-morning:1:0",
+        "session_id": "conversation-morning",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、朝に緑茶を飲んでいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-morning:1:1",
+        "session_id": "conversation-morning",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-morning-update:1:0",
+        "session_id": "conversation-morning-update",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは、今は朝にほうじ茶を飲んでいます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "conversation-morning-update:1:1",
+        "session_id": "conversation-morning-update",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "morning-drink",
+        "kind": "Episode",
+        "content": "架空のアオから朝の飲み物の申告を聞きました。",
+        "source_turn_ids": [
+          "conversation-morning:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": "2026-10-02T00:00:00Z",
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "morning-drink-fact-superseded",
+        "kind": "Fact",
+        "content": "架空のアオは、朝に緑茶を飲んでいます。",
+        "source_turn_ids": [
+          "conversation-morning:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": "2026-10-02T00:00:00Z",
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "morning-drink-fact",
+        "kind": "Fact",
+        "content": "架空のアオは、今は朝にほうじ茶を飲んでいます。",
+        "source_turn_ids": [
+          "conversation-morning-update:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "valid-fact-attachment",
+    "category": "fact_attachment",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが選んだ旅の目的地は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "episode-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "fact-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "episode-source:1:0",
+        "session_id": "episode-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオから旅の計画を聞きました。旅の計画を共有したいから、という理由も聞きました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "episode-source:1:1",
+        "session_id": "episode-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "fact-source:1:0",
+        "session_id": "fact-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオの旅の目的地は架空の星町です。旅は2026年10月10日から12日までの予定です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "fact-source:1:1",
+        "session_id": "fact-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "trip-episode",
+        "kind": "Episode",
+        "content": "架空のアオから旅の計画を聞きました。",
+        "source_turn_ids": [
+          "episode-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "destination-fact",
+        "kind": "Fact",
+        "content": "架空のアオの旅の目的地は架空の星町です。",
+        "source_turn_ids": [
+          "fact-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "stale-fact-link",
+    "category": "fact_version",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが選んだ旅の目的地は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "episode-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "fact-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "updated-fact-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "episode-source:1:0",
+        "session_id": "episode-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオから旅の計画を聞きました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "episode-source:1:1",
+        "session_id": "episode-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "fact-source:1:0",
+        "session_id": "fact-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオの旅の目的地は架空の星町です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "fact-source:1:1",
+        "session_id": "fact-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "updated-fact-source:1:0",
+        "session_id": "updated-fact-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは旅の計画を変更し、架空の月町へ行きます。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "updated-fact-source:1:1",
+        "session_id": "updated-fact-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "trip-episode",
+        "kind": "Episode",
+        "content": "架空のアオから旅の計画を聞きました。",
+        "source_turn_ids": [
+          "episode-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "destination-fact-superseded",
+        "kind": "Fact",
+        "content": "架空のアオの旅の目的地は架空の星町です。",
+        "source_turn_ids": [
+          "fact-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": "2026-10-02T00:00:00Z",
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "destination-fact",
+        "kind": "Fact",
+        "content": "架空のアオは旅の計画を変更し、架空の月町へ行きます。",
+        "source_turn_ids": [
+          "updated-fact-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "revoked-fact-source",
+    "category": "fact_revocation",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが選んだ旅の目的地は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "episode-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "fact-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "episode-source:1:0",
+        "session_id": "episode-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオから旅の計画を聞きました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "episode-source:1:1",
+        "session_id": "episode-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "trip-episode",
+        "kind": "Episode",
+        "content": "架空のアオから旅の計画を聞きました。",
+        "source_turn_ids": [
+          "episode-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "destination-fact",
+        "kind": "Fact",
+        "content": "架空のアオの旅の目的地は架空の星町です。",
+        "source_turn_ids": [
+          "fact-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "direct-semantic",
+    "category": "semantic_direct",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは読書する場所にどんな好みがありますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "quiet-source-1",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "quiet-source-2",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "direct-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "quiet-source-1:1:0",
+        "session_id": "quiet-source-1",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは静かな図書室で読書を楽しみました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "quiet-source-1:1:1",
+        "session_id": "quiet-source-1",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "quiet-source-2:1:0",
+        "session_id": "quiet-source-2",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは静かな書斎で読書を楽しみました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "quiet-source-2:1:1",
+        "session_id": "quiet-source-2",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "direct-source:1:0",
+        "session_id": "direct-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは静かな場所で読書するのが好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "direct-source:1:1",
+        "session_id": "direct-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "quiet-episode-1",
+        "kind": "Episode",
+        "content": "架空のアオは静かな図書室で読書を楽しみました。",
+        "source_turn_ids": [
+          "quiet-source-1:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "quiet-episode-2",
+        "kind": "Episode",
+        "content": "架空のアオは静かな書斎で読書を楽しみました。",
+        "source_turn_ids": [
+          "quiet-source-2:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "quiet-preference",
+        "kind": "SemanticMemory",
+        "content": "架空のアオは静かな場所で読書するのが好きです。",
+        "source_turn_ids": [
+          "direct-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "derived-semantic",
+    "category": "semantic_derived",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオは読書する場所にどんな好みがありますか？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "quiet-source-1",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "quiet-source-2",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "direct-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "quiet-source-1:1:0",
+        "session_id": "quiet-source-1",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは静かな図書室で読書を楽しみました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "quiet-source-1:1:1",
+        "session_id": "quiet-source-1",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "quiet-source-2:1:0",
+        "session_id": "quiet-source-2",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは静かな書斎で読書を楽しみました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "quiet-source-2:1:1",
+        "session_id": "quiet-source-2",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "direct-source:1:0",
+        "session_id": "direct-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは静かな場所で読書するのが好きです。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "direct-source:1:1",
+        "session_id": "direct-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "quiet-episode-1",
+        "kind": "Episode",
+        "content": "架空のアオは静かな図書室で読書を楽しみました。",
+        "source_turn_ids": [
+          "quiet-source-1:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "quiet-episode-2",
+        "kind": "Episode",
+        "content": "架空のアオは静かな書斎で読書を楽しみました。",
+        "source_turn_ids": [
+          "quiet-source-2:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "quiet-preference",
+        "kind": "SemanticMemory",
+        "content": "架空のアオは静かな場所で読書するのが好きです。",
+        "source_turn_ids": [
+          "quiet-source-1:1:0",
+          "quiet-source-2:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "equivalent-band-order",
+    "category": "equivalent_order",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが選んだお茶を教えてください。",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "tie-a-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "tie-b-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "tie-c-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "tie-d-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      },
+      {
+        "session_id": "tie-null-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "tie-a-source:1:0",
+        "session_id": "tie-a-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは春茶を選びました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-a-source:1:1",
+        "session_id": "tie-a-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-b-source:1:0",
+        "session_id": "tie-b-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは夏茶を選びました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-b-source:1:1",
+        "session_id": "tie-b-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-c-source:1:0",
+        "session_id": "tie-c-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは秋茶を選びました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-c-source:1:1",
+        "session_id": "tie-c-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-d-source:1:0",
+        "session_id": "tie-d-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは冬茶を選びました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-d-source:1:1",
+        "session_id": "tie-d-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-null-source:1:0",
+        "session_id": "tie-null-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは花茶を選びました。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "tie-null-source:1:1",
+        "session_id": "tie-null-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "tie-null",
+        "kind": "Episode",
+        "content": "架空のアオは花茶を選びました。",
+        "source_turn_ids": [
+          "tie-null-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-05T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-05T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "tie-d",
+        "kind": "Episode",
+        "content": "架空のアオは冬茶を選びました。",
+        "source_turn_ids": [
+          "tie-d-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "tie-c",
+        "kind": "Episode",
+        "content": "架空のアオは秋茶を選びました。",
+        "source_turn_ids": [
+          "tie-c-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "tie-b",
+        "kind": "Episode",
+        "content": "架空のアオは夏茶を選びました。",
+        "source_turn_ids": [
+          "tie-b-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-03T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-03T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      },
+      {
+        "id": "tie-a",
+        "kind": "Episode",
+        "content": "架空のアオは春茶を選びました。",
+        "source_turn_ids": [
+          "tie-a-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  },
+  {
+    "id": "below-threshold",
+    "category": "threshold",
+    "character_id": "synthetic-aoi",
+    "query": "架空のアオが留学した大学の名前は？",
+    "as_of": "2026-10-20T00:00:00Z",
+    "sessions": [
+      {
+        "session_id": "threshold-source",
+        "participants": [
+          "user",
+          "synthetic-aoi"
+        ]
+      }
+    ],
+    "turns": [
+      {
+        "turn_id": "threshold-source:1:0",
+        "session_id": "threshold-source",
+        "actor": "user",
+        "kind": "utterance",
+        "text": "架空のアオは銀色のスプーンを使っています。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      },
+      {
+        "turn_id": "threshold-source:1:1",
+        "session_id": "threshold-source",
+        "actor": "synthetic-aoi",
+        "kind": "utterance",
+        "text": "合成の応答です。",
+        "language": "ja",
+        "audience": [],
+        "sensitivity": "non_sensitive",
+        "classifier_version": "synthetic-manual-v1",
+        "occurred_at": "2026-10-01T12:00:00Z",
+        "recorded_at": "2026-10-01T12:00:00Z"
+      }
+    ],
+    "memories": [
+      {
+        "id": "below-threshold-record",
+        "kind": "Episode",
+        "content": "架空のアオは銀色のスプーンを使っています。",
+        "source_turn_ids": [
+          "threshold-source:1:0"
+        ],
+        "derivation": {
+          "model": "synthetic-manual",
+          "prompt_version": "memory-port-v1"
+        },
+        "valid_from": "2026-10-01T12:00:00Z",
+        "valid_to": null,
+        "last_reinforced_at": "2026-10-01T12:00:00Z",
+        "importance": 0.5,
+        "self_relevance": 0.5,
+        "trust": 0.5
+      }
+    ]
+  }
+]

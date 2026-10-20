@@ -117,6 +117,54 @@ def rank_results(
     )
 
 
+def validate_observations(
+    observations: list[dict[str, object]],
+    case: dict[str, object],
+    protocol: dict[str, object],
+    *,
+    allow_unmeasured_cosine: bool = False,
+) -> None:
+    from .models import unique
+
+    if unique(observations, "memory_id") != {m["id"] for m in eligible_memories(case)}:
+        raise ValueError("Complete eligible candidate evidence required")
+    for observation in observations:
+        score = composite_score(observation["components"], protocol["weights"])
+        if not abs(number(observation["score"]) - score) <= 1e-12:
+            raise ValueError("Candidate component score mismatch")
+        cosine = observation["cosine"]
+        if cosine is None:
+            if not allow_unmeasured_cosine:
+                raise ValueError("Measured cosine required")
+        else:
+            value = number(cosine)
+            if (
+                not -1.000001 <= value <= 1.000001
+                or abs(
+                    unit(record(observation["components"])["semantic"]) - max(0.0, min(1.0, value))
+                )
+                > 1e-12
+            ):
+                raise ValueError("Cosine and semantic component mismatch")
+        if observation["reranker_score"] is not None:
+            number(observation["reranker_score"])
+
+
+def select_observations(
+    observations: list[dict[str, object]], protocol: dict[str, object]
+) -> list[dict[str, object]]:
+    reranked = [o["reranker_score"] is not None for o in observations]
+    if any(reranked) and not all(reranked):
+        raise ValueError("Incomplete reranker evidence")
+    return sorted(
+        (o for o in observations if number(o["score"]) >= unit(protocol["threshold"])),
+        key=lambda o: (
+            -number(o["reranker_score"] if any(reranked) else o["score"]),
+            string(o["memory_id"]),
+        ),
+    )
+
+
 def bounded_results(
     hits: list[dict[str, object]], *, limit: int, budget: int
 ) -> tuple[list[dict[str, object]], dict[str, object]]:

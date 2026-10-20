@@ -5,10 +5,11 @@ from ipaddress import ip_address
 
 from psycopg.conninfo import conninfo_to_dict
 
-from ..models import record, string, validate_candidate, validate_endpoint
-from ..ports import EmbeddingFactory, SearchFactory
+from ..models import record, string, validate_candidate, validate_endpoint, validate_reranker
+from ..ports import EmbeddingFactory, RerankerFactory, SearchFactory
 from .llamacpp import LlamaCppEmbedding
 from .postgres import PostgresSearch
+from .reranker import LlamaCppReranker
 
 
 def real_factories(
@@ -30,18 +31,18 @@ def real_factories(
         alias = string(candidate["model_alias"])
         validate_endpoint(string(endpoints[alias]))
         observed = record(identities[alias])
-        if any(
-            candidate[key] != observed[key]
-            for key in (
-                "model_alias",
-                "sha256",
-                "revision",
-                "dimensions",
-                "pooling",
-                "query_prefix",
-                "passage_prefix",
-            )
-        ):
+        fields = [
+            "model_alias",
+            "sha256",
+            "revision",
+            "dimensions",
+            "pooling",
+            "query_prefix",
+            "passage_prefix",
+        ]
+        if "max_context_length" in candidate:
+            fields.extend(("quantization", "max_context_length"))
+        if any(candidate[key] != observed[key] for key in fields):
             raise ValueError("Preflight identity does not match candidate")
     endpoints = deepcopy(endpoints)
 
@@ -54,3 +55,35 @@ def real_factories(
         return PostgresSearch(candidate, admin_url=admin_url)
 
     return embedding, search
+
+
+def real_reranker_factory(
+    config: dict[str, object], candidates: list[dict[str, object]]
+) -> RerankerFactory | None:
+    enabled = ["reranker" in c for c in candidates]
+    if not any(enabled):
+        return None
+    if not all(enabled):
+        raise ValueError("Run enabled and disabled reranker comparisons separately")
+    endpoints = record(config["reranker_endpoints"])
+    identities = record(config["reranker_identities"])
+    for candidate in candidates:
+        definition = record(candidate["reranker"])
+        validate_reranker(definition)
+        alias = string(definition["model_alias"])
+        validate_endpoint(string(endpoints[alias]))
+        observed = record(identities[alias])
+        if any(
+            observed[k] != definition[k]
+            for k in ("model_alias", "revision", "sha256", "quantization", "max_context_length")
+        ):
+            raise ValueError("Reranker identity mismatch")
+    endpoints = deepcopy(endpoints)
+
+    def reranker(candidate: dict[str, object]) -> LlamaCppReranker:
+        definition = record(candidate["reranker"])
+        return LlamaCppReranker(
+            definition, endpoint=string(endpoints[string(definition["model_alias"])])
+        )
+
+    return reranker

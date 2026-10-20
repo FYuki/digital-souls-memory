@@ -1,0 +1,1991 @@
+{
+  "source_sha256": "c8f2adbf885f0a490e96c8f85cde8ea2acd80cdac54c51f369be3b91a5dc8e42",
+  "new_measurement": false,
+  "acceptance_measured": false,
+  "protocol": {
+    "comparison_version": "memory-v2",
+    "top_k": 5,
+    "token_budget": 1500,
+    "repetitions": 3,
+    "percentile_method": "linear",
+    "threshold": 0.2,
+    "weights": {
+      "semantic": 0.55,
+      "lexical": 0.25,
+      "recency": 0.05,
+      "importance": 0.05,
+      "self_relevance": 0.05,
+      "trust": 0.05
+    }
+  },
+  "selected_candidates": [
+    {
+      "id": "bge-m3-pg_bigm",
+      "model_alias": "bge-m3",
+      "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+      "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+      "dimensions": 1024,
+      "pooling": "cls",
+      "query_prefix": "",
+      "passage_prefix": "",
+      "extension": "pg_bigm",
+      "quantization": "Q8_0",
+      "parameters": {
+        "threshold": 0.75,
+        "weights": {
+          "semantic": 0.75,
+          "lexical": 0.05,
+          "recency": 0.05,
+          "importance": 0.05,
+          "self_relevance": 0.05,
+          "trust": 0.05
+        }
+      }
+    },
+    {
+      "id": "bge-m3-pgroonga",
+      "model_alias": "bge-m3",
+      "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+      "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+      "dimensions": 1024,
+      "pooling": "cls",
+      "query_prefix": "",
+      "passage_prefix": "",
+      "extension": "pgroonga",
+      "quantization": "Q8_0",
+      "parameters": {
+        "threshold": 0.75,
+        "weights": {
+          "semantic": 0.75,
+          "lexical": 0.05,
+          "recency": 0.05,
+          "importance": 0.05,
+          "self_relevance": 0.05,
+          "trust": 0.05
+        }
+      }
+    }
+  ],
+  "artifact": {
+    "reference": "eval-artifacts/2026-10-20/memory-v2-bge-m3-reference.json",
+    "sha256": "4a0274b63f9530d2b35c3b772b433dc693f533a22abf0e88769274c6c86d55a1",
+    "bytes": 98077818
+  },
+  "source_artifact": {
+    "reference": "eval-artifacts/2026-10-20/2026-10-20-retrieval-it2-bge-m3-tuning.json",
+    "sha256": "c8f2adbf885f0a490e96c8f85cde8ea2acd80cdac54c51f369be3b91a5dc8e42",
+    "bytes": 74015289
+  },
+  "runs": [
+    {
+      "candidate_id": "bge-m3-pg_bigm.p41",
+      "run_index": 1,
+      "safety_passed": true,
+      "passed": false,
+      "quality_gates": {
+        "synonym": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 2,
+            "pass_rate": 0.2,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "paraphrase": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 1,
+            "pass_rate": 0.1,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "cross_language": {
+          "recall": {
+            "case_count": 24,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "unrelated": {
+          "no_match": {
+            "case_count": 22,
+            "passed_count": 22,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "deleted_source": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "deleted_memory": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "binding_character": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "threshold": {
+          "recall": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          },
+          "no_match": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "equivalent_order": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        }
+      },
+      "categories": {
+        "synonym": {
+          "case_count": 10,
+          "passed_count": 2,
+          "recall_at_5": 0.2,
+          "precision": 0.2,
+          "no_match_correct_rate": null
+        },
+        "paraphrase": {
+          "case_count": 10,
+          "passed_count": 1,
+          "recall_at_5": 0.1,
+          "precision": 0.1,
+          "no_match_correct_rate": null
+        },
+        "cross_language": {
+          "case_count": 24,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        },
+        "unrelated": {
+          "case_count": 22,
+          "passed_count": 22,
+          "recall_at_5": null,
+          "precision": 0.0,
+          "no_match_correct_rate": 1.0
+        },
+        "deleted_source": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "deleted_memory": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "binding_character": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "threshold": {
+          "case_count": 12,
+          "passed_count": 12,
+          "recall_at_5": 1.0,
+          "precision": 0.5,
+          "no_match_correct_rate": 1.0
+        },
+        "equivalent_order": {
+          "case_count": 1,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        }
+      },
+      "score_ranges": {
+        "synonym": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.6637029016119569,
+              "max": 0.7768998336786381,
+              "p05": 0.6771760108708692,
+              "p50": 0.7106607119387031,
+              "p95": 0.767217107385308
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.646088491790058,
+              "max": 0.7372807398607246,
+              "p05": 0.646850829145393,
+              "p50": 0.6999586569175331,
+              "p95": 0.7345307259057879
+            }
+          },
+          "reranker": null
+        },
+        "paraphrase": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.657329411566876,
+              "max": 0.7773008936633788,
+              "p05": 0.6643978499431815,
+              "p50": 0.7136698255450833,
+              "p95": 0.7638000539463493
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.6123036232693787,
+              "max": 0.7177128337129217,
+              "p05": 0.6203428448153852,
+              "p50": 0.6803242858969802,
+              "p95": 0.7166629383528459
+            }
+          },
+          "reranker": null
+        },
+        "cross_language": {
+          "composite": {
+            "correct": {
+              "count": 24,
+              "min": 0.5388897090152839,
+              "max": 0.6790757183545613,
+              "p05": 0.5584600268793456,
+              "p50": 0.6213045025314436,
+              "p95": 0.6482554838885705
+            },
+            "highest_incorrect": {
+              "count": 24,
+              "min": 0.4531659867903454,
+              "max": 0.6412435902231427,
+              "p05": 0.4930487812731398,
+              "p50": 0.5700485867215159,
+              "p95": 0.6243865334641192
+            }
+          },
+          "reranker": null
+        },
+        "unrelated": {
+          "composite": {
+            "correct": null,
+            "highest_incorrect": {
+              "count": 22,
+              "min": 0.48104346548365784,
+              "max": 0.7168679381833905,
+              "p05": 0.5274356358877137,
+              "p50": 0.5908871691147497,
+              "p95": 0.7073630777092869
+            }
+          },
+          "reranker": null
+        },
+        "deleted_source": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7594163290937348,
+              "max": 0.7594163290937348,
+              "p05": 0.7594163290937348,
+              "p50": 0.7594163290937348,
+              "p95": 0.7594163290937348
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "deleted_memory": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7589863617683174,
+              "max": 0.7589863617683174,
+              "p05": 0.7589863617683174,
+              "p50": 0.7589863617683174,
+              "p95": 0.7589863617683174
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "binding_character": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7725403168586669,
+              "max": 0.7725403168586669,
+              "p05": 0.7725403168586669,
+              "p50": 0.7725403168586669,
+              "p95": 0.7725403168586669
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "threshold": {
+          "composite": {
+            "correct": {
+              "count": 6,
+              "min": 0.7608399249228441,
+              "max": 0.8345729920581884,
+              "p05": 0.761866094056756,
+              "p50": 0.7747755901091831,
+              "p95": 0.8305164604267382
+            },
+            "highest_incorrect": {
+              "count": 12,
+              "min": 0.6515324967911178,
+              "max": 0.7473460408802561,
+              "p05": 0.6561658339289347,
+              "p50": 0.7042729367693117,
+              "p95": 0.7449753756114096
+            }
+          },
+          "reranker": null
+        },
+        "equivalent_order": {
+          "composite": {
+            "correct": {
+              "count": 3,
+              "min": 0.6834649490650074,
+              "max": 0.7182982917533125,
+              "p05": 0.6853941811756934,
+              "p50": 0.7027572701718667,
+              "p95": 0.716744189595168
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        }
+      },
+      "real_model_calls": 0
+    },
+    {
+      "candidate_id": "bge-m3-pg_bigm.p41",
+      "run_index": 2,
+      "safety_passed": true,
+      "passed": false,
+      "quality_gates": {
+        "synonym": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 2,
+            "pass_rate": 0.2,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "paraphrase": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 1,
+            "pass_rate": 0.1,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "cross_language": {
+          "recall": {
+            "case_count": 24,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "unrelated": {
+          "no_match": {
+            "case_count": 22,
+            "passed_count": 22,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "deleted_source": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "deleted_memory": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "binding_character": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "threshold": {
+          "recall": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          },
+          "no_match": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "equivalent_order": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        }
+      },
+      "categories": {
+        "synonym": {
+          "case_count": 10,
+          "passed_count": 2,
+          "recall_at_5": 0.2,
+          "precision": 0.2,
+          "no_match_correct_rate": null
+        },
+        "paraphrase": {
+          "case_count": 10,
+          "passed_count": 1,
+          "recall_at_5": 0.1,
+          "precision": 0.1,
+          "no_match_correct_rate": null
+        },
+        "cross_language": {
+          "case_count": 24,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        },
+        "unrelated": {
+          "case_count": 22,
+          "passed_count": 22,
+          "recall_at_5": null,
+          "precision": 0.0,
+          "no_match_correct_rate": 1.0
+        },
+        "deleted_source": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "deleted_memory": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "binding_character": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "threshold": {
+          "case_count": 12,
+          "passed_count": 12,
+          "recall_at_5": 1.0,
+          "precision": 0.5,
+          "no_match_correct_rate": 1.0
+        },
+        "equivalent_order": {
+          "case_count": 1,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        }
+      },
+      "score_ranges": {
+        "synonym": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.6637029016119569,
+              "max": 0.7768998336786381,
+              "p05": 0.6771760108708692,
+              "p50": 0.7106607119387031,
+              "p95": 0.767217107385308
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.646088491790058,
+              "max": 0.7372807398607246,
+              "p05": 0.646850829145393,
+              "p50": 0.6999586569175331,
+              "p95": 0.7345307259057879
+            }
+          },
+          "reranker": null
+        },
+        "paraphrase": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.657329411566876,
+              "max": 0.7773008936633788,
+              "p05": 0.6643978499431815,
+              "p50": 0.7136698255450833,
+              "p95": 0.7638000539463493
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.6123036232693787,
+              "max": 0.7177128337129217,
+              "p05": 0.6203428448153852,
+              "p50": 0.6803242858969802,
+              "p95": 0.7166629383528459
+            }
+          },
+          "reranker": null
+        },
+        "cross_language": {
+          "composite": {
+            "correct": {
+              "count": 24,
+              "min": 0.5388897090152839,
+              "max": 0.6790757183545613,
+              "p05": 0.5584600268793456,
+              "p50": 0.6213045025314436,
+              "p95": 0.6482554838885705
+            },
+            "highest_incorrect": {
+              "count": 24,
+              "min": 0.4531659867903454,
+              "max": 0.6412435902231427,
+              "p05": 0.4930487812731398,
+              "p50": 0.5700485867215159,
+              "p95": 0.6243865334641192
+            }
+          },
+          "reranker": null
+        },
+        "unrelated": {
+          "composite": {
+            "correct": null,
+            "highest_incorrect": {
+              "count": 22,
+              "min": 0.48104346548365784,
+              "max": 0.7168679381833905,
+              "p05": 0.5274356358877137,
+              "p50": 0.5908871691147497,
+              "p95": 0.7073630777092869
+            }
+          },
+          "reranker": null
+        },
+        "deleted_source": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7594163290937348,
+              "max": 0.7594163290937348,
+              "p05": 0.7594163290937348,
+              "p50": 0.7594163290937348,
+              "p95": 0.7594163290937348
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "deleted_memory": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7589863617683174,
+              "max": 0.7589863617683174,
+              "p05": 0.7589863617683174,
+              "p50": 0.7589863617683174,
+              "p95": 0.7589863617683174
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "binding_character": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7725403168586669,
+              "max": 0.7725403168586669,
+              "p05": 0.7725403168586669,
+              "p50": 0.7725403168586669,
+              "p95": 0.7725403168586669
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "threshold": {
+          "composite": {
+            "correct": {
+              "count": 6,
+              "min": 0.7608399249228441,
+              "max": 0.8345729920581884,
+              "p05": 0.761866094056756,
+              "p50": 0.7747755901091831,
+              "p95": 0.8305164604267382
+            },
+            "highest_incorrect": {
+              "count": 12,
+              "min": 0.6515324967911178,
+              "max": 0.7473460408802561,
+              "p05": 0.6561658339289347,
+              "p50": 0.7042729367693117,
+              "p95": 0.7449753756114096
+            }
+          },
+          "reranker": null
+        },
+        "equivalent_order": {
+          "composite": {
+            "correct": {
+              "count": 3,
+              "min": 0.6834649490650074,
+              "max": 0.7182982917533125,
+              "p05": 0.6853941811756934,
+              "p50": 0.7027572701718667,
+              "p95": 0.716744189595168
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        }
+      },
+      "real_model_calls": 0
+    },
+    {
+      "candidate_id": "bge-m3-pg_bigm.p41",
+      "run_index": 3,
+      "safety_passed": true,
+      "passed": false,
+      "quality_gates": {
+        "synonym": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 2,
+            "pass_rate": 0.2,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "paraphrase": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 1,
+            "pass_rate": 0.1,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "cross_language": {
+          "recall": {
+            "case_count": 24,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "unrelated": {
+          "no_match": {
+            "case_count": 22,
+            "passed_count": 22,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "deleted_source": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "deleted_memory": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "binding_character": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "threshold": {
+          "recall": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          },
+          "no_match": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "equivalent_order": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        }
+      },
+      "categories": {
+        "synonym": {
+          "case_count": 10,
+          "passed_count": 2,
+          "recall_at_5": 0.2,
+          "precision": 0.2,
+          "no_match_correct_rate": null
+        },
+        "paraphrase": {
+          "case_count": 10,
+          "passed_count": 1,
+          "recall_at_5": 0.1,
+          "precision": 0.1,
+          "no_match_correct_rate": null
+        },
+        "cross_language": {
+          "case_count": 24,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        },
+        "unrelated": {
+          "case_count": 22,
+          "passed_count": 22,
+          "recall_at_5": null,
+          "precision": 0.0,
+          "no_match_correct_rate": 1.0
+        },
+        "deleted_source": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "deleted_memory": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "binding_character": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "threshold": {
+          "case_count": 12,
+          "passed_count": 12,
+          "recall_at_5": 1.0,
+          "precision": 0.5,
+          "no_match_correct_rate": 1.0
+        },
+        "equivalent_order": {
+          "case_count": 1,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        }
+      },
+      "score_ranges": {
+        "synonym": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.6637029016119569,
+              "max": 0.7768998336786381,
+              "p05": 0.6771760108708692,
+              "p50": 0.7106607119387031,
+              "p95": 0.767217107385308
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.646088491790058,
+              "max": 0.7372807398607246,
+              "p05": 0.646850829145393,
+              "p50": 0.6999586569175331,
+              "p95": 0.7345307259057879
+            }
+          },
+          "reranker": null
+        },
+        "paraphrase": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.657329411566876,
+              "max": 0.7773008936633788,
+              "p05": 0.6643978499431815,
+              "p50": 0.7136698255450833,
+              "p95": 0.7638000539463493
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.6123036232693787,
+              "max": 0.7177128337129217,
+              "p05": 0.6203428448153852,
+              "p50": 0.6803242858969802,
+              "p95": 0.7166629383528459
+            }
+          },
+          "reranker": null
+        },
+        "cross_language": {
+          "composite": {
+            "correct": {
+              "count": 24,
+              "min": 0.5388897090152839,
+              "max": 0.6790757183545613,
+              "p05": 0.5584600268793456,
+              "p50": 0.6213045025314436,
+              "p95": 0.6482554838885705
+            },
+            "highest_incorrect": {
+              "count": 24,
+              "min": 0.4531659867903454,
+              "max": 0.6412435902231427,
+              "p05": 0.4930487812731398,
+              "p50": 0.5700485867215159,
+              "p95": 0.6243865334641192
+            }
+          },
+          "reranker": null
+        },
+        "unrelated": {
+          "composite": {
+            "correct": null,
+            "highest_incorrect": {
+              "count": 22,
+              "min": 0.48104346548365784,
+              "max": 0.7168679381833905,
+              "p05": 0.5274356358877137,
+              "p50": 0.5908871691147497,
+              "p95": 0.7073630777092869
+            }
+          },
+          "reranker": null
+        },
+        "deleted_source": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7594163290937348,
+              "max": 0.7594163290937348,
+              "p05": 0.7594163290937348,
+              "p50": 0.7594163290937348,
+              "p95": 0.7594163290937348
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "deleted_memory": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7589863617683174,
+              "max": 0.7589863617683174,
+              "p05": 0.7589863617683174,
+              "p50": 0.7589863617683174,
+              "p95": 0.7589863617683174
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "binding_character": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7725403168586669,
+              "max": 0.7725403168586669,
+              "p05": 0.7725403168586669,
+              "p50": 0.7725403168586669,
+              "p95": 0.7725403168586669
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "threshold": {
+          "composite": {
+            "correct": {
+              "count": 6,
+              "min": 0.7608399249228441,
+              "max": 0.8345729920581884,
+              "p05": 0.761866094056756,
+              "p50": 0.7747755901091831,
+              "p95": 0.8305164604267382
+            },
+            "highest_incorrect": {
+              "count": 12,
+              "min": 0.6515324967911178,
+              "max": 0.7473460408802561,
+              "p05": 0.6561658339289347,
+              "p50": 0.7042729367693117,
+              "p95": 0.7449753756114096
+            }
+          },
+          "reranker": null
+        },
+        "equivalent_order": {
+          "composite": {
+            "correct": {
+              "count": 3,
+              "min": 0.6834649490650074,
+              "max": 0.7182982917533125,
+              "p05": 0.6853941811756934,
+              "p50": 0.7027572701718667,
+              "p95": 0.716744189595168
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        }
+      },
+      "real_model_calls": 0
+    },
+    {
+      "candidate_id": "bge-m3-pgroonga.p41",
+      "run_index": 1,
+      "safety_passed": true,
+      "passed": false,
+      "quality_gates": {
+        "synonym": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 2,
+            "pass_rate": 0.2,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "paraphrase": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 1,
+            "pass_rate": 0.1,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "cross_language": {
+          "recall": {
+            "case_count": 24,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "unrelated": {
+          "no_match": {
+            "case_count": 22,
+            "passed_count": 22,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "deleted_source": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "deleted_memory": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "binding_character": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "threshold": {
+          "recall": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          },
+          "no_match": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "equivalent_order": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        }
+      },
+      "categories": {
+        "synonym": {
+          "case_count": 10,
+          "passed_count": 2,
+          "recall_at_5": 0.2,
+          "precision": 0.2,
+          "no_match_correct_rate": null
+        },
+        "paraphrase": {
+          "case_count": 10,
+          "passed_count": 1,
+          "recall_at_5": 0.1,
+          "precision": 0.1,
+          "no_match_correct_rate": null
+        },
+        "cross_language": {
+          "case_count": 24,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        },
+        "unrelated": {
+          "case_count": 22,
+          "passed_count": 22,
+          "recall_at_5": null,
+          "precision": 0.0,
+          "no_match_correct_rate": 1.0
+        },
+        "deleted_source": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "deleted_memory": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "binding_character": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "threshold": {
+          "case_count": 12,
+          "passed_count": 12,
+          "recall_at_5": 1.0,
+          "precision": 0.5,
+          "no_match_correct_rate": 1.0
+        },
+        "equivalent_order": {
+          "case_count": 1,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        }
+      },
+      "score_ranges": {
+        "synonym": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.6637029016119569,
+              "max": 0.7768998336786381,
+              "p05": 0.6771760108708692,
+              "p50": 0.7106607119387031,
+              "p95": 0.767217107385308
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.646088491790058,
+              "max": 0.7372807398607246,
+              "p05": 0.646850829145393,
+              "p50": 0.6999586569175331,
+              "p95": 0.7345307259057879
+            }
+          },
+          "reranker": null
+        },
+        "paraphrase": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.657329411566876,
+              "max": 0.7773008936633788,
+              "p05": 0.6643978499431815,
+              "p50": 0.7136698255450833,
+              "p95": 0.7638000539463493
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.6123036232693787,
+              "max": 0.7177128337129217,
+              "p05": 0.6203428448153852,
+              "p50": 0.6803242858969802,
+              "p95": 0.7166629383528459
+            }
+          },
+          "reranker": null
+        },
+        "cross_language": {
+          "composite": {
+            "correct": {
+              "count": 24,
+              "min": 0.5388897090152839,
+              "max": 0.6790757183545613,
+              "p05": 0.5584600268793456,
+              "p50": 0.6213045025314436,
+              "p95": 0.6482554838885705
+            },
+            "highest_incorrect": {
+              "count": 24,
+              "min": 0.4531659867903454,
+              "max": 0.6412435902231427,
+              "p05": 0.4930487812731398,
+              "p50": 0.5700485867215159,
+              "p95": 0.6243865334641192
+            }
+          },
+          "reranker": null
+        },
+        "unrelated": {
+          "composite": {
+            "correct": null,
+            "highest_incorrect": {
+              "count": 22,
+              "min": 0.48104346548365784,
+              "max": 0.7168679381833905,
+              "p05": 0.5274356358877137,
+              "p50": 0.5908871691147497,
+              "p95": 0.7073630777092869
+            }
+          },
+          "reranker": null
+        },
+        "deleted_source": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7594163290937348,
+              "max": 0.7594163290937348,
+              "p05": 0.7594163290937348,
+              "p50": 0.7594163290937348,
+              "p95": 0.7594163290937348
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "deleted_memory": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7589863617683174,
+              "max": 0.7589863617683174,
+              "p05": 0.7589863617683174,
+              "p50": 0.7589863617683174,
+              "p95": 0.7589863617683174
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "binding_character": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7725403168586669,
+              "max": 0.7725403168586669,
+              "p05": 0.7725403168586669,
+              "p50": 0.7725403168586669,
+              "p95": 0.7725403168586669
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "threshold": {
+          "composite": {
+            "correct": {
+              "count": 6,
+              "min": 0.7608399249228441,
+              "max": 0.8345729920581884,
+              "p05": 0.761866094056756,
+              "p50": 0.7747755901091831,
+              "p95": 0.8305164604267382
+            },
+            "highest_incorrect": {
+              "count": 12,
+              "min": 0.6515324967911178,
+              "max": 0.7473460408802561,
+              "p05": 0.6561658339289347,
+              "p50": 0.7042729367693117,
+              "p95": 0.7449753756114096
+            }
+          },
+          "reranker": null
+        },
+        "equivalent_order": {
+          "composite": {
+            "correct": {
+              "count": 3,
+              "min": 0.6834649490650074,
+              "max": 0.7182982917533125,
+              "p05": 0.6853941811756934,
+              "p50": 0.7027572701718667,
+              "p95": 0.716744189595168
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        }
+      },
+      "real_model_calls": 0
+    },
+    {
+      "candidate_id": "bge-m3-pgroonga.p41",
+      "run_index": 2,
+      "safety_passed": true,
+      "passed": false,
+      "quality_gates": {
+        "synonym": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 2,
+            "pass_rate": 0.2,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "paraphrase": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 1,
+            "pass_rate": 0.1,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "cross_language": {
+          "recall": {
+            "case_count": 24,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "unrelated": {
+          "no_match": {
+            "case_count": 22,
+            "passed_count": 22,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "deleted_source": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "deleted_memory": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "binding_character": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "threshold": {
+          "recall": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          },
+          "no_match": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "equivalent_order": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        }
+      },
+      "categories": {
+        "synonym": {
+          "case_count": 10,
+          "passed_count": 2,
+          "recall_at_5": 0.2,
+          "precision": 0.2,
+          "no_match_correct_rate": null
+        },
+        "paraphrase": {
+          "case_count": 10,
+          "passed_count": 1,
+          "recall_at_5": 0.1,
+          "precision": 0.1,
+          "no_match_correct_rate": null
+        },
+        "cross_language": {
+          "case_count": 24,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        },
+        "unrelated": {
+          "case_count": 22,
+          "passed_count": 22,
+          "recall_at_5": null,
+          "precision": 0.0,
+          "no_match_correct_rate": 1.0
+        },
+        "deleted_source": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "deleted_memory": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "binding_character": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "threshold": {
+          "case_count": 12,
+          "passed_count": 12,
+          "recall_at_5": 1.0,
+          "precision": 0.5,
+          "no_match_correct_rate": 1.0
+        },
+        "equivalent_order": {
+          "case_count": 1,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        }
+      },
+      "score_ranges": {
+        "synonym": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.6637029016119569,
+              "max": 0.7768998336786381,
+              "p05": 0.6771760108708692,
+              "p50": 0.7106607119387031,
+              "p95": 0.767217107385308
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.646088491790058,
+              "max": 0.7372807398607246,
+              "p05": 0.646850829145393,
+              "p50": 0.6999586569175331,
+              "p95": 0.7345307259057879
+            }
+          },
+          "reranker": null
+        },
+        "paraphrase": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.657329411566876,
+              "max": 0.7773008936633788,
+              "p05": 0.6643978499431815,
+              "p50": 0.7136698255450833,
+              "p95": 0.7638000539463493
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.6123036232693787,
+              "max": 0.7177128337129217,
+              "p05": 0.6203428448153852,
+              "p50": 0.6803242858969802,
+              "p95": 0.7166629383528459
+            }
+          },
+          "reranker": null
+        },
+        "cross_language": {
+          "composite": {
+            "correct": {
+              "count": 24,
+              "min": 0.5388897090152839,
+              "max": 0.6790757183545613,
+              "p05": 0.5584600268793456,
+              "p50": 0.6213045025314436,
+              "p95": 0.6482554838885705
+            },
+            "highest_incorrect": {
+              "count": 24,
+              "min": 0.4531659867903454,
+              "max": 0.6412435902231427,
+              "p05": 0.4930487812731398,
+              "p50": 0.5700485867215159,
+              "p95": 0.6243865334641192
+            }
+          },
+          "reranker": null
+        },
+        "unrelated": {
+          "composite": {
+            "correct": null,
+            "highest_incorrect": {
+              "count": 22,
+              "min": 0.48104346548365784,
+              "max": 0.7168679381833905,
+              "p05": 0.5274356358877137,
+              "p50": 0.5908871691147497,
+              "p95": 0.7073630777092869
+            }
+          },
+          "reranker": null
+        },
+        "deleted_source": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7594163290937348,
+              "max": 0.7594163290937348,
+              "p05": 0.7594163290937348,
+              "p50": 0.7594163290937348,
+              "p95": 0.7594163290937348
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "deleted_memory": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7589863617683174,
+              "max": 0.7589863617683174,
+              "p05": 0.7589863617683174,
+              "p50": 0.7589863617683174,
+              "p95": 0.7589863617683174
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "binding_character": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7725403168586669,
+              "max": 0.7725403168586669,
+              "p05": 0.7725403168586669,
+              "p50": 0.7725403168586669,
+              "p95": 0.7725403168586669
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "threshold": {
+          "composite": {
+            "correct": {
+              "count": 6,
+              "min": 0.7608399249228441,
+              "max": 0.8345729920581884,
+              "p05": 0.761866094056756,
+              "p50": 0.7747755901091831,
+              "p95": 0.8305164604267382
+            },
+            "highest_incorrect": {
+              "count": 12,
+              "min": 0.6515324967911178,
+              "max": 0.7473460408802561,
+              "p05": 0.6561658339289347,
+              "p50": 0.7042729367693117,
+              "p95": 0.7449753756114096
+            }
+          },
+          "reranker": null
+        },
+        "equivalent_order": {
+          "composite": {
+            "correct": {
+              "count": 3,
+              "min": 0.6834649490650074,
+              "max": 0.7182982917533125,
+              "p05": 0.6853941811756934,
+              "p50": 0.7027572701718667,
+              "p95": 0.716744189595168
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        }
+      },
+      "real_model_calls": 0
+    },
+    {
+      "candidate_id": "bge-m3-pgroonga.p41",
+      "run_index": 3,
+      "safety_passed": true,
+      "passed": false,
+      "quality_gates": {
+        "synonym": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 2,
+            "pass_rate": 0.2,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "paraphrase": {
+          "recall": {
+            "case_count": 10,
+            "passed_count": 1,
+            "pass_rate": 0.1,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "cross_language": {
+          "recall": {
+            "case_count": 24,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        },
+        "unrelated": {
+          "no_match": {
+            "case_count": 22,
+            "passed_count": 22,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "deleted_source": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "deleted_memory": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "binding_character": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 1,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          }
+        },
+        "threshold": {
+          "recall": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.9,
+            "passed": true
+          },
+          "no_match": {
+            "case_count": 6,
+            "passed_count": 6,
+            "pass_rate": 1.0,
+            "required_rate": 0.7,
+            "passed": true
+          }
+        },
+        "equivalent_order": {
+          "recall": {
+            "case_count": 1,
+            "passed_count": 0,
+            "pass_rate": 0.0,
+            "required_rate": 0.9,
+            "passed": false
+          }
+        }
+      },
+      "categories": {
+        "synonym": {
+          "case_count": 10,
+          "passed_count": 2,
+          "recall_at_5": 0.2,
+          "precision": 0.2,
+          "no_match_correct_rate": null
+        },
+        "paraphrase": {
+          "case_count": 10,
+          "passed_count": 1,
+          "recall_at_5": 0.1,
+          "precision": 0.1,
+          "no_match_correct_rate": null
+        },
+        "cross_language": {
+          "case_count": 24,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        },
+        "unrelated": {
+          "case_count": 22,
+          "passed_count": 22,
+          "recall_at_5": null,
+          "precision": 0.0,
+          "no_match_correct_rate": 1.0
+        },
+        "deleted_source": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "deleted_memory": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "binding_character": {
+          "case_count": 1,
+          "passed_count": 1,
+          "recall_at_5": 1.0,
+          "precision": 1.0,
+          "no_match_correct_rate": null
+        },
+        "threshold": {
+          "case_count": 12,
+          "passed_count": 12,
+          "recall_at_5": 1.0,
+          "precision": 0.5,
+          "no_match_correct_rate": 1.0
+        },
+        "equivalent_order": {
+          "case_count": 1,
+          "passed_count": 0,
+          "recall_at_5": 0.0,
+          "precision": 0.0,
+          "no_match_correct_rate": null
+        }
+      },
+      "score_ranges": {
+        "synonym": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.6637029016119569,
+              "max": 0.7768998336786381,
+              "p05": 0.6771760108708692,
+              "p50": 0.7106607119387031,
+              "p95": 0.767217107385308
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.646088491790058,
+              "max": 0.7372807398607246,
+              "p05": 0.646850829145393,
+              "p50": 0.6999586569175331,
+              "p95": 0.7345307259057879
+            }
+          },
+          "reranker": null
+        },
+        "paraphrase": {
+          "composite": {
+            "correct": {
+              "count": 10,
+              "min": 0.657329411566876,
+              "max": 0.7773008936633788,
+              "p05": 0.6643978499431815,
+              "p50": 0.7136698255450833,
+              "p95": 0.7638000539463493
+            },
+            "highest_incorrect": {
+              "count": 10,
+              "min": 0.6123036232693787,
+              "max": 0.7177128337129217,
+              "p05": 0.6203428448153852,
+              "p50": 0.6803242858969802,
+              "p95": 0.7166629383528459
+            }
+          },
+          "reranker": null
+        },
+        "cross_language": {
+          "composite": {
+            "correct": {
+              "count": 24,
+              "min": 0.5388897090152839,
+              "max": 0.6790757183545613,
+              "p05": 0.5584600268793456,
+              "p50": 0.6213045025314436,
+              "p95": 0.6482554838885705
+            },
+            "highest_incorrect": {
+              "count": 24,
+              "min": 0.4531659867903454,
+              "max": 0.6412435902231427,
+              "p05": 0.4930487812731398,
+              "p50": 0.5700485867215159,
+              "p95": 0.6243865334641192
+            }
+          },
+          "reranker": null
+        },
+        "unrelated": {
+          "composite": {
+            "correct": null,
+            "highest_incorrect": {
+              "count": 22,
+              "min": 0.48104346548365784,
+              "max": 0.7168679381833905,
+              "p05": 0.5274356358877137,
+              "p50": 0.5908871691147497,
+              "p95": 0.7073630777092869
+            }
+          },
+          "reranker": null
+        },
+        "deleted_source": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7594163290937348,
+              "max": 0.7594163290937348,
+              "p05": 0.7594163290937348,
+              "p50": 0.7594163290937348,
+              "p95": 0.7594163290937348
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "deleted_memory": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7589863617683174,
+              "max": 0.7589863617683174,
+              "p05": 0.7589863617683174,
+              "p50": 0.7589863617683174,
+              "p95": 0.7589863617683174
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "binding_character": {
+          "composite": {
+            "correct": {
+              "count": 1,
+              "min": 0.7725403168586669,
+              "max": 0.7725403168586669,
+              "p05": 0.7725403168586669,
+              "p50": 0.7725403168586669,
+              "p95": 0.7725403168586669
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        },
+        "threshold": {
+          "composite": {
+            "correct": {
+              "count": 6,
+              "min": 0.7608399249228441,
+              "max": 0.8345729920581884,
+              "p05": 0.761866094056756,
+              "p50": 0.7747755901091831,
+              "p95": 0.8305164604267382
+            },
+            "highest_incorrect": {
+              "count": 12,
+              "min": 0.6515324967911178,
+              "max": 0.7473460408802561,
+              "p05": 0.6561658339289347,
+              "p50": 0.7042729367693117,
+              "p95": 0.7449753756114096
+            }
+          },
+          "reranker": null
+        },
+        "equivalent_order": {
+          "composite": {
+            "correct": {
+              "count": 3,
+              "min": 0.6834649490650074,
+              "max": 0.7182982917533125,
+              "p05": 0.6853941811756934,
+              "p50": 0.7027572701718667,
+              "p95": 0.716744189595168
+            },
+            "highest_incorrect": null
+          },
+          "reranker": null
+        }
+      },
+      "real_model_calls": 0
+    }
+  ],
+  "validated_source_runs": 270,
+  "complete_low_threshold_runs": 18
+}

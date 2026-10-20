@@ -8,6 +8,7 @@ from .models import (
     SEMANTIC_LEXICAL_PERCENTAGE,
     SEMANTIC_PERCENTAGES,
     THRESHOLD_PERCENTAGES,
+    number,
     record,
     rows,
     string,
@@ -78,6 +79,48 @@ def selected_candidates(
     runs = rows(report["runs"])
     if any(run["execution_error"] is not None for run in runs):
         raise ValueError("Incomplete tuning cannot select parameters")
+    if record(record(report["suite"]).get("protocol", {})).get("comparison_version") == "memory-v2":
+        selected = []
+        for candidate in candidates:
+            options = [f"{candidate['id']}.p{i:02d}" for i in range(len(parameter_grid()))]
+            safe = []
+            for identifier in options:
+                members = [run for run in runs if run["candidate_id"] == identifier]
+                if len(members) != 3 or {r["run_index"] for r in members} != {1, 2, 3}:
+                    raise ValueError("Three independent runs required")
+                if all(r["safety_passed"] is True for r in members):
+                    safe.append(identifier)
+            if not safe:
+                raise ValueError("No safe tuning setting")
+
+            def quality_key(identifier: str) -> tuple[float, float, float]:
+                members = [run for run in runs if run["candidate_id"] == identifier]
+                positive_rates: list[float] = []
+                negative_rates: list[float] = []
+                recalls = []
+                for run in members:
+                    groups: dict[tuple[str, bool], list[dict[str, object]]] = {}
+                    for result in rows(run["case_results"]):
+                        positive = result["recall_at_5"] is not None
+                        groups.setdefault((string(result["category"]), positive), []).append(result)
+                        if positive:
+                            recalls.append(number(result["recall_at_5"]))
+                    for (_, positive), results in groups.items():
+                        rate = sum(r["quality_passed"] is True for r in results) / len(results)
+                        (positive_rates if positive else negative_rates).append(rate)
+                return (
+                    min(positive_rates) if positive_rates else 1.0,
+                    min(negative_rates) if negative_rates else 1.0,
+                    sum(recalls) / len(recalls) if recalls else 0.0,
+                )
+
+            selected.append(
+                {
+                    **deepcopy(candidate),
+                    "parameters": deepcopy(by_id[max(safe, key=quality_key)]["parameters"]),
+                }
+            )
+        return selected
 
     def selection_key(identifier: str) -> tuple[float, ...]:
         members = [run for run in runs if run["candidate_id"] == identifier]

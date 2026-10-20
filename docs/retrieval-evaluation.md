@@ -167,3 +167,109 @@ CREATE成功後だけDBを所有し、正常・例外とも接続close後に所�
 名前衝突で既存DBを削除せず、ケース投入ごとに前ケースを消して論理IDの原文を分離します。
 両方式の検索・原文・自己発話・成分・runner/report往復・例外廃棄と製品migrationを実DBで検証します。
 合成vectorの成功は実モデル品質の証明ではありません。
+
+## memory-v2
+
+`evals/retrieval/memory-v2/` に別のprotocol・両splitのcases/gold/suiteを固定します。
+v1の固定入力・証跡・過去報告を保持し、版はsuite境界で明示的に選びます。
+query・原文・正解集合はv1と同一です。forbidden_idsの和集合を保持したまま、
+safety_forbidden_idsとquality_forbidden_idsへ重複なく分類します。
+安全分類の正解もrecall評価に含めます。
+
+| 項目 | memory-v2の条件 |
+| --- | --- |
+| 安全 | 各回100%。適格性による検索前除外、禁止ID不在、原文区間・話者・言語・出典、5件・1,500byte推定予算 |
+| 品質 | 正解の上位5件包含・必須原文の充足・品質誤取得不在。想起分類は各回90%以上、該当なし分類は各回70%以上 |
+| 空結果 | 正解欠落は品質失敗。これだけでは安全失敗にしない |
+| threshold分類 | required_idsがある側と空の側を別々にゲート・選定する |
+| 順位 | 実モデルではrequired_orderを合否に使わない。完全同点のID順は合成fixtureで確認 |
+| 選定 | 全3回で安全違反0の設定だけから、分類・回ごとの最低想起合格率→最低該当なし合格率→全正解ありケースの平均recall。完全同率なら固定グリッドの先頭 |
+| 不適格 | 安全違反0の設定がなければ選定を拒否し、acceptanceへ進めない |
+| 重み・閾値 | v1と同じ45設定。6項・係数合計1・新しさ係数0.1以下 |
+| 観測 | Search.observeは閾値前の全適格候補を返す。上位5件・閾値後への限定は禁止 |
+
+各caseのcandidate_observationsはmemory_id、raw cosine、6成分、合成score、
+reranker_scoreを保持します。負のcosineとclamp後semanticを区別します。
+score_rangesは分類・runごとに正解の全標本と各caseの非正解最高値を集計し、
+count・min・p05・p50・p95・maxを線形補間で出します。rerankerは同じ形で別に集計します。
+正解なし・非正解なし・未測定のrerankerはnullで、0で補いません。厳密値は品質の合否条件にしません。
+公開証跡は候補の完全性・加重和・cosine整合・返却との接続・分位点を再検証します。
+
+任意のrerankerへは適格候補の本文とqueryだけを渡します。全候補のrerank後に
+6項合成scoreの閾値と返却予算を適用します。rerankerを第7成分にはしません。
+無効時はscore降順・完全同点ID順を保持します。不正応答・通信失敗時は停止し、
+無効経路へfallbackしません。有効・無効の比較は別の候補ファイルで実行してください。
+rerank_ms、result_selection_msとstage_latencyの各段p50/p95を記録し、
+recall_msにはrerankと返却片構築を含めます。全体の300/600ms比較は各runで維持します。
+
+### 追加候補の確定とIT2
+
+この変更でIT2・STは実行しません。次の手順は親側の実行担当向けです。
+`candidate-templates.json` のQwen3-Embedding-0.6B・ruri-v3-310mのnullは未確定です。
+実行候補として利用する前に、実GGUFのrevision・SHA-256・次元・pooling・量子化、
+接頭辞（空文字も明示）・max_context_lengthを確定し、選んだ候補だけを
+`candidate-model.json` へ保存してください。未確定値は通信前に拒否します。
+real-configのmodel_identitiesにも同じ確定値を記録します。
+追加モデルの量子化・文脈長も送信前照合の対象です。
+
+rerankerを有効化する場合は各候補のrerankerにmodel_alias・revision・sha256・
+quantization・max_context_lengthを確定して記載し、real-configへ
+reranker_endpointsとreranker_identitiesをalias別に追加します。
+HTTPアダプタが対象にする形式はPOST /rerank、
+model/query/documents（文字列配列）/top_nを送信し、
+results内のindex/relevance_scoreを受け取る形式です。proxy・redirectは無効です。
+指定llama.cpp buildとの実機互換性は未確認です。親は本測定前にこの形式とidentityを照合し、
+対応しないbuildでは実行せず、形式を確認してアダプタを更新してください。
+fake HTTP試験を実機互換性の証明にしません。
+
+候補ファイルを確定してからhashを保存し、suiteとtuning reportのbyte hashを固定します。
+以下のARTIFACT_ROOTはリポジトリ外のディレクトリを指定します。
+既存のmanifest・GPU余裕・稼働identity・image/build・DB拡張の事前確認も必要です。
+
+```sh
+sha256sum candidate-model.json
+sha256sum evals/retrieval/memory-v2/tuning/suite.json
+sha256sum evals/retrieval/memory-v2/acceptance/suite.json
+uv run --no-sync memory-evaluate-retrieval \
+  --suite evals/retrieval/memory-v2/tuning/suite.json --suite-sha256 "$TUNING_SHA256" \
+  --candidates candidate-model.json --manifest manifest.json --real-config local-config.json \
+  --tune --mode real --output "$ARTIFACT_ROOT/eval-artifacts/2026-10-20/v2-tuning.json" \
+  --summary-output v2-tuning-summary.json \
+  --artifact-reference eval-artifacts/2026-10-20/v2-tuning.json
+sha256sum "$ARTIFACT_ROOT/eval-artifacts/2026-10-20/v2-tuning.json"
+uv run --no-sync memory-evaluate-retrieval \
+  --suite evals/retrieval/memory-v2/acceptance/suite.json --suite-sha256 "$ACCEPTANCE_SHA256" \
+  --tuning-suite evals/retrieval/memory-v2/tuning/suite.json --tuning-sha256 "$TUNING_SHA256" \
+  --tuning-report "$ARTIFACT_ROOT/eval-artifacts/2026-10-20/v2-tuning.json" \
+  --tuning-report-sha256 "$TUNING_REPORT_SHA256" \
+  --candidates candidate-model.json --manifest manifest.json --real-config local-config.json \
+  --mode real --output "$ARTIFACT_ROOT/eval-artifacts/2026-10-20/v2-acceptance.json" \
+  --summary-output v2-acceptance-summary.json \
+  --artifact-reference eval-artifacts/2026-10-20/v2-acceptance.json
+```
+
+出力先の親ディレクトリは事前に作り、出力は新規ファイルにしてください。
+終了0=実行・検証成功（fixtureは実品質null）、1=実品質FAIL、2=入力・実行エラーです。
+リポジトリにはsummaryだけを置き、詳細JSONを相対参照・SHA-256・byte数で対応付けます。
+検証時は詳細JSONのbyte hashを照合してからvalidate_public_reportへ固定suite・候補を渡します。
+詳細の公開射影に原文・query・vector・接続情報・例外本文を含めません。
+
+### 保存済みv1 tuningの参考再採点
+
+元JSONのhashとgzip一致、v1規則の公開検証を確認し、閾値0.20の全適格候補が
+各ケースで完全にある場合だけ再採点します。元ファイルは書き換えません。
+SOURCE_CANDIDATESは元公開報告のcandidates配列をそのまま保存した90設定のファイルです。
+以下の各hashは実ファイルから照合してください。
+
+```sh
+uv run --no-sync python -m digital_souls_memory.evaluation.rescore \
+  --source "$SOURCE_TUNING" --source-sha256 "$SOURCE_SHA256" \
+  --source-suite evals/retrieval/tuning/suite.json --source-suite-sha256 "$V1_SUITE_SHA256" \
+  --target-suite evals/retrieval/memory-v2/tuning/suite.json --target-suite-sha256 "$V2_SUITE_SHA256" \
+  --candidates "$SOURCE_CANDIDATES" \
+  --output "$ARTIFACT_ROOT/eval-artifacts/2026-10-20/memory-v2-bge-m3-reference.json"
+```
+
+新しい実測ではなく、raw cosine・reranker・遅延は再測定しません。
+保存されていない値を補完せず、acceptanceへの効果は新たなIT2で確認します。
+[参考再採点報告](reports/2026-10-20-memory-v2-reference.md)を参照してください。

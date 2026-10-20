@@ -9,6 +9,7 @@ from time import perf_counter, process_time
 from .comparison import resolved_protocol
 from .models import (
     integer,
+    number,
     record,
     rows,
     string,
@@ -22,13 +23,21 @@ from .ports import (
     Embedding,
     EmbeddingFactory,
     MeasuredEmbedding,
+    MeasuredReranker,
     MeasuredSearch,
+    ObservedSearch,
+    RerankerFactory,
     ResourceFactory,
     ResourceObserver,
     SearchFactory,
 )
-from .retrieval import bounded_results, eligible_memories
-from .scoring import aggregate_run, percentile, score_case
+from .retrieval import (
+    bounded_results,
+    eligible_memories,
+    select_observations,
+    validate_observations,
+)
+from .scoring import aggregate_run, percentile, score_case, stage_latency
 
 
 def run_evaluation(
@@ -39,16 +48,25 @@ def run_evaluation(
     embedding_factory: EmbeddingFactory,
     search_factory: SearchFactory,
     resource_factory: ResourceFactory | None = None,
+    reranker_factory: RerankerFactory | None = None,
 ) -> dict[str, object]:
     validate_suite(suite, tuning_case_ids=set())
     if mode not in ("fixture", "real") or not candidates:
         raise ValueError("Explicit mode and candidates required")
     unique(candidates, "id")
     for candidate in candidates:
-        validate_candidate(candidate)
+        validate_candidate(
+            candidate,
+            require_context=record(suite["protocol"]).get("comparison_version") == "memory-v2",
+        )
         resolved_protocol(record(suite["protocol"]), candidate)
     snapshot = deepcopy(suite)
     protocol = record(snapshot["protocol"])
+    v2 = protocol.get("comparison_version") == "memory-v2"
+    if reranker_factory is not None and not v2:
+        raise ValueError("Reranker requires memory-v2")
+    if any("reranker" in c for c in candidates) and reranker_factory is None:
+        raise ValueError("Configured reranker requires an explicit port")
     gold = {string(item["case_id"]): item for item in rows(snapshot["gold"])}
     runs: list[dict[str, object]] = []
     for candidate in candidates:
@@ -63,8 +81,11 @@ def run_evaluation(
                 "quality_passed": None,
                 "case_results": results,
             }
+            if v2:
+                run["reranker_enabled"] = reranker_factory is not None
             embedding: Embedding | None = None
             observer: ResourceObserver | None = None
+            reranker = None
             cpu_started = process_time()
             try:
                 with ExitStack() as resources:
@@ -72,9 +93,20 @@ def run_evaluation(
                         observer = resources.enter_context(resource_factory(deepcopy(candidate)))
                     embedding = resources.enter_context(embedding_factory(deepcopy(candidate)))
                     search = resources.enter_context(search_factory(deepcopy(candidate)))
+                    reranker = (
+                        resources.enter_context(reranker_factory(deepcopy(candidate)))
+                        if reranker_factory is not None
+                        else None
+                    )
+                    if v2 and not isinstance(search, ObservedSearch):
+                        raise ValueError("All-candidate observation port required")
                     dimensions = integer(candidate["dimensions"])
                     for case in rows(snapshot["cases"]):
                         memories = eligible_memories(case)
+                        if v2 and set(strings(gold[string(case["id"])]["safety_forbidden_ids"])) & {
+                            m["id"] for m in memories
+                        }:
+                            raise ValueError("Safety-forbidden candidate passed eligibility")
                         source_ids = {
                             identifier
                             for memory in memories
@@ -110,21 +142,70 @@ def run_evaluation(
                         )[0]
                         embedding_ms = (perf_counter() - started) * 1000
                         started = perf_counter()
-                        hits = search.search(query_vector, limit=integer(protocol["top_k"]))
+                        observations: list[dict[str, object]] = []
+                        rerank_ms = 0.0
+                        if v2:
+                            assert isinstance(search, ObservedSearch)
+                            observations = search.observe(query_vector)
+                            validate_observations(observations, case, resolved)
+                            if any(o["reranker_score"] is not None for o in observations):
+                                raise ValueError("Search observations must precede reranking")
+                            search_finished = perf_counter()
+                            rerank_started = search_finished
+                            if reranker is not None and observations:
+                                scores = reranker.rerank(
+                                    string(case["query"]),
+                                    tuple(
+                                        {"memory_id": m["id"], "content": m["content"]}
+                                        for m in memories
+                                    ),
+                                )
+                                if unique(scores, "memory_id") != {
+                                    o["memory_id"] for o in observations
+                                }:
+                                    raise ValueError("Reranker response IDs mismatch")
+                                by_id = {string(s["memory_id"]): number(s["score"]) for s in scores}
+                                observations = [
+                                    {**o, "reranker_score": by_id[string(o["memory_id"])]}
+                                    for o in observations
+                                ]
+                            rerank_ms = (perf_counter() - rerank_started) * 1000
+                            selection_started = perf_counter()
+                            hits = select_observations(observations, resolved)
+                        else:
+                            hits = search.search(query_vector, limit=integer(protocol["top_k"]))
                         selected, budget = bounded_results(
                             hits,
                             limit=integer(resolved["top_k"]),
                             budget=integer(resolved["token_budget"]),
                         )
                         finished = perf_counter()
-                        search_ms = (finished - started) * 1000
+                        search_ms = ((search_finished if v2 else finished) - started) * 1000
                         started = perf_counter()
                         result = score_case(
                             case,
                             gold[string(case["id"])],
                             selected,
                             threshold=resolved["threshold"],
+                            protocol=resolved,
                         )
+                        if v2:
+                            result["candidate_observations"] = [
+                                {
+                                    key: deepcopy(o[key])
+                                    for key in (
+                                        "memory_id",
+                                        "cosine",
+                                        "components",
+                                        "score",
+                                        "reranker_score",
+                                    )
+                                }
+                                for o in observations
+                            ]
+                            result["eligible_ids"] = sorted(string(m["id"]) for m in memories)
+                            result["rerank_ms"] = rerank_ms
+                            result["result_selection_ms"] = (finished - selection_started) * 1000
                         result["scoring_ms"] = (perf_counter() - started) * 1000
                         result["passage_embedding_ms"] = passage_embedding_ms
                         result["index_ms"] = index_ms
@@ -140,7 +221,11 @@ def run_evaluation(
                         if not isinstance(embedding, MeasuredEmbedding):
                             raise ValueError("Real call evidence required")
                         integer(embedding.real_model_calls)
-                run.update(aggregate_run(results))
+                        if reranker is not None and not isinstance(reranker, MeasuredReranker):
+                            raise ValueError("Real reranker call evidence required")
+                run.update(aggregate_run(results, protocol=resolved))
+                if v2:
+                    run["stage_latency"] = stage_latency(results)
                 samples = [float(str(result["recall_ms"])) for result in results]
                 p95 = percentile(samples, 0.95, method="linear")
                 run["latency"] = {
@@ -159,6 +244,12 @@ def run_evaluation(
                 run["harness_process_peak_rss_kib"] = getrusage(RUSAGE_SELF).ru_maxrss
                 if mode == "real" and isinstance(embedding, MeasuredEmbedding):
                     run["real_model_calls"] = embedding.real_model_calls
+                if v2:
+                    run["real_reranker_calls"] = (
+                        reranker.real_model_calls
+                        if mode == "real" and isinstance(reranker, MeasuredReranker)
+                        else 0
+                    )
                 if observer is not None and observer.observation:
                     run["resources"] = deepcopy(observer.observation)
             runs.append(run)

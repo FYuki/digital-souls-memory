@@ -78,7 +78,7 @@ SEMANTIC_LEXICAL_PERCENTAGE = 80
 COMPARISON_ATTRIBUTE_WEIGHT = 0.05
 
 
-def validate_candidate(candidate: dict[str, object]) -> None:
+def validate_candidate(candidate: dict[str, object], *, require_context: bool = False) -> None:
     for field in ("id", "model_alias", "revision", "pooling"):
         string(candidate[field])
     if not re.fullmatch(r"[a-f0-9]{64}", string(candidate["sha256"])):
@@ -89,6 +89,9 @@ def validate_candidate(candidate: dict[str, object]) -> None:
             raise ValueError("Explicit prefix required")
     if candidate["extension"] not in ("pg_bigm", "pgroonga"):
         raise ValueError("Unknown full text extension")
+    if require_context or "max_context_length" in candidate:
+        string(candidate["quantization"])
+        integer(candidate["max_context_length"])
     if candidate["model_alias"] == "bge-m3":
         required: dict[str, object] = {
             "dimensions": 1024,
@@ -113,6 +116,16 @@ def validate_candidate(candidate: dict[str, object]) -> None:
         }
         if any(candidate.get(field) != value for field, value in required_e5.items()):
             raise ValueError("e5 baseline mismatch")
+    if "reranker" in candidate:
+        validate_reranker(record(candidate["reranker"]))
+
+
+def validate_reranker(candidate: dict[str, object]) -> None:
+    for key in ("model_alias", "revision", "quantization"):
+        string(candidate[key])
+    if not re.fullmatch(r"[a-f0-9]{64}", string(candidate["sha256"])):
+        raise ValueError("Reranker SHA-256 required")
+    integer(candidate["max_context_length"])
 
 
 def validated_weights(value: object) -> dict[str, float]:
@@ -135,7 +148,7 @@ def validate_protocol(protocol: dict[str, object]) -> None:
     if "comparison_version" in protocol:
         weights = validated_weights(protocol["weights"])
         if (
-            protocol["comparison_version"] != COMPARISON_VERSION
+            protocol["comparison_version"] not in (COMPARISON_VERSION, "memory-v2")
             or protocol["top_k"] != 5
             or protocol["token_budget"] != 1500
             or protocol["threshold"] not in [i / 100 for i in THRESHOLD_PERCENTAGES]
@@ -207,6 +220,11 @@ def validate_suite(suite: dict[str, object], *, tuning_case_ids: set[str]) -> No
         required, forbidden = strings(expected["required_ids"]), strings(expected["forbidden_ids"])
         if not (set(required) | set(forbidden)) <= known or set(required) & set(forbidden):
             raise ValueError("Invalid gold identifiers")
+        if record(suite["protocol"]).get("comparison_version") == "memory-v2":
+            safety = set(strings(expected["safety_forbidden_ids"]))
+            quality = set(strings(expected["quality_forbidden_ids"]))
+            if safety & quality or safety | quality != set(forbidden):
+                raise ValueError("Explicit disjoint forbidden classification required")
         if "required_order" in expected and set(strings(expected["required_order"])) != set(
             required
         ):
