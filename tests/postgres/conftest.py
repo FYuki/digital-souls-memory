@@ -22,6 +22,8 @@ def database_url(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
     finally:
         # Application tests may select a temporary nonowner role; migrations use the owner.
         monkeypatch.setenv("MEMORY_DATABASE_URL", url)
+        # Remove derived references before truncating the append-only evidence tables.
+        command.downgrade(config, "0005")
         with psycopg.connect(url, autocommit=True, connect_timeout=5) as connection:
             if connection.execute("SELECT to_regclass('public.turns')").fetchone() != (None,):
                 connection.execute(

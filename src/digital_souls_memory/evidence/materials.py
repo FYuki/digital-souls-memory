@@ -1,11 +1,55 @@
 """Resolve perception and current delivery range without changing the evidence ledger."""
 
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from digital_souls_memory.evidence.domain import DeliveryReceipt, Session, Turn, can_perceive
 from digital_souls_memory.evidence.ports import CharacterRegistry, EvidenceStore
 from digital_souls_memory.evidence.use_cases import Clock
+
+
+@dataclass(frozen=True)
+class MaterialDecision:
+    text: str | None
+    basis: str
+    receipt_version: int
+    deadline: datetime
+
+
+def material_decision(
+    *,
+    character_id: str,
+    session: Session,
+    turn: Turn,
+    actor_is_character: bool,
+    receipts: Iterable[DeliveryReceipt],
+    now: datetime,
+    delivery_timeout: timedelta,
+) -> MaterialDecision:
+    deadline = turn.recorded_at + delivery_timeout
+    if not can_perceive(character_id, session, turn):
+        return MaterialDecision(None, "inaccessible", 0, deadline)
+    if (
+        not session.reports_delivery
+        or not actor_is_character
+        or turn.kind != "utterance"
+        or character_id == turn.actor
+    ):
+        basis = "declared_full" if not session.reports_delivery else "original"
+        return MaterialDecision(turn.text, basis, 0, deadline)
+    latest = None
+    version = 0
+    for receipt in receipts:
+        latest = receipt
+        version += 1
+    if latest is not None:
+        return MaterialDecision(
+            turn.text[: latest.spoken_until], "receipt_confirmed", version, deadline
+        )
+    if now >= deadline:
+        return MaterialDecision(turn.text, "assumed_full", 0, deadline)
+    return MaterialDecision(None, "pending", 0, deadline)
 
 
 def available_text(
@@ -18,23 +62,15 @@ def available_text(
     now: datetime,
     delivery_timeout: timedelta,
 ) -> str | None:
-    if not can_perceive(character_id, session, turn):
-        return None
-    if (
-        not session.reports_delivery
-        or not actor_is_character
-        or turn.kind != "utterance"
-        or character_id == turn.actor
-    ):
-        return turn.text
-    latest = None
-    for receipt in receipts:
-        latest = receipt
-    if latest is not None:
-        return turn.text[: latest.spoken_until]
-    if now >= turn.recorded_at + delivery_timeout:
-        return turn.text
-    return None
+    return material_decision(
+        character_id=character_id,
+        session=session,
+        turn=turn,
+        actor_is_character=actor_is_character,
+        receipts=receipts,
+        now=now,
+        delivery_timeout=delivery_timeout,
+    ).text
 
 
 class EvidenceMaterials:
@@ -51,6 +87,10 @@ class EvidenceMaterials:
         self.delivery_timeout = delivery_timeout
 
     def get_text(self, character_id: str, turn_id: str) -> str | None:
+        decision = self.get_decision(character_id, turn_id)
+        return decision.text if decision is not None else None
+
+    def get_decision(self, character_id: str, turn_id: str) -> MaterialDecision | None:
         turn = self.store.get_turn(turn_id)
         if turn is None:
             return None
@@ -58,7 +98,7 @@ class EvidenceMaterials:
         if session is None or not can_perceive(character_id, session, turn):
             return None
         with self.store.list_receipts(turn_id) as receipts:
-            return available_text(
+            return material_decision(
                 character_id=character_id,
                 session=session,
                 turn=turn,

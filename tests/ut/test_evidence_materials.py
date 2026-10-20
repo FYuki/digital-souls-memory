@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 
 from digital_souls_memory.evidence.domain import DeliveryReceipt
-from digital_souls_memory.evidence.materials import available_text
+from digital_souls_memory.evidence.materials import available_text, material_decision
 from tests.evidence_support import RECORDED, TEXT, receipt, session, turn
 
 pytestmark = pytest.mark.ut
@@ -130,3 +130,48 @@ def test_thought_is_available_only_to_its_actor() -> None:
         )
         == TEXT
     )
+
+
+@pytest.mark.parametrize(
+    "declared,elapsed,receipts,basis",
+    [
+        (False, 0, (), "declared_full"),
+        (True, 599, (), "pending"),
+        (True, 600, (), "assumed_full"),
+        (True, 0, (receipt("partial", 9),), "receipt_confirmed"),
+    ],
+)
+def test_delivery_decision_retains_basis_deadline_and_receipt_version(
+    declared: bool,
+    elapsed: int,
+    receipts: tuple[DeliveryReceipt, ...],
+    basis: str,
+) -> None:
+    value = material_decision(
+        character_id="char-b",
+        session=session(reports_delivery=declared),
+        turn=turn(),
+        actor_is_character=True,
+        receipts=receipts,
+        now=RECORDED + timedelta(seconds=elapsed),
+        delivery_timeout=timedelta(minutes=10),
+    )
+    assert value.basis == basis
+    assert value.deadline == RECORDED + timedelta(minutes=10)
+    assert value.receipt_version == len(receipts)
+
+
+@pytest.mark.parametrize("delivery", [False, True])
+def test_speaker_full_text_is_never_recorded_as_receipt_confirmation(delivery: bool) -> None:
+    value = material_decision(
+        character_id="char-c",
+        session=session(reports_delivery=delivery),
+        turn=turn(),
+        actor_is_character=True,
+        receipts=(receipt("none", 0),),
+        now=RECORDED,
+        delivery_timeout=timedelta(minutes=10),
+    )
+    assert value.text == TEXT
+    assert value.basis == ("original" if delivery else "declared_full")
+    assert value.receipt_version == 0
