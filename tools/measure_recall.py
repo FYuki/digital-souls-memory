@@ -49,19 +49,43 @@ def main() -> None:
     index = PostgresRetrievalStore(url)
     connection_factory = index._connection
     plans = []
+    explained = set()
+    capturing = False
 
     class PlanCursor(psycopg.Cursor):
         def execute(self, query, params=None, **kwargs):
-            if isinstance(query, str) and query.startswith("WITH eligible") and not plans:
+            if (
+                capturing
+                and isinstance(query, str)
+                and query.lstrip().upper().startswith(("SELECT", "WITH"))
+                and "recall_documents" in query
+                and (query, str(params)) not in explained
+            ):
                 with self.connection.cursor(row_factory=dict_row) as cursor:
                     cursor.execute("EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + query, params)
                     plans.append(cursor.fetchone()["QUERY PLAN"])
+                    explained.add((query, str(params)))
+            return super().execute(query, params, **kwargs)
+
+    class PlanServerCursor(psycopg.ServerCursor):
+        def execute(self, query, params=None, **kwargs):
+            if capturing and (query, str(params)) not in explained:
+                assert self.scrollable is False and not self.withhold
+                statement = psycopg.sql.SQL(
+                    "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) DECLARE {} "
+                    "NO SCROLL CURSOR WITHOUT HOLD FOR "
+                ).format(psycopg.sql.Identifier(self.name)) + psycopg.sql.SQL(query)
+                with psycopg.Cursor(self.connection, row_factory=dict_row) as cursor:
+                    cursor.execute(statement, params)
+                    plans.append(cursor.fetchone()["QUERY PLAN"])
+                    explained.add((query, str(params)))
             return super().execute(query, params, **kwargs)
 
     @contextmanager
     def measured_connection():
         with connection_factory() as connection:
             connection.cursor_factory = PlanCursor
+            connection.server_cursor_factory = PlanServerCursor
             yield connection
 
     index._connection = measured_connection
@@ -93,9 +117,11 @@ def main() -> None:
             )
         ) as client:
             plans.clear()
+            explained.clear()
             durations = []
             body = {}
             for iteration in range(25):
+                capturing = iteration == 0
                 started = perf_counter()
                 response = client.post("/characters/char-b/recall", json=request())
                 elapsed = (perf_counter() - started) * 1000
@@ -104,6 +130,7 @@ def main() -> None:
                 assert body["memories"]
                 if iteration >= 5:
                     durations.append(elapsed)
+            assert len(plans) >= 2, "Product candidate plans were not captured"
             durations.sort()
             plan_path = Path(f"/tmp/recall-sql-plan-{count}.json")
             plan_path.write_text(json.dumps(plans, ensure_ascii=False, indent=2))
