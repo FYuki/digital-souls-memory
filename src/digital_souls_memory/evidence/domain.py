@@ -61,6 +61,20 @@ class Session:
 
 
 @dataclass(frozen=True, kw_only=True)
+class SessionEnding:
+    session_id: str
+    ended_at: datetime
+    reported_by: str
+    reported_at: datetime
+
+    def __post_init__(self) -> None:
+        _nonblank(self.session_id)
+        _nonblank(self.reported_by)
+        _aware(self.ended_at)
+        _aware(self.reported_at)
+
+
+@dataclass(frozen=True, kw_only=True)
 class Turn:
     turn_id: str
     session_id: str

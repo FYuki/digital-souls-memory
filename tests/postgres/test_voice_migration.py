@@ -7,8 +7,9 @@ from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
 
+from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.api import create_app
-from tests.evidence_support import RECORDED, session_payload, turn_payload
+from tests.evidence_support import RECORDED, session_payload, turn
 from tests.it1.voice_fakes import VoiceGateway, VoiceReviewer
 
 pytestmark = pytest.mark.postgres
@@ -48,15 +49,10 @@ def test_voice_revision_upgrade_repeat_downgrade_and_reapply_preserve_existing_d
                         },
                     ).is_success
                     assert client.post("/sessions", json=session_payload()).is_success
-                    assert client.post(
-                        "/turns",
-                        json=turn_payload()
-                        | {
-                            "actor": "char-a",
-                            "perceived_by": ["char-a"],
-                            "kind": "thought",
-                        },
-                    ).is_success
+                    # The current Session reader composes 0008 endings; this fixture targets 0004.
+                    PostgresEvidenceStore(url).add_turn(
+                        turn(actor="char-a", perceived_by=("char-a",), kind="thought")
+                    )
                 before = {
                     table: conn.execute(f"SELECT * FROM {table}").fetchall()
                     for table in ("sessions", "turns", "core_identities")

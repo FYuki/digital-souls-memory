@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Protocol
 
+from digital_souls_memory.evidence.domain import Turn
 from digital_souls_memory.memory.domain import (
     DerivedMemory,
     ExtractionProposal,
@@ -24,6 +25,7 @@ class LocalTurn:
     address_mode: str
     reply_to_turn_id: str | None
     occurred_at: datetime
+    language: str
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -45,6 +47,35 @@ class CloudInput:
     def __post_init__(self) -> None:
         if not self.turns or any(type(value) is not PublicTurn for value in self.turns):
             raise MemoryValidationError("Cloud input requires public materials")
+
+
+def make_gateway_input(
+    *,
+    character_id: str,
+    materials: tuple[tuple[Turn, str], ...],
+    non_sensitive_labels: frozenset[str],
+) -> LocalOnly | CloudInput:
+    public = bool(materials) and all(t.sensitivity in non_sensitive_labels for t, _ in materials)
+    cls = PublicTurn if public else LocalTurn
+    turns = tuple(
+        cls(
+            turn_id=t.turn_id,
+            text=text,
+            actor=t.actor,
+            kind=t.kind,
+            addressees=t.addressees,
+            address_mode=t.address_mode,
+            reply_to_turn_id=t.reply_to_turn_id,
+            occurred_at=t.occurred_at,
+            language=t.language,
+        )
+        for t, text in materials
+    )
+    if public:
+        return CloudInput(
+            character_id=character_id, turns=tuple(t for t in turns if isinstance(t, PublicTurn))
+        )
+    return LocalOnly(character_id=character_id, turns=turns)
 
 
 class ExtractionGateway(Protocol):
@@ -74,34 +105,21 @@ class MemoryExtractor:
         turns = {v.turn.turn_id: v.turn for v in available}
         if not turns:
             return ExtractionProposal(memories=())
-        public = all(v.sensitivity in self.non_sensitive_labels for v in turns.values())
-        inputs: list[LocalTurn] = []
+        materials = []
         for material in available:
             turn = material.turn
             assert material.decision is not None and material.decision.text
             text = material.decision.text
-            cls = PublicTurn if public else LocalTurn
-            inputs.append(
-                cls(
-                    turn_id=turn.turn_id,
-                    text=text,
-                    actor=turn.actor,
-                    kind=turn.kind,
-                    addressees=turn.addressees,
-                    address_mode=turn.address_mode,
-                    reply_to_turn_id=turn.reply_to_turn_id,
-                    occurred_at=turn.occurred_at,
-                )
-            )
-        if public:
-            cloud_turns = tuple(v for v in inputs if isinstance(v, PublicTurn))
-            result = self.gateway.extract_cloud(
-                CloudInput(character_id=character_id, turns=cloud_turns)
-            )
+            materials.append((turn, text))
+        value = make_gateway_input(
+            character_id=character_id,
+            materials=tuple(materials),
+            non_sensitive_labels=self.non_sensitive_labels,
+        )
+        if isinstance(value, CloudInput):
+            result = self.gateway.extract_cloud(value)
         else:
-            result = self.gateway.extract_local(
-                LocalOnly(character_id=character_id, turns=tuple(inputs))
-            )
+            result = self.gateway.extract_local(value)
         proposal = (
             result
             if isinstance(result, ExtractionProposal)

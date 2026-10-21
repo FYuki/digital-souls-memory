@@ -74,7 +74,7 @@ Session の入力・応答例（合成データ）:
 ```
 
 `ended_at` は省略可能で null になります。接続窓口ごとに Core が ID を渡します。
-セッション終了の更新操作はありません。
+セッション終了は次の別レコード追記 API を使い、Session 行は更新しません。
 `reports_delivery` は必須の厳密な bool です。省略・null・数値0/1・文字列true/falseを
 拒否し、登録後に変更できません。テキスト窓口は false を宣言します。
 旧 `participants` 付き Session、旧 `audience` 付き Turn は422です。
@@ -208,3 +208,15 @@ downgrade は perceived_by を旧 audience にコピーし、全 participants �
 一時的な変更保護解除は migration トランザクション内だけで、通常経路には公開しません。
 合成データ専用の支援であり、運用 DB・実会話の移行には使いません。
 本文切出し・Receipt 未着の保留と10分のみなし確定・状態保存は #10 の担当です。
+
+## セッション終了報告
+
+`POST /sessions/{session_id}/endings` はタイムゾーン付き `ended_at` と非空白
+`reported_by` を受けます。reported_at はサービス時計で付与し、入力での指定を拒否します。
+初回は201、ended_at・reported_by が同じ再送は200で元の reported_at を保持します。
+保存済み報告との競合、または登録時 Session.ended_at との矛盾は409です。
+Session 不存在は404、不正入力は422。失敗時は終了記録を追加しません。
+`GET /sessions/{session_id}/endings` は追記した報告の配列（未報告なら空）を返し、
+Session GET は終了記録の ended_at を合成します。元の Session 行を UPDATE しません。
+重複判定と INSERT は同じ transaction で直列化します。終了記録の UPDATE・DELETE は拒否します。
+終了後の短期状態は取得できません。Phase 2 の抽出・内省は起動しません。

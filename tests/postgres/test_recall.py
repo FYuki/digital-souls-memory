@@ -18,6 +18,7 @@ from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStor
 from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.api import create_app
+from digital_souls_memory.evidence.provision import CandidateScore
 from tests.evidence_support import RECORDED, TEXT, receipt, session, turn
 from tests.it1.identity_fakes import FakeReviewer
 from tests.it1.test_recall import request
@@ -191,9 +192,12 @@ def test_receipt_committed_after_save_transaction_starts_rejects_the_old_snapsho
     monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
     with TestClient(create_app()) as registration:
         for identifier in ("char-b", "char-c"):
+            resource = "temperaments" if identifier == "char-c" else "core-identities"
             assert registration.post(
-                f"/characters/{identifier}/core-identities",
-                json={"values": ["誠実"], "prohibitions": []},
+                f"/characters/{identifier}/{resource}",
+                json={"description": "合成気質"}
+                if identifier == "char-c"
+                else {"values": ["誠実"], "prohibitions": []},
             ).is_success
     evidence = PostgresEvidenceStore(app_database_url)
     evidence.add_session(session())
@@ -388,6 +392,7 @@ def test_persistent_index_survives_app_restart_without_reembedding_passages_or_f
         assert record.temperament_version == response.json()["temperament_version"]
         assert record.personality_version == response.json()["personality_version"]
         (score,) = record.scores
+        assert isinstance(score, CandidateScore)
         assert (score.ref.owner_id, score.ref.memory_id, score.ref.anchor_id) == (
             "char-b",
             value.id,
@@ -472,17 +477,22 @@ def test_anchor_registration_is_searchable_without_any_derived_memory_and_tracks
     monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
     with TestClient(create_app()) as registration:
         for identifier in ("char-b", "char-c"):
+            resource = "temperaments" if identifier == "char-c" else "core-identities"
             assert registration.post(
-                f"/characters/{identifier}/core-identities",
-                json={"values": ["誠実"], "prohibitions": []},
+                f"/characters/{identifier}/{resource}",
+                json={"description": "合成気質"}
+                if identifier == "char-c"
+                else {"values": ["誠実"], "prohibitions": []},
             ).is_success
+    text = "日本語🙂"
     evidence = PostgresEvidenceStore(app_database_url)
     evidence.add_session(session())
-    evidence.add_turn(turn())
+    evidence.add_turn(turn(text=text))
     now = RECORDED + timedelta(minutes=10)
+    embedding = RecordingEmbedding()
     with TestClient(
         create_app(
-            embedding=RecordingEmbedding(),
+            embedding=embedding,
             reranker=RecordingReranker(),
             token_counter=RecordingTokenCounter(),
             clock=lambda: now,
@@ -499,15 +509,37 @@ def test_anchor_registration_is_searchable_without_any_derived_memory_and_tracks
         before = client.post("/characters/char-b/recall", json=request(form=form)).json()
         assert before["memories"] == []
         assert [(a["anchor_id"], a["turn_id"], a["text"]) for a in before["verbatim_anchors"]] == [
-            ("anchor-1", "turn-1", TEXT)
+            ("anchor-1", "turn-1", text)
         ]
         if form == "assembled":
-            assert TEXT in before["context"]
+            assert text in before["context"]
         record = PostgresProvisionStore(app_database_url).get(before["provision_id"])
         assert record is not None
         assert record.memory_ids == ()
         assert record.verbatim_anchor_ids == ("anchor-1",)
+        evidence.add_receipt(receipt("partial", 3))
+
+        def partial_indexed() -> bool:
+            response = client.post("/characters/char-b/recall", json=request(form=form))
+            assert response.is_success
+            return [v["text"] for v in response.json()["verbatim_anchors"]] == ["日本語"]
+
+        eventually(partial_indexed)
+        assert any(
+            value.texts == ("日本語",) for value, purpose in embedding.calls if purpose == "passage"
+        )
+        passage_count = sum(purpose == "passage" for _, purpose in embedding.calls)
         evidence.add_receipt(receipt("none", 0))
+        with psycopg.connect(app_database_url, autocommit=True) as observer:
+
+            def unavailable_index() -> bool:
+                return observer.execute(
+                    "SELECT NOT ready AND not_before IS NOT NULL FROM recall_documents "
+                    "WHERE owner_id='char-b' AND kind='anchor' AND identifier='anchor-1'"
+                ).fetchone() == (True,)
+
+            eventually(unavailable_index)
+        assert sum(purpose == "passage" for _, purpose in embedding.calls) == passage_count
         after = client.post("/characters/char-b/recall", json=request(form=form))
         assert after.is_success
         assert after.json()["verbatim_anchors"] == after.json()["source_spans"] == []

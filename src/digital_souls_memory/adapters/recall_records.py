@@ -14,6 +14,8 @@ from digital_souls_memory.evidence.provision import (
     CandidateRef,
     CandidateScore,
     ProvisionRecord,
+    ResidentCandidateRef,
+    ResidentCandidateScore,
     SourceSpan,
 )
 from digital_souls_memory.recall.domain import CandidateMaterial, SourceStamp
@@ -54,7 +56,9 @@ def read_material(
     if session is None:
         return None
     actor = connection.execute(
-        "SELECT 1 FROM core_identities WHERE character_id=%s LIMIT 1", (turn.actor,)
+        "SELECT 1 WHERE EXISTS (SELECT 1 FROM core_identities WHERE character_id=%s) "
+        "OR EXISTS (SELECT 1 FROM temperaments WHERE character_id=%s)",
+        (turn.actor, turn.actor),
     ).fetchone()
     receipts = connection.execute(
         "SELECT (SELECT count(*) FROM delivery_receipts WHERE turn_id=%s) AS count, "
@@ -106,12 +110,19 @@ def current_stamp(
 
 
 def provision_payload(value: ProvisionRecord) -> dict[str, object]:
-    return json_record(asdict(value))
+    payload = asdict(value)
+    if value.kind == "turn":
+        del payload["profile_entry_ids"]
+        del payload["core_identity_version"]
+    return json_record(payload)
 
 
 def restore_provision(payload: DictRow) -> ProvisionRecord:
     scores = tuple(
-        CandidateScore(**(v | {"ref": CandidateRef(**v["ref"])})) for v in payload["scores"]
+        ResidentCandidateScore(**(v | {"ref": ResidentCandidateRef(**v["ref"])}))
+        if payload["kind"] == "resident"
+        else CandidateScore(**(v | {"ref": CandidateRef(**v["ref"])}))
+        for v in payload["scores"]
     )
     return ProvisionRecord(
         **(
@@ -124,6 +135,7 @@ def restore_provision(payload: DictRow) -> ProvisionRecord:
                 "voice_exemplar_ids": tuple(payload["voice_exemplar_ids"]),
                 "motivation_ids": tuple(payload["motivation_ids"]),
                 "provided_at": datetime.fromisoformat(payload["provided_at"]),
+                "profile_entry_ids": tuple(payload.get("profile_entry_ids", ())),
             }
         )
     )

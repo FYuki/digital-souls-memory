@@ -173,11 +173,17 @@ class RecallHarness:
         self.counter = RecordingTokenCounter()
         self.selections = FakeSessionIdentityStore(self.identity)
         self.provisions = FakeProvisionStore(self.snapshot_is_current)
+        from tests.resident_profile_support import FakeProfileStore, StoredCandidates
+
+        self.profiles = FakeProfileStore()
+        self.resident_candidates = StoredCandidates()
         self.client = TestClient(
             create_app(
                 store=self.evidence,
                 identity_store=self.identity,
                 voice_store=self.voice,
+                profile_store=self.profiles,
+                resident_candidates=self.resident_candidates,
                 clock=lambda: self.now,
                 retriever=self.retriever,
                 embedding=self.embedding,
@@ -209,6 +215,17 @@ class RecallHarness:
         ):
             return False
         documents = {v.ref: v.document for v in (*self.retriever.values, *self.retriever.anchors)}
+        documents.update({v.ref: v.document for v in self.resident_candidates.values.values()})
+        if snapshot.profile_version is not None:
+            profile = self.profiles.get(snapshot.character_id)
+            if (profile.version if profile is not None else 0) != snapshot.profile_version:
+                return False
+            core = self.identity.get_core(snapshot.character_id)
+            if (core.version if core is not None else None) != snapshot.core_identity_version:
+                return False
+            for value in snapshot.voice_exemplars:
+                if self.voice.get_exemplar(snapshot.character_id, value.exemplar_id) != value:
+                    return False
         if any(documents.get(v.ref) != v for v in snapshot.documents):
             return False
         for stamp in snapshot.sources:

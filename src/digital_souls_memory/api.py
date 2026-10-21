@@ -24,6 +24,7 @@ from digital_souls_memory.adapters.recall_models import (
     LlamaCppReranker,
     LlamaCppTokenCounter,
 )
+from digital_souls_memory.episodes_http import episodes_router
 from digital_souls_memory.evidence.materials import EvidenceMaterials
 from digital_souls_memory.evidence.ports import EvidenceStore, EvidenceUnavailable
 from digital_souls_memory.evidence.provision import ProvisionUnavailable
@@ -60,6 +61,17 @@ from digital_souls_memory.recall.settings import (
 from digital_souls_memory.recall.use_cases import RecallService
 from digital_souls_memory.recall.worker import IndexWorker
 from digital_souls_memory.recall_http import recall_router
+from digital_souls_memory.resident.ports import (
+    ContextGateway,
+    ContextStore,
+    ProfileStore,
+    StoredCandidateReader,
+)
+from digital_souls_memory.resident.profiles import ProfileService
+from digital_souls_memory.resident.states import ContextReader
+from digital_souls_memory.resident.use_cases import ResidentService
+from digital_souls_memory.resident.worker import ContextWorker
+from digital_souls_memory.resident_http import resident_router
 from digital_souls_memory.voice.ports import VoiceStore, VoiceUnavailable
 from digital_souls_memory.voice.use_cases import VoiceService
 from digital_souls_memory.voice_http import voice_router
@@ -93,7 +105,15 @@ def create_app(
     provision_id_factory: Callable[[], str] = lambda: str(uuid4()),
     monotonic: Callable[[], float] = time.monotonic,
     recall_settings: RecallSettings | None = None,
+    profile_store: ProfileStore | None = None,
+    resident_candidates: StoredCandidateReader | None = None,
+    context_store: ContextStore | None = None,
+    context_gateway: ContextGateway | None = None,
+    state_ttl: timedelta = timedelta(minutes=30),
+    episode_id_factory: Callable[[], str] = lambda: str(uuid4()),
 ) -> FastAPI:
+    if state_ttl <= timedelta(0):
+        raise ValueError("State TTL must be positive")
     if delivery_timeout < timedelta(0):
         raise ValueError("Delivery timeout must be nonnegative")
     owned_models: list[LlamaCppEmbedding | LlamaCppReranker | LlamaCppTokenCounter] = []
@@ -131,12 +151,38 @@ def create_app(
             )
         if session_identity_store is None:
             session_identity_store = PostgresSessionIdentityStore(database_url)
+        from digital_souls_memory.adapters.postgres_resident import (
+            PostgresContextStore,
+            PostgresProfileStore,
+        )
+
+        if profile_store is None:
+            profile_store = PostgresProfileStore(database_url, delivery_timeout=delivery_timeout)
+        if resident_candidates is None:
+            resident_candidates = PostgresRetrievalStore(
+                database_url, delivery_timeout=delivery_timeout
+            )
+        if context_store is None:
+            context_store = PostgresContextStore(database_url, delivery_timeout=delivery_timeout)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         with ExitStack() as cleanup:
             for model in owned_models:
                 cleanup.callback(model.close)
+            if context_gateway is not None:
+                if context_store is None:
+                    raise EvidenceUnavailable()
+                context_worker = ContextWorker(
+                    store=context_store,
+                    gateway=context_gateway,
+                    clock=registration_clock,
+                    non_sensitive_labels=non_sensitive_labels,
+                    state_ttl=state_ttl,
+                    episode_id_factory=episode_id_factory,
+                )
+                context_worker.start()
+                cleanup.callback(context_worker.close)
             if extraction_gateway is not None:
                 resolved = memory_service()
                 worker = MemoryWorker(
@@ -273,4 +319,63 @@ def create_app(
         )
 
     app.include_router(recall_router(recall_service))
+
+    def profile_service() -> ProfileService:
+        if profile_store is None or resident_candidates is None or token_counter is None:
+            raise ProvisionUnavailable()
+        return ProfileService(
+            evidence=resolve_evidence_store(),
+            characters=IdentityCharacters(resolve_identity_store),
+            store=profile_store,
+            candidates=resident_candidates,
+            counter=token_counter,
+            clock=registration_clock,
+            delivery_timeout=delivery_timeout,
+            non_sensitive_labels=non_sensitive_labels,
+        )
+
+    def resident_service() -> ResidentService:
+        profile = profile_service()
+        if provision_store is None or session_identity_store is None:
+            raise ProvisionUnavailable()
+        resolved_voice = voice_store
+        if resolved_voice is None:
+            if database_url is None:
+                raise VoiceUnavailable()
+            resolved_voice = PostgresVoiceStore(database_url)
+        return ResidentService(
+            evidence=resolve_evidence_store(),
+            identity=resolve_identity_store(),
+            characters=IdentityCharacters(resolve_identity_store),
+            profiles=profile.store,
+            candidates=profile.candidates,
+            voice=resolved_voice,
+            counter=profile.counter,
+            provisions=provision_store,
+            selections=session_identity_store,
+            clock=registration_clock,
+            monotonic=monotonic,
+            id_factory=provision_id_factory,
+            delivery_timeout=delivery_timeout,
+            non_sensitive_labels=non_sensitive_labels,
+        )
+
+    def context_reader() -> ContextReader:
+        if context_store is None:
+            raise EvidenceUnavailable()
+        evidence = resolve_evidence_store()
+        return ContextReader(
+            context_store,
+            evidence,
+            EvidenceMaterials(
+                evidence,
+                IdentityCharacters(resolve_identity_store),
+                registration_clock,
+                delivery_timeout,
+            ),
+            registration_clock,
+        )
+
+    app.include_router(resident_router(resident_service, profile_service, context_reader))
+    app.include_router(episodes_router(context_reader))
     return app

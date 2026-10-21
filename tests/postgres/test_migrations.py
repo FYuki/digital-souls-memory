@@ -13,10 +13,13 @@ from digital_souls_memory.api import create_app
 pytestmark = pytest.mark.postgres
 
 
-def test_recall_revision_is_the_single_successor_of_memory() -> None:
+def test_resident_revision_is_the_single_successor_of_recall() -> None:
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
     scripts = ScriptDirectory.from_config(config)
-    assert scripts.get_heads() == ["0007"]
+    assert scripts.get_heads() == ["0008"]
+    resident = scripts.get_revision("0008")
+    assert resident is not None
+    assert resident.down_revision == "0007"
     recall = scripts.get_revision("0007")
     assert recall is not None
     assert recall.down_revision == "0006"

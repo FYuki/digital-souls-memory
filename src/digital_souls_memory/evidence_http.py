@@ -206,8 +206,36 @@ class ReceiptResponse(ReceiptRequest):
     turn_id: str
 
 
+class EndingRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    ended_at: AwareDatetime
+    reported_by: Nonblank
+
+
+class EndingResponse(EndingRequest):
+    model_config = ConfigDict(from_attributes=True)
+    session_id: str
+    reported_at: AwareDatetime
+
+
 def evidence_router(service: Callable[[], EvidenceService]) -> APIRouter:
     router = APIRouter(route_class=EvidenceRoute)
+
+    @router.post("/sessions/{session_id}/endings", status_code=201)
+    def add_ending(session_id: str, request: EndingRequest, response: Response) -> EndingResponse:
+        value, created = service().add_ending(
+            session_id=session_id,
+            ended_at=request.ended_at,
+            reported_by=request.reported_by,
+        )
+        response.status_code = 201 if created else 200
+        return EndingResponse.model_validate(value)
+
+    @router.get("/sessions/{session_id}/endings")
+    def list_endings(session_id: str) -> list[EndingResponse]:
+        return [
+            EndingResponse.model_validate(value) for value in service().list_endings(session_id)
+        ]
 
     @router.post("/sessions", status_code=201)
     def add_session(request: SessionRequest) -> SessionResponse:
