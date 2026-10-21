@@ -218,7 +218,7 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 3. **ターン想起**：Core がターン想起 API を呼ぶ。Memory は派生記憶をキーに検索し、ヒットした原文区間を値として返す（M2）。組み立て済みのコンテキスト片と素材（記憶・原文の一覧）のどちらで返すかを指定できる。約束や記念日なら VerbatimAnchor の原文を必ず含める。返した内容を ProvisionRecord に残す（M4）。Core は目標の2秒を守るため 400ms で打ち切り、記憶なしで続ける。必達の4秒は打ち切り後の経路でも満たす。
 4. **応答生成**：Core が応答を生成する。記憶に根拠がなければ「覚えていない」と返す経路を Core のプロンプトに持たせる。
 5. **キャラ発話の登録**：Core が生成全文に機微判定を行い、本人を含む perceived_by・addressees・address_mode・任意の reply_to_turn_id とともに Turn を登録する。reports_delivery=false なら即時全文確定とし、Receipt を拒否する。true のキャラ発話は相手に届いた範囲を DeliveryReceipt で追記し、未着中は他キャラの抽出を保留して recorded_at から既定10分（設定可）で全文のみなし確定とする。宣言による確定・保留・実 Receipt 確定・みなし確定を区別し、全文や宛先は書き換えない。Core が内心を記録する場合は kind=thought / perceived_by=[actor] とし、Receipt は付けない。
-6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。抽出は新しい Turn とその返信先の Turn からなる1往復を単位とし、複数の往復や Episode を踏まえた抽出は別の非同期処理で行う（[ADR 0023](decisions/0023-extraction-unit-and-independent-evidence.md)）。キャラ別の根拠は M6 と Session の報告宣言に応じた配達範囲に限る。thought は発言者本人の記憶にだけ使い、相手は addressees と actor で決め、self から Relationship・Commitment を抽出しない。抽出時に新しい Turn と既存の DerivedMemory を照合し、再強化か事実の更新かを判定する。再強化の対象・更新方法は「検索と忘却」に従う。
+6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。抽出は新しい Turn とその返信先の Turn からなる1往復を単位とし、複数の往復や Episode を踏まえた抽出と重複した記憶の整理は、会話の終了後に別の非同期処理で行う（[ADR 0023](decisions/0023-extraction-unit-and-independent-evidence.md)）。キャラ別の根拠は M6 と Session の報告宣言に応じた配達範囲に限る。thought は発言者本人の記憶にだけ使い、相手は addressees と actor で決め、self から Relationship・Commitment を抽出しない。抽出時に新しい Turn と既存の DerivedMemory を照合し、再強化か事実の更新かを判定する。再強化の対象・更新方法は「検索と忘却」に従う。
 
 ### 遅いループ：内省から人格更新まで（イベント駆動）
 
@@ -296,7 +296,7 @@ S_{SP} = \frac{2 \cdot Consistency \cdot Adaptation}{Consistency + Adaptation}
 ### 段階的な進め方
 
 1. **Phase 1：一貫性の土台**：Evidence（Session, Turn, DeliveryReceipt, ProvisionRecord, Episode）、Memory（キー拡張検索、複合スコア）、Identity の登録（CoreIdentity, Temperament, PersonalityProfile の author\_seed と記述文）、VoiceExemplar と VerbatimAnchor、CharacterState、登録時の整合チェック、常駐コンテキスト API とターン想起 API、作者による削除。この時点で長期記憶つきの一貫したキャラとして動く。
-2. **Phase 2：内省**：ReflectionTrigger, Reflection, Belief, Motivation, ProvenanceGraph。人格はまだ変えず、信念の記録だけを始める。
+2. **Phase 2：内省**：ReflectionTrigger, Reflection, Belief, Motivation, ProvenanceGraph、会話終了後の文脈を踏まえた抽出と重複した記憶の整理（ADR 0023）。人格はまだ変えず、信念の記録だけを始める。
 3. **Phase 3：成長と統制**：TraitChangeProposal, ChangeBudget, 性格変更の審査エージェント, IdentityHistory, rollback, ProvenanceGraph による完全な削除連鎖, 評価ハーネスとダッシュボード。開始値で人格更新を有効にし、評価指標を見ながら運用中に閾値を調整する。
 
 ## 初期値の用意
