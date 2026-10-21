@@ -40,6 +40,13 @@ def test_resolved_round_trip_keeps_text_and_signature_after_delivery_changes() -
     partial = inputs.resolve("char-b", ("turn-1",))
     assert partial.available[-1].decision is not None
     assert partial.available[-1].decision.text == TEXT[:9]
+    dependencies = partial.dependencies()
+    assert [
+        (v.turn_id, v.basis, v.available_end, v.used_end, v.receipt_version) for v in dependencies
+    ] == [
+        ("turn-1", "original", len(TEXT), len(TEXT), 0),
+        ("question", "receipt_confirmed", 9, 9, 1),
+    ]
     assert partial.signature(1) != full.signature(1)
     assert pending.signature(1) == before
     assert full.available[-1].decision is not None

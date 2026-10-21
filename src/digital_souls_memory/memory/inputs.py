@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from digital_souls_memory.evidence.domain import Turn
 from digital_souls_memory.evidence.materials import EvidenceMaterials, MaterialDecision
 from digital_souls_memory.evidence.ports import EvidenceStore
-from digital_souls_memory.memory.domain import MemoryValidationError
+from digital_souls_memory.memory.domain import InputDependency, MemoryValidationError
 
 
 @dataclass(frozen=True)
@@ -20,6 +20,20 @@ class ResolvedTurn:
 @dataclass(frozen=True)
 class ResolvedInput:
     turns: tuple[ResolvedTurn, ...]
+
+    def dependencies(self) -> tuple[InputDependency, ...]:
+        return tuple(
+            InputDependency(
+                turn_id=v.turn.turn_id,
+                basis=v.decision.basis,
+                receipt_version=v.decision.receipt_version,
+                available_end=len(v.decision.text),
+                used_end=len(v.decision.text),
+                deadline=v.decision.deadline,
+            )
+            for v in self.available
+            if v.decision is not None and v.decision.text is not None
+        )
 
     @property
     def available(self) -> tuple[ResolvedTurn, ...]:

@@ -45,16 +45,16 @@ def test_memory_revision_repeat_downgrade_reapply_preserves_previous_data(
                     table: conn.execute(f"SELECT * FROM {table}").fetchall()
                     for table in ("sessions", "turns", "core_identities")
                 }
-            command.upgrade(config, "head")
+            command.upgrade(config, "0006")
             assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0006",)
-            command.upgrade(config, "head")
+            command.upgrade(config, "0006")
             for table, rows in before.items():
                 assert conn.execute(f"SELECT * FROM {table}").fetchall() == rows
             command.downgrade(config, "0005")
             assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0005",)
             for table, rows in before.items():
                 assert conn.execute(f"SELECT * FROM {table}").fetchall() == rows
-            command.upgrade(config, "head")
+            command.upgrade(config, "0006")
             assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0006",)
             for table, rows in before.items():
                 assert conn.execute(f"SELECT * FROM {table}").fetchall() == rows

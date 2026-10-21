@@ -229,3 +229,13 @@ class ExtractionState:
     error: str | None
     used_text: str | None
     receipt_version: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class InputDependency:
+    turn_id: str
+    basis: str
+    receipt_version: int
+    available_end: int
+    used_end: int
+    deadline: datetime

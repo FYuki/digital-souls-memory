@@ -11,6 +11,7 @@ from digital_souls_memory.memory.domain import (
     DerivedMemory,
     ExtractionProposal,
     ExtractionState,
+    InputDependency,
     MemoryRelation,
 )
 from digital_souls_memory.memory.extraction import CloudInput, LocalOnly
@@ -111,6 +112,7 @@ class FakeMemoryStore:
         self.requests: dict[str, int] = {}
         self.originals: dict[tuple[str, str], DerivedMemory] = {}
         self.proposed: dict[tuple[str, str], tuple[MemoryRelation, ...]] = {}
+        self.dependencies: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
 
     @contextmanager
     def transaction(self, character_id: str) -> Iterator[MemoryTransaction]:
@@ -123,6 +125,7 @@ class FakeMemoryStore:
                 list(self.relations),
                 dict(self.originals),
                 dict(self.proposed),
+                dict(self.dependencies),
             )
             try:
                 yield FakeMemoryTransaction(self, character_id)
@@ -138,6 +141,7 @@ class FakeMemoryStore:
                     self.relations,
                     self.originals,
                     self.proposed,
+                    self.dependencies,
                 ) = snapshot
                 raise
 
@@ -257,7 +261,14 @@ class FakeMemoryTransaction:
     def generated_ids(self) -> frozenset[str]:
         return frozenset(self.store.generated.get(self.character, set()))
 
-    def set_candidates(self, turn_id: str, values: tuple[DerivedMemory, ...]) -> None:
+    def set_candidates(
+        self,
+        turn_id: str,
+        values: tuple[DerivedMemory, ...],
+        *,
+        dependencies: tuple[InputDependency, ...],
+    ) -> None:
+        self.store.dependencies[(self.character, turn_id)] = dependencies
         self.store.proposals[(self.character, turn_id)] = values
         self.store.generated.setdefault(self.character, set()).update(v.id for v in values)
 

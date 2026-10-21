@@ -17,13 +17,28 @@ class MaterialDecision:
     deadline: datetime
 
 
+@dataclass(frozen=True)
+class ReceiptState:
+    spoken_until: int | None
+    count: int
+
+
+def aggregate_receipts(receipts: Iterable[DeliveryReceipt]) -> ReceiptState:
+    spoken_until = None
+    count = 0
+    for receipt in receipts:
+        spoken_until = receipt.spoken_until
+        count += 1
+    return ReceiptState(spoken_until, count)
+
+
 def material_decision(
     *,
     character_id: str,
     session: Session,
     turn: Turn,
     actor_is_character: bool,
-    receipts: Iterable[DeliveryReceipt],
+    receipts: Iterable[DeliveryReceipt] | ReceiptState,
     now: datetime,
     delivery_timeout: timedelta,
 ) -> MaterialDecision:
@@ -38,14 +53,10 @@ def material_decision(
     ):
         basis = "declared_full" if not session.reports_delivery else "original"
         return MaterialDecision(turn.text, basis, 0, deadline)
-    latest = None
-    version = 0
-    for receipt in receipts:
-        latest = receipt
-        version += 1
-    if latest is not None:
+    state = receipts if isinstance(receipts, ReceiptState) else aggregate_receipts(receipts)
+    if state.spoken_until is not None:
         return MaterialDecision(
-            turn.text[: latest.spoken_until], "receipt_confirmed", version, deadline
+            turn.text[: state.spoken_until], "receipt_confirmed", state.count, deadline
         )
     if now >= deadline:
         return MaterialDecision(turn.text, "assumed_full", 0, deadline)

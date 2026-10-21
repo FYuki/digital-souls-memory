@@ -360,7 +360,11 @@ def test_rebuild_recomputes_single_value_from_remaining_sources(origin: str) -> 
         if origin == "baseline":
             tx.add_memory(value)
         else:
-            tx.set_candidates("turn-1", (value,))
+            tx.set_candidates(
+                "turn-1",
+                (value,),
+                dependencies=service.inputs.resolve("char-b", ("turn-1",)).dependencies(),
+            )
         service.rebuild(tx)
     saved = store.get_memory("char-b", OLD_ID)
     assert saved is not None
@@ -373,7 +377,11 @@ def test_rebuild_recomputes_single_value_from_remaining_sources(origin: str) -> 
         if origin == "baseline":
             tx.replace_memory(remaining)
         else:
-            tx.set_candidates("turn-1", (remaining,))
+            tx.set_candidates(
+                "turn-1",
+                (remaining,),
+                dependencies=service.inputs.resolve("char-b", ("turn-1",)).dependencies(),
+            )
         service.rebuild(tx)
     saved = store.get_memory("char-b", remaining.id)
     assert saved is not None and saved.source_turn_ids == ("second",)

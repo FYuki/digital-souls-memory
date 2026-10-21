@@ -11,6 +11,7 @@ AIキャラクターの一貫性と成長を支える記憶サービスです。
 - [Evidence API](docs/evidence-api.md)：Session・Turn・配送報告の登録と取得、知覚範囲、入力契約
 - [Identity API](docs/identity-api.md)：コア人格・気質の版登録、性格の初回 seed、生成記述文と版の取得
 - [Voice API](docs/voice-api.md)：承認済み代表発話・逐語アンカーの登録と取得、知覚・配達範囲、初期整合チェック
+- [ターン想起API](docs/recall-api.md)：原文・アンカーの検索、配達範囲、提供記録、トークン予算
 - 調査資料
   - [長期記憶と内省における原文の重要性](docs/research/raw-vs-summary-memory.md)
   - [内省と長期記憶の相互作用（認知科学からの設計）](docs/research/reflection-and-memory-cognitive-science.md)

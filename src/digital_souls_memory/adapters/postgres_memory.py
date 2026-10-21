@@ -21,6 +21,7 @@ from digital_souls_memory.memory.domain import (
     DeliveryBasis,
     DerivedMemory,
     ExtractionState,
+    InputDependency,
     MemoryRelation,
     MemoryValidationError,
 )
@@ -69,6 +70,10 @@ class _MemoryTransaction:
             tuple(record.values()),
         )
         self._sources(value)
+        self.connection.execute(
+            "UPDATE derived_memories SET search_eligible=TRUE WHERE character_id=%s AND id=%s",
+            (self.character_id, value.id),
+        )
 
     def replace_memory(self, value: DerivedMemory) -> None:
         self.replace_projection(value)
@@ -105,6 +110,10 @@ class _MemoryTransaction:
             (self.character_id, value.id),
         )
         self._sources(value)
+        self.connection.execute(
+            "UPDATE derived_memories SET search_eligible=TRUE WHERE character_id=%s AND id=%s",
+            (self.character_id, value.id),
+        )
 
     def _sources(self, value: DerivedMemory) -> None:
         for position, identifier in enumerate(value.source_turn_ids):
@@ -189,7 +198,33 @@ class _MemoryTransaction:
                 (self.character_id, turn_id, value.from_id, value.to_id, value.type),
             )
 
-    def set_candidates(self, turn_id: str, values: tuple[DerivedMemory, ...]) -> None:
+    def set_candidates(
+        self,
+        turn_id: str,
+        values: tuple[DerivedMemory, ...],
+        *,
+        dependencies: tuple[InputDependency, ...],
+    ) -> None:
+        self.connection.execute(
+            "DELETE FROM memory_input_dependencies WHERE character_id=%s AND extraction_turn_id=%s",
+            (self.character_id, turn_id),
+        )
+        for dependency in dependencies:
+            self.connection.execute(
+                "INSERT INTO memory_input_dependencies(character_id,extraction_turn_id,turn_id,"
+                "basis,receipt_version,available_end,used_end,deadline) "
+                "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
+                (
+                    self.character_id,
+                    turn_id,
+                    dependency.turn_id,
+                    dependency.basis,
+                    dependency.receipt_version,
+                    dependency.available_end,
+                    dependency.used_end,
+                    dependency.deadline,
+                ),
+            )
         self.connection.execute(
             "DELETE FROM memory_candidates WHERE character_id=%s AND turn_id=%s",
             (self.character_id, turn_id),
@@ -286,6 +321,7 @@ class PostgresMemoryStore:
     @contextmanager
     def transaction(self, character_id: str) -> Iterator[MemoryTransaction]:
         with self._connection() as connection:
+            connection.execute("SELECT pg_advisory_xact_lock(hashtextextended('recall-state',0))")
             connection.execute(
                 "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", ("memory:" + character_id,)
             )

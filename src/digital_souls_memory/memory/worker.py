@@ -113,7 +113,7 @@ class MemoryWorker:
                 if current.signature(tx.notification_version(turn_id)) != signature:
                     tx.save_extraction(replace(saved, status="retry", lease_until=now))
                     return
-                tx.set_candidates(turn_id, proposal.memories)
+                tx.set_candidates(turn_id, proposal.memories, dependencies=resolved.dependencies())
                 tx.set_relations(turn_id, proposal.relations)
                 tx.save_extraction(replace(saved, status="done", token=None, lease_until=None))
                 self.service.rebuild(tx)
