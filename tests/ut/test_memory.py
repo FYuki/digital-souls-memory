@@ -151,7 +151,7 @@ def test_restatement_uses_event_time_for_self_other_and_observation(
         turn(turn_id="turn-2", actor=actor, kind=kind),
         occurred_at=OCCURRED + timedelta(hours=1),
     )
-    result = reinforce(memory(), source, relation_type=relation_type)
+    result = reinforce(memory(), source, source_turns=(turn(), source), relation_type=relation_type)
     assert result.last_reinforced_at == source.occurred_at
     assert set(result.source_turn_ids) == {"turn-1", "turn-2"}
     assert (result.epistemics.source_type, result.epistemics.trust_tier) == ("inferred", "D")
@@ -160,11 +160,11 @@ def test_restatement_uses_event_time_for_self_other_and_observation(
 def test_old_and_duplicate_evidence_do_not_rewind_or_multiply_reinforcement() -> None:
     value = replace(memory(), last_reinforced_at=OCCURRED + timedelta(hours=1))
     source = replace(turn(turn_id="turn-2"), occurred_at=OCCURRED - timedelta(days=1))
-    once = reinforce(value, source, relation_type="extends")
-    twice = reinforce(once, source, relation_type="extends")
+    once = reinforce(value, source, source_turns=(turn(), source), relation_type="extends")
+    twice = reinforce(once, source, source_turns=(turn(), source), relation_type="extends")
     assert twice.last_reinforced_at == value.last_reinforced_at
     assert tuple(twice.source_turn_ids).count("turn-2") == 1
-    assert twice.epistemics.independent_evidence_count == 2
+    assert twice.epistemics.independent_evidence_count == 1
     assert twice.epistemics.source_type == "inferred"
     assert twice.epistemics.trust_tier == "D"
 
@@ -172,14 +172,16 @@ def test_old_and_duplicate_evidence_do_not_rewind_or_multiply_reinforcement() ->
 @pytest.mark.parametrize("relation_type", ["updates", "derives", "contradicts"])
 def test_other_relations_do_not_reinforce(relation_type: str) -> None:
     value = memory()
-    result = reinforce(value, turn(turn_id="turn-2"), relation_type=relation_type)
+    source = turn(turn_id="turn-2")
+    result = reinforce(value, source, source_turns=(turn(), source), relation_type=relation_type)
     assert result.last_reinforced_at == value.last_reinforced_at
     assert result.source_turn_ids == value.source_turn_ids
 
 
 def test_commitment_is_not_reinforced() -> None:
     value = memory("commitment")
-    result = reinforce(value, turn(turn_id="turn-2"), relation_type="extends")
+    source = turn(turn_id="turn-2")
+    result = reinforce(value, source, source_turns=(turn(), source), relation_type="extends")
     assert result.last_reinforced_at is None
     assert result.source_turn_ids == value.source_turn_ids
     assert (result.verbatim_turn_id, result.deadline) == ("turn-1", RECORDED)

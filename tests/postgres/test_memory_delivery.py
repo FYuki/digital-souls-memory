@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.api import create_app
 from digital_souls_memory.memory.domain import DeliveryBasis
+from digital_souls_memory.memory.inputs import MemoryInputs
 from tests.evidence_support import (
     OCCURRED,
     RECORDED,
@@ -52,14 +53,21 @@ def test_postgres_http_read_and_partial_correction_interleave(
         timedelta(minutes=10),
     )
     store = PostgresMemoryStore(app_database_url)
-    service = MemoryService(store, evidence, materials, lambda: now)
+    service = MemoryService(
+        store,
+        MemoryInputs(
+            evidence,
+            materials,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            comment_surfaces=frozenset(),
+        ),
+        lambda: now,
+    )
     gateway = EchoGateway()
     extractor = MemoryExtractor(
-        evidence=evidence,
-        materials=materials,
+        inputs=service.inputs,
         gateway=gateway,
         non_sensitive_labels=frozenset(),
-        conversation_surfaces=frozenset(),
     )
     worker = MemoryWorker(service, extractor)
     worker.process("char-b", "turn-1")

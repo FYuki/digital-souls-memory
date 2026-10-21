@@ -14,6 +14,7 @@ from digital_souls_memory.memory.extraction import (
     MemoryExtractor,
     PublicTurn,
 )
+from digital_souls_memory.memory.inputs import MemoryInputs
 from tests.evidence_support import INSTRUCTION, RECORDED, TEXT, receipt, session, turn
 from tests.it1.evidence_fakes import FakeEvidenceStore, registered_identities
 from tests.memory_support import memory
@@ -55,11 +56,14 @@ class Harness:
             timedelta(minutes=10),
         )
         self.extractor = MemoryExtractor(
-            evidence=self.evidence,
-            materials=self.materials,
+            inputs=MemoryInputs(
+                self.evidence,
+                self.materials,
+                conversation_surfaces=frozenset({"synthetic-chat"}),
+                comment_surfaces=frozenset(),
+            ),
             gateway=self.gateway,
             non_sensitive_labels=frozenset({"synthetic-public"}),
-            conversation_surfaces=frozenset({"synthetic-chat"}),
         )
 
 
@@ -294,12 +298,14 @@ def test_parallel_reply_keeps_referenced_user_instead_of_most_recent_speaker() -
 def test_viewer_comment_requires_this_characters_registered_reply_without_deleting_ledger() -> None:
     h = Harness(reports_delivery=False)
     extractor = MemoryExtractor(
-        evidence=h.evidence,
-        materials=h.materials,
+        inputs=MemoryInputs(
+            h.evidence,
+            h.materials,
+            conversation_surfaces=frozenset(),
+            comment_surfaces=frozenset({"synthetic-chat"}),
+        ),
         gateway=h.gateway,
         non_sensitive_labels=frozenset({"synthetic-public"}),
-        conversation_surfaces=frozenset(),
-        comment_surfaces=frozenset({"synthetic-chat"}),
     )
     h.evidence.add_turn(turn(actor="user-a"))
     assert extractor.propose(character_id="char-b", turn_ids=("turn-1",)).memories == ()
@@ -345,4 +351,59 @@ def test_direct_candidates_require_actor_or_addressee_for_each_targeted_kind(
         candidate = replace(candidate, counterpart=target)
     h.gateway.output = (candidate,)
     result = h.extractor.propose(character_id="char-b", turn_ids=("turn-1",))
+    assert result.memories == ((candidate,) if accepted else ())
+
+
+@pytest.mark.parametrize("support", [("turn-1",), ("turn-1", "question")])
+def test_round_trip_counts_only_supporting_sources_and_preserves_epistemics(
+    support: tuple[str, ...],
+) -> None:
+    h = Harness(reports_delivery=False)
+    h.evidence.add_turn(turn(turn_id="question", actor="user-a", text="コーヒーが好き？"))
+    h.evidence.add_turn(turn(reply_to_turn_id="question", text="うん、そうだよ"))
+    candidate = replace(memory(), subject="char-c", source_turn_ids=support)
+    h.gateway.output = (candidate,)
+    (result,) = h.extractor.propose(character_id="char-b", turn_ids=("turn-1", "question")).memories
+    assert {v.turn_id for v in h.gateway.local_calls[-1].turns} == {"turn-1", "question"}
+    assert result.source_turn_ids == support
+    assert result.epistemics == candidate.epistemics
+
+
+@pytest.mark.parametrize("kind", ["fact", "relationship", "commitment"])
+def test_round_trip_context_does_not_bypass_self_or_confidence_gate(kind: str) -> None:
+    h = Harness(reports_delivery=False)
+    h.evidence.add_turn(
+        turn(turn_id="question", actor="user-a", address_mode="direct", addressees=("char-c",))
+    )
+    h.evidence.add_turn(turn(address_mode="self", reply_to_turn_id="question"))
+    value = replace(memory(kind), subject="char-c" if kind == "fact" else None)
+    if kind == "fact":
+        low = replace(
+            value.epistemics.confidence_features,
+            retrieval=0,
+            source=0,
+            temporal=0,
+            corroboration=0,
+            contradiction=1,
+        )
+        value = replace(value, epistemics=replace(value.epistemics, confidence_features=low))
+    h.gateway.output = (value,)
+    assert (
+        h.extractor.propose(character_id="char-b", turn_ids=("turn-1", "question")).memories == ()
+    )
+
+
+@pytest.mark.parametrize("counterpart,accepted", [("user-a", True), ("user-z", False)])
+def test_context_actor_does_not_replace_supporting_sources_addressee(
+    counterpart: str,
+    accepted: bool,
+) -> None:
+    h = Harness(reports_delivery=False)
+    h.evidence.add_turn(turn(turn_id="question", actor="user-z"))
+    h.evidence.add_turn(
+        turn(address_mode="direct", addressees=("user-a",), reply_to_turn_id="question")
+    )
+    candidate = replace(memory("relationship"), counterpart=counterpart)
+    h.gateway.output = (candidate,)
+    result = h.extractor.propose(character_id="char-b", turn_ids=("turn-1", "question"))
     assert result.memories == ((candidate,) if accepted else ())
