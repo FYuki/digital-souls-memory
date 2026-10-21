@@ -3,8 +3,8 @@ from dataclasses import replace
 from datetime import timedelta
 
 import pytest
-from digital_souls_memory.recall.scoring import Weights, composite_score, recency, trust_score
 
+from digital_souls_memory.recall.scoring import Weights, composite_score, recency, trust_score
 from tests.evidence_support import OCCURRED, RECORDED
 from tests.memory_support import memory
 

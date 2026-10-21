@@ -2,6 +2,7 @@ from collections.abc import Callable
 from typing import cast
 
 import pytest
+
 from digital_souls_memory.recall.inputs import (
     CloudInput,
     InputLabel,
@@ -9,7 +10,6 @@ from digital_souls_memory.recall.inputs import (
     PublicLabel,
     make_model_input,
 )
-
 from tests.evidence_support import INSTRUCTION
 
 pytestmark = pytest.mark.ut

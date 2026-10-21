@@ -2,11 +2,11 @@ from dataclasses import replace
 from datetime import timedelta
 
 import pytest
+
+from digital_souls_memory.identity.domain import PersonalityProfile, Temperament
 from digital_souls_memory.identity.sessions import choose_session_identity
 from digital_souls_memory.recall.domain import ProvisionSnapshot
 from digital_souls_memory.recall.eligibility import snapshot_matches
-
-from digital_souls_memory.identity.domain import PersonalityProfile, Temperament
 from tests.evidence_support import RECORDED, STARTED, session, turn
 from tests.identity_support import aspects
 from tests.memory_support import memory

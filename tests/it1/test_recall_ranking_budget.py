@@ -30,7 +30,6 @@ def test_provision_scores_keep_candidate_references_and_all_six_terms_before_rej
     harness: "RecallHarness",
 ) -> None:
     from digital_souls_memory.recall.scoring import trust_score
-
     from tests.recall_fixtures import candidate_for
 
     h = harness
@@ -236,7 +235,6 @@ def test_budget_keeps_the_higher_ranked_memory_with_its_source_and_anchor_as_a_g
     form: str,
 ) -> None:
     from digital_souls_memory.recall.inputs import ModelInput
-
     from tests.recall_fixtures import anchor_candidate
     from tests.voice_support import anchor
 

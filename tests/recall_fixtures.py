@@ -2,6 +2,8 @@
 
 from datetime import timedelta
 
+from digital_souls_memory.evidence.domain import Turn
+from digital_souls_memory.memory.domain import DerivedMemory
 from digital_souls_memory.recall.domain import (
     CandidateRef,
     DocumentStamp,
@@ -10,9 +12,6 @@ from digital_souls_memory.recall.domain import (
     VectorSpace,
 )
 from digital_souls_memory.recall.inputs import InputLabel
-
-from digital_souls_memory.evidence.domain import Turn
-from digital_souls_memory.memory.domain import DerivedMemory
 from digital_souls_memory.voice.domain import VerbatimAnchor
 
 SPACE = VectorSpace(
