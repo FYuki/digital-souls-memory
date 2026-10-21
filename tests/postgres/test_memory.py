@@ -11,6 +11,7 @@ from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.api import create_app
 from digital_souls_memory.memory.changes import reinforce, update_fact
 from digital_souls_memory.memory.domain import MemoryRelation
+from digital_souls_memory.memory.inputs import MemoryInputs
 from tests.evidence_support import OCCURRED, RECORDED, TEXT, session, turn
 from tests.memory_support import KINDS, NEW_ID, OLD_ID, memory
 
@@ -37,23 +38,39 @@ def test_worker_forward_relation_survives_postgres_restore_and_rebuild(
         timedelta(minutes=10),
     )
     store = PostgresMemoryStore(seeded_url)
-    service = MemoryService(store, evidence, materials, lambda: RECORDED)
+    service = MemoryService(
+        store,
+        MemoryInputs(
+            evidence,
+            materials,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            comment_surfaces=frozenset(),
+        ),
+        lambda: RECORDED,
+    )
     gateway = RecordingGateway()
     fact = replace(memory(), subject="char-c", id=OLD_ID if target_first else NEW_ID)
     summary = replace(memory("summary"), id=NEW_ID if target_first else OLD_ID)
     relation = MemoryRelation(from_id=summary.id, to_id=fact.id, type="derives")
     gateway.output = ExtractionProposal(memories=(summary, fact), relations=(relation,))
     extractor = MemoryExtractor(
-        evidence=evidence,
-        materials=materials,
+        inputs=service.inputs,
         gateway=gateway,
         non_sensitive_labels=frozenset(),
-        conversation_surfaces=frozenset(),
     )
     worker = MemoryWorker(service, extractor)
     worker.process("char-b", "turn-1")
     restored = PostgresMemoryStore(seeded_url)
-    service = MemoryService(restored, evidence, materials, lambda: RECORDED)
+    service = MemoryService(
+        restored,
+        MemoryInputs(
+            evidence,
+            materials,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            comment_surfaces=frozenset(),
+        ),
+        lambda: RECORDED,
+    )
     for _ in range(2):
         with restored.transaction("char-b") as tx:
             service.rebuild(tx)
@@ -124,7 +141,16 @@ def test_worker_closes_page_connections_before_model_and_consumes_all_pages(
         lambda: RECORDED,
         timedelta(minutes=10),
     )
-    service = MemoryService(store, evidence, materials, lambda: RECORDED)
+    service = MemoryService(
+        store,
+        MemoryInputs(
+            evidence,
+            materials,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            comment_surfaces=frozenset(),
+        ),
+        lambda: RECORDED,
+    )
     gateway = EchoGateway()
     connections: list[psycopg.Connection[DictRow]] = []
     original_connection = store._connection
@@ -155,11 +181,9 @@ def test_worker_closes_page_connections_before_model_and_consumes_all_pages(
     monkeypatch.setattr(store, "work_page", page)
     monkeypatch.setattr(gateway, "extract_local", extract)
     extractor = MemoryExtractor(
-        evidence=evidence,
-        materials=materials,
+        inputs=service.inputs,
         gateway=gateway,
         non_sensitive_labels=frozenset(),
-        conversation_surfaces=frozenset(),
     )
     worker = MemoryWorker(service, extractor)
     worker._surface("synthetic-chat")
@@ -307,14 +331,16 @@ def test_reinforcement_time_and_unique_sources_survive_restart_and_duplicate_inp
     with store.transaction("char-b") as tx:
         tx.add_memory(old)
     source = turn(turn_id="turn-2")
-    once = reinforce(old, source, relation_type="extends")
+    once = reinforce(old, source, source_turns=(turn(), source), relation_type="extends")
     with store.transaction("char-b") as tx:
         tx.replace_memory(once)
     restored = PostgresMemoryStore(seeded_url)
     saved = restored.get_memory("char-b", OLD_ID)
     assert saved is not None
     with restored.transaction("char-b") as tx:
-        tx.replace_memory(reinforce(saved, source, relation_type="extends"))
+        tx.replace_memory(
+            reinforce(saved, source, source_turns=(turn(), source), relation_type="extends")
+        )
     saved = restored.get_memory("char-b", OLD_ID)
     assert saved is not None
     assert saved.last_reinforced_at == RECORDED

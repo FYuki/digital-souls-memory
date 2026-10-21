@@ -1,7 +1,5 @@
 """Durable leased extraction with input-version checks and atomic projection updates."""
 
-import hashlib
-import json
 import logging
 from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import replace
@@ -9,7 +7,6 @@ from datetime import timedelta
 from threading import Event, Thread
 from uuid import uuid4
 
-from digital_souls_memory.evidence.materials import MaterialDecision
 from digital_souls_memory.evidence.ports import EvidenceUnavailable
 from digital_souls_memory.memory.domain import DeliveryBasis, ExtractionState, MemoryValidationError
 from digital_souls_memory.memory.extraction import MemoryExtractor
@@ -68,34 +65,16 @@ class MemoryWorker:
                         return
                     after = page.next_after
 
-    def _signature(
-        self, character: str, turn_id: str, decision: MaterialDecision, version: int
-    ) -> str:
-        turn = self.service.evidence.get_turn(turn_id)
-        eligible = turn is not None and self.extractor.eligible(character, turn)
-        raw = json.dumps(
-            (
-                decision.text,
-                decision.basis,
-                decision.receipt_version,
-                decision.deadline.isoformat(),
-                version
-                if decision.basis in ("pending", "assumed_full", "receipt_confirmed")
-                else 0,
-                eligible,
-            )
-        )
-        return hashlib.sha256(raw.encode()).hexdigest()
-
     def process(self, character: str, turn_id: str) -> None:
-        decision = self.service.materials.get_decision(character, turn_id)
+        resolved = self.service.inputs.resolve(character, (turn_id,))
+        decision = resolved.turns[0].decision if resolved.turns else None
         if decision is None or decision.basis == "inaccessible":
             return
         now = self.service.clock()
         token = uuid4().hex
         with self.service.store.transaction(character) as tx:
             version = tx.notification_version(turn_id)
-            signature = self._signature(character, turn_id, decision, version)
+            signature = resolved.signature(version)
             old = tx.get_extraction(turn_id)
             if old is not None and old.signature == signature:
                 if old.status in ("done", "failed", "pending"):
@@ -125,19 +104,13 @@ class MemoryWorker:
         if not decision.text:
             return
         try:
-            proposal = self.extractor.propose(character_id=character, turn_ids=(turn_id,))
-            current = self.service.materials.get_decision(character, turn_id)
+            proposal = self.extractor.propose_resolved(character, resolved)
+            current = self.service.inputs.resolve(character, (turn_id,))
             with self.service.store.transaction(character) as tx:
                 saved = tx.get_extraction(turn_id)
                 if saved is None or saved.token != token:
                     return
-                if (
-                    current is None
-                    or self._signature(
-                        character, turn_id, current, tx.notification_version(turn_id)
-                    )
-                    != signature
-                ):
+                if current.signature(tx.notification_version(turn_id)) != signature:
                     tx.save_extraction(replace(saved, status="retry", lease_until=now))
                     return
                 tx.set_candidates(turn_id, proposal.memories)

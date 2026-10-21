@@ -74,7 +74,7 @@ def test_fact_relation_controls_update_and_restatement(
 def setup_worker() -> tuple[Harness, FakeMemoryStore, MemoryService, MemoryWorker]:
     h = Harness(reports_delivery=False)
     store = FakeMemoryStore(h.evidence)
-    service = MemoryService(store, h.evidence, h.materials, lambda: h.now)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
     return h, store, service, MemoryWorker(service, h.extractor)
 
 
@@ -199,8 +199,8 @@ def test_background_scan_revisits_comment_after_owner_reply(reply_actor: str) ->
     from tests.evidence_support import turn
 
     h, _, service, worker = setup_worker()
-    h.extractor.conversation_surfaces = frozenset()
-    h.extractor.comment_surfaces = frozenset({"synthetic-chat"})
+    h.extractor.inputs.conversation_surfaces = frozenset()
+    h.extractor.inputs.comment_surfaces = frozenset({"synthetic-chat"})
     h.evidence.add_turn(turn(actor="user-a"))
     h.gateway.output = (memory(),)
     worker.start()

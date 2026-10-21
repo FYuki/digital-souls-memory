@@ -4,15 +4,14 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Protocol
 
-from digital_souls_memory.evidence.domain import Turn
-from digital_souls_memory.evidence.materials import EvidenceMaterials
-from digital_souls_memory.evidence.ports import EvidenceStore
 from digital_souls_memory.memory.domain import (
     DerivedMemory,
     ExtractionProposal,
     MemoryRelation,
     MemoryValidationError,
 )
+from digital_souls_memory.memory.evidence import independent_evidence_count
+from digital_souls_memory.memory.inputs import MemoryInputs, ResolvedInput
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -59,56 +58,28 @@ class MemoryExtractor:
     def __init__(
         self,
         *,
-        evidence: EvidenceStore,
-        materials: EvidenceMaterials,
+        inputs: MemoryInputs,
         gateway: ExtractionGateway,
         non_sensitive_labels: frozenset[str],
-        conversation_surfaces: frozenset[str],
-        comment_surfaces: frozenset[str] = frozenset(),
     ) -> None:
-        if conversation_surfaces & comment_surfaces:
-            raise MemoryValidationError("Surface classifications overlap")
-        self.evidence = evidence
-        self.materials = materials
+        self.inputs = inputs
         self.gateway = gateway
         self.non_sensitive_labels = non_sensitive_labels
-        self.conversation_surfaces = conversation_surfaces
-        self.comment_surfaces = comment_surfaces
-
-    def eligible(self, character_id: str, turn: Turn) -> bool:
-        if self.materials.characters.is_character(turn.actor) or turn.kind != "utterance":
-            return True
-        if turn.surface in self.conversation_surfaces:
-            return True
-        if turn.surface in self.comment_surfaces:
-            with self.evidence.list_perceived_turns(character_id) as values:
-                return any(
-                    v.actor == character_id and v.reply_to_turn_id == turn.turn_id for v in values
-                )
-        return False
 
     def propose(self, *, character_id: str, turn_ids: tuple[str, ...]) -> ExtractionProposal:
-        turns: dict[str, Turn] = {}
-        for identifier in turn_ids:
-            turn = self.evidence.get_turn(identifier)
-            if (
-                turn is not None
-                and self.materials.get_text(character_id, identifier)
-                and self.eligible(character_id, turn)
-            ):
-                turns[identifier] = turn
+        return self.propose_resolved(character_id, self.inputs.resolve(character_id, turn_ids))
+
+    def propose_resolved(self, character_id: str, resolved: ResolvedInput) -> ExtractionProposal:
+        available = resolved.available
+        turns = {v.turn.turn_id: v.turn for v in available}
         if not turns:
             return ExtractionProposal(memories=())
         public = all(v.sensitivity in self.non_sensitive_labels for v in turns.values())
         inputs: list[LocalTurn] = []
-        for turn in turns.values():
-            text = self.materials.get_text(character_id, turn.turn_id)
-            if not text:
-                return ExtractionProposal(memories=())
-            if turn.reply_to_turn_id is not None:
-                # A reply reference supplies identity metadata, never extra text or perception.
-                if self.evidence.get_turn(turn.reply_to_turn_id) is None:
-                    raise MemoryValidationError("Missing reply target")
+        for material in available:
+            turn = material.turn
+            assert material.decision is not None and material.decision.text
+            text = material.decision.text
             cls = PublicTurn if public else LocalTurn
             inputs.append(
                 cls(
@@ -180,7 +151,7 @@ class MemoryExtractor:
                     candidate,
                     epistemics=replace(
                         candidate.epistemics,
-                        independent_evidence_count=len(set(candidate.source_turn_ids)),
+                        independent_evidence_count=independent_evidence_count(sources),
                     ),
                 )
             )

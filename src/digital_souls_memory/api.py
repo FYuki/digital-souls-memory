@@ -25,6 +25,7 @@ from digital_souls_memory.identity.ports import (
 from digital_souls_memory.identity.use_cases import IdentityService
 from digital_souls_memory.identity_http import identity_router
 from digital_souls_memory.memory.extraction import ExtractionGateway, MemoryExtractor
+from digital_souls_memory.memory.inputs import MemoryInputs
 from digital_souls_memory.memory.ports import MemoryStore, MemoryUnavailable
 from digital_souls_memory.memory.use_cases import MemoryService
 from digital_souls_memory.memory.worker import MemoryWorker
@@ -65,12 +66,9 @@ def create_app(
             worker = MemoryWorker(
                 resolved,
                 MemoryExtractor(
-                    evidence=resolved.evidence,
-                    materials=resolved.materials,
+                    inputs=resolved.inputs,
                     gateway=extraction_gateway,
                     non_sensitive_labels=non_sensitive_labels,
-                    conversation_surfaces=conversation_surfaces,
-                    comment_surfaces=comment_surfaces,
                 ),
             )
             worker.start()
@@ -151,12 +149,16 @@ def create_app(
         evidence = resolve_evidence_store()
         configured_memory = MemoryService(
             resolved_memory,
-            evidence,
-            EvidenceMaterials(
+            MemoryInputs(
                 evidence,
-                IdentityCharacters(resolve_identity_store),
-                registration_clock,
-                delivery_timeout,
+                EvidenceMaterials(
+                    evidence,
+                    IdentityCharacters(resolve_identity_store),
+                    registration_clock,
+                    delivery_timeout,
+                ),
+                conversation_surfaces=conversation_surfaces,
+                comment_surfaces=comment_surfaces,
             ),
             registration_clock,
         )

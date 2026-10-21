@@ -26,6 +26,7 @@ from digital_souls_memory.memory.domain import (
 )
 from digital_souls_memory.memory.ports import (
     MemoryConflict,
+    MemoryContribution,
     MemoryTransaction,
     MemoryUnavailable,
     SurfacePage,
@@ -142,16 +143,21 @@ class _MemoryTransaction:
             (self.character_id, self.character_id),
         )
 
-    def candidates(self) -> tuple[DerivedMemory, ...]:
+    def candidates(self) -> tuple[MemoryContribution, ...]:
         rows = self.connection.execute(
-            "SELECT c.payload FROM memory_candidates c JOIN memory_extractions e "
+            "SELECT c.turn_id,c.payload FROM memory_candidates c JOIN memory_extractions e "
             "USING(character_id,turn_id) WHERE c.character_id=%s AND e.status='done'",
             (self.character_id,),
         ).fetchall()
         values = [
-            restore_memory(r["payload"], tuple(r["payload"]["source_turn_ids"])) for r in rows
+            MemoryContribution(
+                r["turn_id"], restore_memory(r["payload"], tuple(r["payload"]["source_turn_ids"]))
+            )
+            for r in rows
         ]
-        return tuple(sorted(values, key=lambda v: (v.valid_from, v.recorded_at, v.id)))
+        return tuple(
+            sorted(values, key=lambda v: (v.memory.valid_from, v.memory.recorded_at, v.memory.id))
+        )
 
     def generated_ids(self) -> frozenset[str]:
         rows = self.connection.execute(

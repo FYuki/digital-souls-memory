@@ -16,6 +16,7 @@ from digital_souls_memory.memory.domain import (
 from digital_souls_memory.memory.extraction import CloudInput, LocalOnly
 from digital_souls_memory.memory.ports import (
     MemoryConflict,
+    MemoryContribution,
     MemoryTransaction,
     MemoryUnavailable,
     SurfacePage,
@@ -242,14 +243,16 @@ class FakeMemoryTransaction:
     def memories(self) -> tuple[DerivedMemory, ...]:
         return tuple(v for (owner, _), v in self.store.values.items() if owner == self.character)
 
-    def candidates(self) -> tuple[DerivedMemory, ...]:
+    def candidates(self) -> tuple[MemoryContribution, ...]:
         values = [
-            v
+            MemoryContribution(turn, v)
             for (owner, turn), items in self.store.proposals.items()
             if owner == self.character and self.store.states[(owner, turn)].status == "done"
             for v in items
         ]
-        return tuple(sorted(values, key=lambda v: (v.valid_from, v.recorded_at, v.id)))
+        return tuple(
+            sorted(values, key=lambda v: (v.memory.valid_from, v.memory.recorded_at, v.memory.id))
+        )
 
     def generated_ids(self) -> frozenset[str]:
         return frozenset(self.store.generated.get(self.character, set()))
