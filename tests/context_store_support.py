@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from digital_souls_memory.episodes.domain import Episode
+    from digital_souls_memory.evidence.ports import EvidenceStore
     from digital_souls_memory.resident.domain import (
         CharacterState,
         ContextClaim,
@@ -19,8 +20,6 @@ if TYPE_CHECKING:
         ContextWorkState,
         ResolvedWindow,
     )
-
-    from digital_souls_memory.evidence.ports import EvidenceStore
 
 Operation = Literal["state", "episodes"]
 
@@ -228,10 +227,9 @@ class EvidenceContextStore(FakeContextStore):
         super().__init__(self.load_window(key, now=now))
 
     def load_window(self, key: "ContextKey", *, now: datetime) -> "ResolvedWindow":
-        from digital_souls_memory.resident.inputs import resolve_window
-
         from digital_souls_memory.evidence.materials import aggregate_receipts
         from digital_souls_memory.recall.domain import CandidateMaterial
+        from digital_souls_memory.resident.inputs import resolve_window
 
         session = self.evidence.get_session(key.session_id)
         assert session is not None
