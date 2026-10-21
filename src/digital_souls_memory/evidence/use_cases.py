@@ -8,6 +8,7 @@ from digital_souls_memory.evidence.domain import (
     DeliveryReceipt,
     EvidenceValidationError,
     Session,
+    SessionEnding,
     Turn,
     resolve_address_mode,
     validate_receipt,
@@ -39,6 +40,23 @@ class EvidenceService:
         if value is None:
             raise EvidenceNotFound()
         return value
+
+    def add_ending(
+        self, *, session_id: str, ended_at: datetime, reported_by: str
+    ) -> tuple[SessionEnding, bool]:
+        self.get_session(session_id)
+        return self._store.add_ending(
+            SessionEnding(
+                session_id=session_id,
+                ended_at=ended_at,
+                reported_by=reported_by,
+                reported_at=self._clock(),
+            )
+        )
+
+    def list_endings(self, session_id: str) -> tuple[SessionEnding, ...]:
+        self.get_session(session_id)
+        return self._store.list_endings(session_id)
 
     def add_turn(
         self,

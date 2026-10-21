@@ -107,7 +107,7 @@ def test_recall_revision_preserves_evidence_and_memory_through_repeat_and_reappl
                     table: conn.execute(f"SELECT * FROM {table}").fetchall()
                     for table in ("sessions", "turns", "core_identities", "memory_sources")
                 }
-            command.upgrade(config, "head")
+            command.upgrade(config, "0007")
             assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0007",)
             if previous_head:
                 restored = PostgresMemoryStore(url).get_memory("char-b", OLD_ID)
@@ -122,8 +122,8 @@ def test_recall_revision_preserves_evidence_and_memory_through_repeat_and_reappl
                 1.0,
             )
             assert conn.execute("SELECT show_bigm('合成検索') IS NOT NULL").fetchone() == (True,)
-            command.upgrade(config, "head")
-            for target in ("0006", "head"):
+            command.upgrade(config, "0007")
+            for target in ("0006", "0007"):
                 if target == "0006":
                     command.downgrade(config, target)
                 else:
@@ -142,7 +142,7 @@ def test_recall_revision_preserves_evidence_and_memory_through_repeat_and_reappl
                             (OLD_ID,),
                         ).fetchone()
                         assert row == old_row
-                    if target == "head":
+                    if target == "0007":
                         assert PostgresMemoryStore(url).get_memory("char-b", OLD_ID) == replace(
                             memory(), subject="char-c"
                         )

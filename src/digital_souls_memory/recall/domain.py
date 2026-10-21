@@ -10,7 +10,7 @@ from digital_souls_memory.evidence.provision import CandidateRef as CandidateRef
 from digital_souls_memory.evidence.provision import SourceSpan
 from digital_souls_memory.memory.domain import DerivedMemory
 from digital_souls_memory.recall.inputs import InputLabel, ModelInput
-from digital_souls_memory.voice.domain import VerbatimAnchor
+from digital_souls_memory.voice.domain import VerbatimAnchor, VoiceExemplar
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -90,6 +90,9 @@ class ProvisionSnapshot:
     personality_version: int | None
     documents: tuple[DocumentStamp, ...]
     sources: tuple[SourceStamp, ...]
+    profile_version: int | None = None
+    core_identity_version: int | None = None
+    voice_exemplars: tuple[VoiceExemplar, ...] = ()
 
 
 @dataclass(frozen=True, kw_only=True)

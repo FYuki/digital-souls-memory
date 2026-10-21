@@ -207,6 +207,7 @@ def test_cloud_input_rejects_local_material_type() -> None:
     from digital_souls_memory.memory.extraction import CloudInput, LocalTurn, PublicTurn
 
     local = LocalTurn(
+        language="ja",
         turn_id="turn-1",
         text="合成機微原文",
         actor="char-c",

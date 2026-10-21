@@ -58,6 +58,25 @@ class CandidateScore:
 
 
 @dataclass(frozen=True, kw_only=True)
+class ResidentCandidateRef:
+    kind: str
+    identifier: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ResidentCandidateScore:
+    ref: ResidentCandidateRef
+    lexical: float | None
+    semantic: None = None
+    recency: None = None
+    importance: None = None
+    self_relevance: None = None
+    trust: None = None
+    composite: None = None
+    relevance: None = None
+
+
+@dataclass(frozen=True, kw_only=True)
 class ProvisionRecord:
     provision_id: str
     kind: str
@@ -73,6 +92,8 @@ class ProvisionRecord:
     motivation_ids: tuple[str, ...]
     temperament_version: int | None
     personality_version: int | None
-    scores: tuple[CandidateScore, ...]
+    scores: tuple[CandidateScore | ResidentCandidateScore, ...]
     duration_ms: float
     provided_at: datetime
+    profile_entry_ids: tuple[str, ...] = ()
+    core_identity_version: int | None = None

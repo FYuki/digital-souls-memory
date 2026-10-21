@@ -13,7 +13,7 @@ cleanup() {
 }
 trap cleanup EXIT
 mkdir -m 700 "$fixture_dir/socket"
-docker run --detach --name "$container_name" --network none --cpus 1 --memory 512m \
+docker run --detach --name "$container_name" --network none --cpus 1 --memory 1g \
   --user "$(id -u):$(id -g)" \
   --tmpfs "/var/lib/postgresql:uid=$(id -u),gid=$(id -g),mode=0700" \
   --mount "type=bind,source=$fixture_dir/socket,target=/var/run/postgresql" \

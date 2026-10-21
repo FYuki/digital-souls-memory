@@ -8,6 +8,7 @@ import psycopg
 from psycopg.rows import DictRow, dict_row
 from psycopg.types.json import Jsonb
 
+from digital_souls_memory.adapters.postgres_resident import check_profile_snapshot
 from digital_souls_memory.adapters.recall_records import (
     current_stamp,
     provision_payload,
@@ -22,6 +23,8 @@ from digital_souls_memory.evidence.provision import (
 from digital_souls_memory.identity.sessions import SessionIdentity
 from digital_souls_memory.recall.domain import DocumentStamp, ProvisionSnapshot, VectorSpace
 from digital_souls_memory.recall.eligibility import snapshot_matches
+from digital_souls_memory.resident.domain import ProfileSnapshot
+from digital_souls_memory.voice.domain import VoiceExemplar
 
 
 class PostgresSessionIdentityStore:
@@ -80,6 +83,11 @@ class PostgresProvisionStore:
 
     def save(self, record: ProvisionRecord, *, snapshot: ProvisionSnapshot) -> None:
         with self._connection() as connection:
+            if record.kind == "resident":
+                connection.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s,0))",
+                    (snapshot.character_id,),
+                )
             # Writers acquire this gate before touching notification or document rows.
             connection.execute("SELECT pg_advisory_xact_lock(hashtextextended('recall-state',0))")
             connection.execute(
@@ -93,6 +101,32 @@ class PostgresProvisionStore:
             ).fetchone()
             if selection is None:
                 raise ProvisionUnavailable()
+            if record.kind == "resident":
+                assert snapshot.profile_version is not None
+                check_profile_snapshot(
+                    connection,
+                    ProfileSnapshot(
+                        character_id=snapshot.character_id,
+                        version=snapshot.profile_version,
+                        documents=snapshot.documents,
+                        sources=snapshot.sources,
+                        observed_at=record.provided_at,
+                    ),
+                    self.timeout,
+                )
+                core = connection.execute(
+                    "SELECT max(version) AS version FROM core_identities WHERE character_id=%s",
+                    (snapshot.character_id,),
+                ).fetchone()
+                if core is None or core["version"] != snapshot.core_identity_version:
+                    raise ProvisionUnavailable()
+                for expected in snapshot.voice_exemplars:
+                    voice = connection.execute(
+                        "SELECT * FROM voice_exemplars WHERE character_id=%s AND exemplar_id=%s",
+                        (snapshot.character_id, expected.exemplar_id),
+                    ).fetchone()
+                    if voice is None or VoiceExemplar(**voice) != expected:
+                        raise ProvisionUnavailable()
             sources = []
             for stamp in snapshot.sources:
                 actual = current_stamp(
@@ -137,6 +171,9 @@ class PostgresProvisionStore:
                 personality_version=selection["personality_version"],
                 documents=tuple(documents[v.ref] for v in snapshot.documents),
                 sources=tuple(sources),
+                profile_version=snapshot.profile_version,
+                core_identity_version=snapshot.core_identity_version,
+                voice_exemplars=snapshot.voice_exemplars,
             )
             if not snapshot_matches(snapshot, actual_snapshot):
                 raise ProvisionUnavailable()

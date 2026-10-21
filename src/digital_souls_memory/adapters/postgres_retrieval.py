@@ -384,3 +384,27 @@ class PostgresRetrievalStore:
                 (character_id, list(turn_ids)),
             ).fetchall()
             return tuple(self._restore(row) for row in rows)
+
+    def get_candidates(
+        self, *, refs: tuple[CandidateRef, ...], now: datetime
+    ) -> tuple[RecallCandidate, ...]:
+        values = []
+        with self._connection() as connection:
+            for ref in refs:
+                row = connection.execute(
+                    "SELECT d.*,0.0 AS semantic,0.0 AS lexical,"
+                    "(SELECT max(t.occurred_at) FROM recall_document_sources s JOIN turns t"
+                    " USING(turn_id) "
+                    "WHERE s.owner_id=d.owner_id AND s.kind=d.kind AND "
+                    "s.identifier=d.identifier) AS occurred_at "
+                    "FROM recall_documents d WHERE d.owner_id=%s AND d.kind=%s AND "
+                    "d.identifier=%s AND d.ready",
+                    _key(ref),
+                ).fetchone()
+                if row is not None:
+                    value = self._restore(row)
+                    if value.memory is None or memory_allowed(
+                        value.memory, character_id=ref.owner_id, now=now
+                    ):
+                        values.append(value)
+        return tuple(values)

@@ -11,6 +11,7 @@ from digital_souls_memory.evidence.domain import (
     DeliveryReceipt,
     EvidenceValidationError,
     Session,
+    SessionEnding,
     Turn,
 )
 from digital_souls_memory.evidence.ports import (
@@ -64,10 +65,44 @@ class PostgresEvidenceStore:
     def get_session(self, session_id: str) -> Session | None:
         with self._connection() as connection:
             row = connection.execute(
-                "SELECT * FROM sessions WHERE session_id = %s",
+                "SELECT s.session_id,s.started_at,coalesce(e.ended_at,s.ended_at) AS ended_at,"
+                "s.surface,s.reports_delivery FROM sessions s LEFT JOIN session_endings e "
+                "ON e.session_id=s.session_id WHERE s.session_id = %s",
                 (session_id,),
             ).fetchone()
         return Session(**row) if row is not None else None
+
+    def add_ending(self, value: SessionEnding) -> tuple[SessionEnding, bool]:
+        with self._connection() as connection:
+            connection.execute("SELECT pg_advisory_xact_lock(hashtextextended('recall-state',0))")
+            original = connection.execute(
+                "SELECT ended_at FROM sessions WHERE session_id=%s FOR UPDATE", (value.session_id,)
+            ).fetchone()
+            if original is None:
+                raise EvidenceNotFound()
+            previous = connection.execute(
+                "SELECT * FROM session_endings WHERE session_id=%s", (value.session_id,)
+            ).fetchone()
+            if previous is not None:
+                result = SessionEnding(**previous)
+                if (result.ended_at, result.reported_by) != (value.ended_at, value.reported_by):
+                    raise EvidenceConflict()
+                return result, False
+            if original["ended_at"] is not None and original["ended_at"] != value.ended_at:
+                raise EvidenceConflict()
+            connection.execute(
+                "INSERT INTO session_endings(session_id,ended_at,reported_by,reported_at) "
+                "VALUES(%s,%s,%s,%s)",
+                (value.session_id, value.ended_at, value.reported_by, value.reported_at),
+            )
+        return value, True
+
+    def list_endings(self, session_id: str) -> tuple[SessionEnding, ...]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT * FROM session_endings WHERE session_id=%s", (session_id,)
+            ).fetchall()
+        return tuple(SessionEnding(**row) for row in rows)
 
     def add_turn(self, value: Turn) -> None:
         with self._connection() as connection:
