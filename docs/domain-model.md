@@ -91,7 +91,7 @@ Session.participants と Turn.audience は廃止し、Memory は在席・視聴�
 | ├ Relationship | counterpart, affection, trust, status。「嫌いじゃないが信用していない」を表せるよう感情と信頼を分ける。視聴者ごとの記憶もここで持つ |
 | ├ Commitment | content, deadline, verbatim\_turn\_id（必須） |
 | └ Summary／Key | 検索キー用の要約と事実 |
-| Epistemics（値） | source\_type（direct\_user／observed／inferred／reflection）, trust\_tier（A〜F）, confidence\_features{retrieval, source, contradiction, temporal, corroboration, self\_assessment}, independent\_evidence\_count, contradiction\_ids\[\] |
+| Epistemics（値） | source\_type（direct\_user／observed／inferred／reflection）, trust\_tier（A〜F）, confidence\_features{retrieval, source, contradiction, temporal, corroboration, self\_assessment}, independent\_evidence\_count（機会も話者も重複しない出典の組の数。[ADR 0023](decisions/0023-extraction-unit-and-independent-evidence.md)）, contradiction\_ids\[\] |
 | IdentityLinks（値） | self\_relevance, value\_links\[\], relationship\_links\[\]。内省時の検索に使う |
 | MemoryRelation | from, to, type（updates／extends／derives／contradicts） |
 | CharacterProfile | 常駐させる ProfileEntry の集合、トークン上限 |
@@ -218,7 +218,7 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 3. **ターン想起**：Core がターン想起 API を呼ぶ。Memory は派生記憶をキーに検索し、ヒットした原文区間を値として返す（M2）。組み立て済みのコンテキスト片と素材（記憶・原文の一覧）のどちらで返すかを指定できる。約束や記念日なら VerbatimAnchor の原文を必ず含める。返した内容を ProvisionRecord に残す（M4）。Core は目標の2秒を守るため 400ms で打ち切り、記憶なしで続ける。必達の4秒は打ち切り後の経路でも満たす。
 4. **応答生成**：Core が応答を生成する。記憶に根拠がなければ「覚えていない」と返す経路を Core のプロンプトに持たせる。
 5. **キャラ発話の登録**：Core が生成全文に機微判定を行い、本人を含む perceived_by・addressees・address_mode・任意の reply_to_turn_id とともに Turn を登録する。reports_delivery=false なら即時全文確定とし、Receipt を拒否する。true のキャラ発話は相手に届いた範囲を DeliveryReceipt で追記し、未着中は他キャラの抽出を保留して recorded_at から既定10分（設定可）で全文のみなし確定とする。宣言による確定・保留・実 Receipt 確定・みなし確定を区別し、全文や宛先は書き換えない。Core が内心を記録する場合は kind=thought / perceived_by=[actor] とし、Receipt は付けない。
-6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。キャラ別の根拠は M6 と Session の報告宣言に応じた配達範囲に限る。thought は発言者本人の記憶にだけ使い、相手は addressees と actor で決め、self から Relationship・Commitment を抽出しない。抽出時に新しい Turn と既存の DerivedMemory を照合し、再強化か事実の更新かを判定する。再強化の対象・更新方法は「検索と忘却」に従う。
+6. **裏処理**：Memory は CharacterState の更新と派生記憶の抽出（ゲート M5 経由）を、窓口ごとに非同期で行う。抽出は新しい Turn とその返信先の Turn からなる1往復を単位とし、複数の往復や Episode を踏まえた抽出は別の非同期処理で行う（[ADR 0023](decisions/0023-extraction-unit-and-independent-evidence.md)）。キャラ別の根拠は M6 と Session の報告宣言に応じた配達範囲に限る。thought は発言者本人の記憶にだけ使い、相手は addressees と actor で決め、self から Relationship・Commitment を抽出しない。抽出時に新しい Turn と既存の DerivedMemory を照合し、再強化か事実の更新かを判定する。再強化の対象・更新方法は「検索と忘却」に従う。
 
 ### 遅いループ：内省から人格更新まで（イベント駆動）
 
