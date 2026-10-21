@@ -3,6 +3,7 @@ from datetime import timedelta
 from threading import Event
 from uuid import NAMESPACE_URL, uuid5
 
+import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
@@ -27,6 +28,59 @@ def register_characters() -> None:
                 f"/characters/{identifier}/core-identities",
                 json={"values": ["誠実"], "prohibitions": []},
             ).is_success
+
+
+@pytest.mark.parametrize("kind", ["memory", "anchor"])
+def test_index_normalizes_search_key_and_keeps_original_model_text(
+    app_database_url: str, monkeypatch: pytest.MonkeyPatch, kind: str
+) -> None:
+    from digital_souls_memory.adapters.postgres_retrieval import PostgresRetrievalStore
+    from digital_souls_memory.adapters.postgres_voice import PostgresVoiceStore
+    from digital_souls_memory.evaluation.retrieval import normalized_key
+    from digital_souls_memory.recall.worker import IndexWorker
+    from tests.recall_fixtures import SPACE
+    from tests.recall_support import RecordingEmbedding
+    from tests.voice_support import anchor
+
+    monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
+    register_characters()
+    original = "ＡＢ Straße ｶﾞｸ"
+    evidence = PostgresEvidenceStore(app_database_url)
+    evidence.add_session(session(reports_delivery=kind == "anchor"))
+    evidence.add_turn(turn(text=original + ("未配達の末尾" if kind == "anchor" else "")))
+    if kind == "memory":
+        with PostgresMemoryStore(app_database_url).transaction("char-b") as tx:
+            tx.add_memory(replace(memory(), content=original))
+    else:
+        evidence.add_receipt(receipt("partial", len(original)))
+        with PostgresVoiceStore(app_database_url).transaction("char-b") as voice:
+            voice.add_anchor(replace(anchor(), character_id="char-b"))
+    index = PostgresRetrievalStore(app_database_url)
+    embedding = RecordingEmbedding()
+    (work,) = index.claim(space=SPACE, now=RECORDED, limit=1)
+    IndexWorker(index, embedding, space=SPACE, clock=lambda: RECORDED).process(work)
+
+    assert [(value.texts, purpose) for value, purpose in embedding.calls] == [
+        ((original,), "passage")
+    ]
+    with psycopg.connect(app_database_url) as conn:
+        assert conn.execute("SELECT search_text FROM recall_documents WHERE ready").fetchall() == [
+            (normalized_key(original),)
+        ]
+    query = embedding.calls[0][0]
+    (restored,) = index.search(
+        character_id="char-b",
+        query=query,
+        query_vector=embedding.embed(query, purpose="query"),
+        now=RECORDED,
+        limit=20,
+    )
+    assert restored.search_text == original
+    assert restored.lexical == pytest.approx(1.0)
+    if kind == "anchor":
+        (related,) = index.anchors_for(character_id="char-b", turn_ids=("turn-1",), now=RECORDED)
+        assert related.search_text == original
+        assert related.dependencies[0].used_end == len(original)
 
 
 @pytest.mark.parametrize("change", ["receipt", "projection"])

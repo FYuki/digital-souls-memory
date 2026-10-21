@@ -32,6 +32,7 @@ from digital_souls_memory.recall.domain import (
 from digital_souls_memory.recall.eligibility import memory_allowed
 from digital_souls_memory.recall.indexing import IndexInput, IndexWork
 from digital_souls_memory.recall.inputs import InputLabel, LocalOnly, ModelInput
+from digital_souls_memory.recall.lexical import normalized_key
 from digital_souls_memory.voice.domain import VerbatimAnchor
 
 
@@ -263,7 +264,7 @@ class PostgresRetrievalStore:
                 "embedding=%s::vector,payload=%s,dependencies=%s,labels=%s "
                 "WHERE owner_id=%s AND kind=%s AND identifier=%s",
                 (
-                    candidate.search_text,
+                    normalized_key(candidate.search_text),
                     candidate.document.content_digest,
                     space.model,
                     space.revision,
@@ -309,16 +310,22 @@ class PostgresRetrievalStore:
             else None
         )
         anchor = None
+        dependencies = tuple(restore_stamp(v) for v in row["dependencies"]["values"])
         if ref.anchor_id:
             payload = row["payload"]
             anchor = VerbatimAnchor(
                 **(payload | {"registered_at": datetime.fromisoformat(payload["registered_at"])})
             )
+            used_end = next(v.used_end for v in dependencies if v.turn_id == anchor.turn_id)
+            search_text = row["source_text"][:used_end]
+        else:
+            assert memory is not None
+            search_text = memory.content
         return RecallCandidate(
             ref=ref,
             memory=memory,
             anchor=anchor,
-            search_text=row["search_text"],
+            search_text=search_text,
             semantic=float(row["semantic"]),
             lexical=float(row["lexical"]),
             importance=0.5,
@@ -334,7 +341,7 @@ class PostgresRetrievalStore:
                     dimensions=row["dimensions"],
                 ),
             ),
-            dependencies=tuple(restore_stamp(v) for v in row["dependencies"]["values"]),
+            dependencies=dependencies,
             labels=tuple(InputLabel(**v) for v in row["labels"]),
         )
 
@@ -369,7 +376,7 @@ class PostgresRetrievalStore:
     ) -> tuple[RecallCandidate, ...]:
         with self._connection() as connection:
             rows = connection.execute(
-                "SELECT d.*,t.occurred_at,0.0 AS semantic,0.0 AS lexical "
+                "SELECT d.*,t.occurred_at,t.text AS source_text,0.0 AS semantic,0.0 AS lexical "
                 "FROM recall_documents d JOIN verbatim_anchors a "
                 "ON a.character_id=d.owner_id AND a.anchor_id=d.identifier JOIN turns t "
                 "USING(turn_id) "

@@ -15,6 +15,7 @@ from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStor
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.adapters.postgres_retrieval import PostgresRetrievalStore
 from digital_souls_memory.adapters.postgres_voice import PostgresVoiceStore
+from digital_souls_memory.evaluation.retrieval import lexical_terms, normalized_key
 from digital_souls_memory.recall.domain import EmbeddingBatch, RecallCandidate
 from digital_souls_memory.recall.inputs import InputLabel, LocalOnly
 from tests.evidence_support import RECORDED, receipt, session, turn
@@ -55,8 +56,10 @@ def publish(index: PostgresRetrievalStore, *, now: datetime) -> None:
         assert index.publish(work, input=loaded, embedding=batch(similarity), now=now)
 
 
-@pytest.mark.parametrize("query", ["日本語", "日", "%", "_", "\\", "'", "該当なし"])
-def test_search_preserves_legacy_candidate_union_and_bigm_scores(
+@pytest.mark.parametrize(
+    "query", ["日本語", "日", "%", "_", "\\", "'", "該当なし", "青い駅", "ＡＢＣ", "Straße", ""]
+)
+def test_search_unions_semantic_and_term_candidates_with_evaluation_ratios(
     app_database_url: str, monkeypatch: pytest.MonkeyPatch, query: str
 ) -> None:
     monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
@@ -71,9 +74,10 @@ def test_search_preserves_legacy_candidate_union_and_bigm_scores(
         "日本語",
         "日本語あ",
         "日本語あい",
-        "日本語あいう",
-        "日本語あいうえ",
-        "日本語の長い文書",
+        "青い空",
+        "赤い駅",
+        "ＡＢのみ",
+        "STRASSE",
         "100%",
         "a_b",
         "a\\b",
@@ -98,20 +102,19 @@ def test_search_preserves_legacy_candidate_union_and_bigm_scores(
             "ORDER BY embedding <=> %s::vector LIMIT 6",
             ("[1," + ",".join(["0"] * 1023) + "]",),
         ).fetchall()
-        lexical = conn.execute(
-            "SELECT owner_id,kind,identifier FROM recall_documents "
-            "WHERE search_text LIKE likequery(%s) "
-            "ORDER BY bigm_similarity(search_text,%s) DESC LIMIT 6",
-            (query, query),
+        documents = conn.execute(
+            "SELECT owner_id,kind,identifier,search_text FROM recall_documents"
         ).fetchall()
-        scores = {
-            (owner, kind, identifier): score
-            for owner, kind, identifier, score in conn.execute(
-                "SELECT owner_id,kind,identifier,bigm_similarity(search_text,%s) "
-                "FROM recall_documents",
-                (query,),
-            )
-        }
+    terms = lexical_terms(query)
+    scores = {
+        (owner, kind, identifier): (
+            sum(term in normalized_key(text) for term in terms) / len(terms) if terms else 0.0
+        )
+        for owner, kind, identifier, text in documents
+    }
+    # Each query has at most six lexical matches, avoiding an unspecified order among ties.
+    lexical = {key for key, value in scores.items() if value > 0}
+    assert len(lexical) <= 6
 
     found = search(index, query, reader="char-b", now=RECORDED, limit=6)
 
@@ -173,7 +176,8 @@ def test_search_refills_after_ineligible_leading_candidates(
                 replace(
                     memory(),
                     id=f"allowed-{i}",
-                    content="日本語の記憶",
+                    # Keep denied rows ahead under term-ratio ordering to exercise refill.
+                    content="日本の記憶",
                     source_turn_ids=("control",),
                 )
             )
@@ -392,7 +396,7 @@ def test_product_search_uses_lexical_index_without_document_seq_scan_at_ten_thou
 
     monkeypatch.setattr(index, "_connection", observed_connection)
 
-    found = search(index, "日本語", reader="char-b", now=RECORDED, limit=200)
+    found = search(index, "青い駅 日本語", reader="char-b", now=RECORDED, limit=200)
 
     assert len(found) >= 200
     assert nodes, "No product candidate query was explained"

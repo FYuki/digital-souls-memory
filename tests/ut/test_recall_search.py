@@ -86,6 +86,50 @@ class TrackedRow(dict[str, object]):
     pass
 
 
+@pytest.mark.parametrize("query,expected", [("abc abc", 0.5), ("zzz", 0.0), ("%_\\", 0.0)])
+def test_search_computes_term_ratio_for_semantic_candidates(
+    monkeypatch: pytest.MonkeyPatch, query: str, expected: float
+) -> None:
+    source = turn(text="ab")
+    document = {
+        "allowed": True,
+        "owner_id": "char-b",
+        "kind": "memory",
+        "identifier": "semantic",
+        "search_text": "ab",
+        "semantic": 0.9,
+        "lexical": 0.93,
+        "payload": {"source_turn_ids": [source.turn_id]},
+        "dependencies": {"values": [asdict(source_stamp(source, character_id="char-b"))]},
+    }
+
+    def material(connection: object, turn_id: str) -> CandidateMaterial:
+        return CandidateMaterial(
+            turn=source,
+            session=session(reports_delivery=False),
+            actor_is_character=True,
+            receipt_state=ReceiptState(None, 0),
+        )
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_material", material)
+    connection = SearchConnection([document])
+    (found,) = search_rows(
+        cast(psycopg.Connection[DictRow], connection),
+        character_id="char-b",
+        text=query,
+        vector="[1,0]",
+        space=SPACE,
+        now=RECORDED,
+        timeout=timedelta(minutes=10),
+        limit=2,
+    )
+
+    assert found["lexical"] == pytest.approx(expected)
+    assert found["semantic"] == pytest.approx(0.9)
+    if query == "%_\\":
+        assert connection.closed == 1
+
+
 @pytest.mark.parametrize("denied_count", [64, 512])
 @pytest.mark.parametrize("allowed_count", [0, 2, 3, 9])
 @pytest.mark.parametrize("missing", [False, True])
@@ -107,6 +151,7 @@ def test_refill_bounds_live_rows_keys_and_sources(
         live_ids.add(identifier)
         live_ids.add(source_id)
         row = TrackedRow(
+            search_text="日本語",
             allowed=True,
             owner_id="char-b",
             kind="memory",
@@ -177,6 +222,7 @@ def test_refill_deduplicates_candidates_and_reuses_evidence_only_within_search(
     dependency = asdict(source_stamp(source, character_id="char-b"))
     documents = [
         {
+            "search_text": "日本語",
             "allowed": True,
             "owner_id": "char-b",
             "kind": "memory",
@@ -223,8 +269,8 @@ def test_refill_deduplicates_candidates_and_reuses_evidence_only_within_search(
     state = ReceiptState(len(source.text), 1)
     assert {row["identifier"] for row in run()} == {"allowed-1", "allowed-2"}
     assert reads == [source.turn_id]
-    assert connection.limits == [2, 4, 2, 4]
-    assert connection.settings == ["on", "on", "off", "off"]
+    assert max(connection.fetch_sizes) <= 2
+    assert connection.closed == len(connection.limits)
     assert connection.setting == "on"
     state = ReceiptState(1, 2)
     assert run() == ()
@@ -238,6 +284,7 @@ def test_search_uses_support_time_and_checks_extra_input_dependencies(
     reply = replace(source, turn_id="reply", occurred_at=RECORDED + timedelta(days=1))
     documents = [
         {
+            "search_text": "日本語",
             "allowed": True,
             "owner_id": "char-b",
             "kind": "anchor",
@@ -297,6 +344,7 @@ def test_dependencies_survive_cache_eviction_without_changing_support_time(
         + [source]
     )
     row = {
+        "search_text": "日本語",
         "allowed": True,
         "owner_id": "char-b",
         "kind": "anchor",
@@ -372,6 +420,7 @@ def test_search_closes_cursor_and_propagates_failure(
     connection = FailingConnection(
         [
             {
+                "search_text": "日本語",
                 "allowed": True,
                 "owner_id": "char-b",
                 "kind": "anchor",

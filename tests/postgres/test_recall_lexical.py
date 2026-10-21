@@ -43,7 +43,7 @@ def test_lexical_match_outside_semantic_limit_reaches_http_and_provision(
     )
     for i in range(21):
         identifier = "target" if i == 20 else f"distractor-{i:02d}"
-        text = "日本語の原文" if i == 20 else "合成された別の文書"
+        text = "ＡＢの原文" if i == 20 else "合成された別の文書"
         evidence.add_turn(turn(turn_id=identifier, text=text))
         if kind == "memory":
             with PostgresMemoryStore(app_database_url).transaction("char-b") as tx:
@@ -82,7 +82,7 @@ def test_lexical_match_outside_semantic_limit_reaches_http_and_provision(
             clock=lambda: RECORDED,
         )
     ) as client:
-        for text in ("英語", "日本語"):
+        for text in ("英語", "ＡＢＣ"):
             query = LocalOnly(texts=(text,), labels=(InputLabel("synthetic-sensitive", "v1"),))
             candidates = index.search(
                 character_id="char-b",
@@ -108,16 +108,16 @@ def test_lexical_match_outside_semantic_limit_reaches_http_and_provision(
             response = client.post("/characters/char-b/recall", json=payload)
             assert response.is_success
             body = response.json()
-            expected = ["target"] if text == "日本語" else []
+            expected = ["target"] if text == "ＡＢＣ" else []
             assert [v["id"] for v in body["memories"]] == (expected if kind == "memory" else [])
             assert [v["anchor_id"] for v in body["verbatim_anchors"]] == (
                 expected if kind == "anchor" else []
             )
             assert len(candidates) == (21 if expected else 20)
             assert (target in {v.ref for v in candidates}) is bool(expected)
-            assert [v["text"] for v in body["source_spans"]] == (
-                ["日本語の原文"] if expected else []
-            )
+            if expected:
+                assert next(v.lexical for v in candidates if v.ref == target) == pytest.approx(0.5)
+            assert [v["text"] for v in body["source_spans"]] == (["ＡＢの原文"] if expected else [])
             record = PostgresProvisionStore(app_database_url).get(body["provision_id"])
             assert record is not None
             assert list(record.memory_ids) == (expected if kind == "memory" else [])
@@ -126,3 +126,10 @@ def test_lexical_match_outside_semantic_limit_reaches_http_and_provision(
                 v["text"] for v in body["source_spans"]
             ]
             assert (target in {v.ref for v in reranker.calls[-1].documents}) is bool(expected)
+
+            if expected:
+                scores = {value.ref: value for value in record.scores}
+                assert scores[target].lexical == pytest.approx(0.5)
+                document = next(v for v in reranker.calls[-1].documents if v.ref == target)
+                assert document.input.texts == ("ＡＢの原文",)
+                assert reranker.calls[-1].query.texts == (text,)
