@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: pgvector/pgvector:0.8.2-pg18-bookworm@sha256:42e7f6b4e1eceb02ff14e3e6bc6108bbe259abbe83879dc1845d0da1ddeb555d
+    image: memory-retrieval-postgres:pg18-vector0.8.2-pgroonga4.1.0-bigm735dceb
+    build:
+      context: docker/retrieval-postgres
     environment:
       POSTGRES_USER: memory
       POSTGRES_DB: memory

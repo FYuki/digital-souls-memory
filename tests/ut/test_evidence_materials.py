@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from dataclasses import replace
 from datetime import timedelta
 
@@ -175,3 +176,61 @@ def test_speaker_full_text_is_never_recorded_as_receipt_confirmation(delivery: b
     assert value.text == TEXT
     assert value.basis == ("original" if delivery else "declared_full")
     assert value.receipt_version == 0
+
+
+def test_receipt_count_and_latest_appended_range_include_repeated_corrections() -> None:
+    history = (
+        receipt("none", 0),
+        receipt("partial", 3),
+        receipt("full", 6),
+        replace(receipt("partial", 3), reported_at=RECORDED - timedelta(hours=1)),
+    )
+    value = material_decision(
+        character_id="char-b",
+        session=session(),
+        turn=turn(text="日本語の原文"),
+        actor_is_character=True,
+        receipts=iter(history),
+        now=RECORDED,
+        delivery_timeout=timedelta(minutes=10),
+    )
+    assert (value.text, value.basis, value.receipt_version) == ("日本語", "receipt_confirmed", 4)
+
+
+@pytest.mark.parametrize(
+    "delivery,actor,kind,reader,expected,basis",
+    [
+        (False, "char-c", "utterance", "char-b", TEXT, "declared_full"),
+        (True, "viewer", "utterance", "char-b", TEXT, "original"),
+        (True, "char-c", "observation", "char-b", TEXT, "original"),
+        (True, "char-c", "utterance", "char-c", TEXT, "original"),
+        (True, "char-c", "thought", "char-c", TEXT, "original"),
+        (True, "char-c", "utterance", "char-a", None, "inaccessible"),
+    ],
+)
+def test_early_material_decisions_do_not_consume_receipts(
+    delivery: bool,
+    actor: str,
+    kind: str,
+    reader: str,
+    expected: str | None,
+    basis: str,
+) -> None:
+    def unreadable() -> Iterator[DeliveryReceipt]:
+        raise AssertionError("This decision does not require receipts")
+        yield
+
+    value = material_decision(
+        character_id=reader,
+        session=session(reports_delivery=delivery),
+        turn=turn(
+            actor=actor,
+            kind=kind,
+            perceived_by=(actor,) if kind == "thought" else ("char-b", "char-c"),
+        ),
+        actor_is_character=actor == "char-c",
+        receipts=unreadable(),
+        now=RECORDED,
+        delivery_timeout=timedelta(minutes=10),
+    )
+    assert (value.text, value.basis, value.receipt_version) == (expected, basis, 0)

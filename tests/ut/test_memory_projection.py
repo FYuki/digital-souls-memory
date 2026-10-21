@@ -59,7 +59,7 @@ def test_projection_recounts_support_and_read_does_not_write(origin: str) -> Non
                     receipt_version=decision.receipt_version,
                 )
             )
-            tx.set_candidates("turn-1", (value,))
+            tx.set_candidates("turn-1", (value,), dependencies=resolved.dependencies())
         service.rebuild(tx)
     saved = store.get_memory("char-b", value.id)
     assert saved is not None

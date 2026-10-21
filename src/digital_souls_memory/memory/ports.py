@@ -6,7 +6,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
-from digital_souls_memory.memory.domain import DerivedMemory, ExtractionState, MemoryRelation
+from digital_souls_memory.memory.domain import (
+    DerivedMemory,
+    ExtractionState,
+    InputDependency,
+    MemoryRelation,
+)
 
 
 class MemoryConflict(Exception):
@@ -55,7 +60,13 @@ class MemoryTransaction(Protocol):
     def candidates(self) -> tuple[MemoryContribution, ...]: ...
     def generated_ids(self) -> frozenset[str]: ...
     def add_generated(self, value: DerivedMemory) -> None: ...
-    def set_candidates(self, turn_id: str, values: tuple[DerivedMemory, ...]) -> None: ...
+    def set_candidates(
+        self,
+        turn_id: str,
+        values: tuple[DerivedMemory, ...],
+        *,
+        dependencies: tuple[InputDependency, ...],
+    ) -> None: ...
     def clear_projection_relations(self) -> None: ...
     def get_extraction(self, turn_id: str) -> ExtractionState | None: ...
     def save_extraction(self, value: ExtractionState) -> None: ...
