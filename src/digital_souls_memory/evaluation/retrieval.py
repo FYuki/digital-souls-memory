@@ -1,6 +1,7 @@
 """Pure eligibility, source recovery and scoring rules for comparison fixtures."""
 
-import unicodedata
+from digital_souls_memory.recall.lexical import lexical_terms as lexical_terms
+from digital_souls_memory.recall.lexical import normalized_key as normalized_key
 
 from .context import context_payload
 from .models import (
@@ -75,22 +76,6 @@ def composite_score(components: object, weights: object) -> float:
     if set(values) != COMPONENTS:
         raise ValueError("Six score components required")
     return sum(unit(values[key]) * unit(coefficients[key]) for key in sorted(COMPONENTS))
-
-
-def normalized_key(text: str) -> str:
-    return unicodedata.normalize("NFKC", text).casefold()
-
-
-def lexical_terms(text: str) -> tuple[str, ...]:
-    terms: set[str] = set()
-    sequence = ""
-    for char in normalized_key(text) + " ":
-        if char.isalnum():
-            sequence += char
-        elif sequence:
-            terms.update(sequence[i : i + 2] for i in range(max(1, len(sequence) - 1)))
-            sequence = ""
-    return tuple(sorted(terms))
 
 
 def score_components(

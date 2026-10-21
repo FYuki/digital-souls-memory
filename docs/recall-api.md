@@ -24,6 +24,14 @@ memories.content は検索キーであり、原文より正しい事実や実行
 モデル定義は製品内の recall/settings.py に固定します。bge-m3 Q8_0 / CLS / 1024次元と
 pg_bigm、bge-reranker-v2-m3 を使います。モデル・revision・SHA-256・次元を区別します。
 意味候補と語彙候補を各200件まで取得して合わせ、6項の合成上位20件をrerankします。
+検索キーは評価ハーネスと共有する `normalized_key()`（NFKC＋casefold）で保存します。
+query は共有する `lexical_terms()` で正規化後、英数字・日本語など `isalnum()` の連続を
+隣接2文字のtermへ分割し、1文字の区間はその1文字を使い、重複を除去します。
+語彙候補は各termの `search_text LIKE likequery(term)` のOR一致で絞り、一致term数順に取得します。
+lexical は意味経路で取得した候補も含め、一致term数／全term数です。
+termが空なら語彙候補を取得せず、意味候補のlexicalは0です。
+embedding・rerankerへの入力は原文を保持します。記憶はpayloadのcontent、アンカーは保存済み
+依存の `used_end` までの出典本文を復元し、正規化した検索キーをモデルへ渡しません。
 raw relevance が -2 未満なら棄却し、残りはrelevance降順・同点は候補ID順です。
 初期重みは意味0.55・語彙0.25・新しさ／重要度／自己関連度／信頼度を各0.05とします。
 RecallSettingsで重み・閾値を注入できます。新しさの半減期は30日、重要度は0.5です。
@@ -71,8 +79,9 @@ bash tools/with-test-postgres.sh uv run --no-sync python -m tools.measure_recall
 
 ### Issue #36 の索引検索と合成測定（2026-10-21）
 
-語彙候補は保存済み検索文書の `LIKE likequery(query)` を GIN `recall_lexical` で絞り、
-`bigm_similarity` の降順で取得します。語彙候補カーソルの DECLARE の間だけ、
+Issue #36時点では語彙候補を検索文全体の `LIKE likequery(query)` で絞り、
+`bigm_similarity` の降順で取得していました。Issue #38で上記のterm単位へ変更しています。
+GIN `recall_lexical` を使用し、語彙候補カーソルの DECLARE の間だけ、
 トランザクションローカルの `enable_seqscan=off` を使い、出典読み取り前に元の値へ戻します。
 意味候補は既存の cosine 距離順・モデル空間条件を保持します。
 候補参照の取得後に本文を主キーで復元し、現在の公開範囲・有効期間と全入力依存を検査します。
@@ -108,6 +117,29 @@ LRUに保持します。存在しない出典の記録もこの容量に含め�
 20回の測定中はEXPLAINを実行しません。
 10,000件では `recall_lexical` と `recall_vector` の利用、および
 `recall_documents` の Seq Scan が0件であることを確認しました。
+
+### Issue #38 のterm一致率と合成測定（2026-10-21）
+
+現行のterm単位のOR検索・一致率で、同じ計測コマンドを再実行しました。
+PostgreSQL 18.6・pgvector 0.8.2・pg_bigm の使い捨てコンテナ
+（1 CPU、512MiB、DBはtmpfs、ネットワーク無効、Unix socket）を使用しています。
+合成記憶は全件がquery「日本語」の2term（`日本`・`本語`）に一致します。
+モデルはfake、各5回のウォームアップ後に20回測定し、返却は各規模で5記憶でした。
+索引構築時間は測定から分離し、HTTP時間にはcommitと応答を含めています。
+
+| 件数 | p50 | p95 | 索引構築時間 |
+| ---: | ---: | ---: | ---: |
+| 100 | 58.62 ms | 61.69 ms | 1.40 s |
+| 1,000 | 104.80 ms | 126.65 ms | 13.04 s |
+| 10,000 | 134.36 ms | 186.51 ms | 139.95 s |
+
+今回取得した `/tmp/recall-sql-plan-10000.json` の3計画
+（意味候補・語彙候補のDECLARE、関連アンカー取得）で、`recall_lexical`・`recall_vector` の利用と
+`recall_documents` のSeq Scanが0件であることを確認しました。
+100件・1,000件でも同じ索引を使い、文書のSeq Scanは0件でした。
+別のPostgreSQL試験では、複数termのquery「青い駅 日本語」でも実際の製品SQLの索引利用と
+文書のSeq Scan不在を確認しています。設定値だけを索引利用の証拠にはしていません。
+上のIssue #36の表は過去の計測です。今回の値から実モデル・実運用の性能は主張しません。
 
 ## 起動と資源
 

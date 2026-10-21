@@ -11,6 +11,7 @@ from psycopg.rows import DictRow
 from digital_souls_memory.adapters.recall_records import read_material
 from digital_souls_memory.evidence.materials import material_decision
 from digital_souls_memory.recall.domain import CandidateMaterial, VectorSpace
+from digital_souls_memory.recall.lexical import lexical_score, lexical_terms
 
 
 def search_rows(
@@ -29,13 +30,16 @@ def search_rows(
     batch_size = limit
     cache_capacity = 2 * limit
     found: dict[tuple[str, str, str], DictRow] = {}
+    terms = lexical_terms(text)
     for lexical in (False, True):
+        if lexical and not terms:
+            continue
         width = limit
         while True:
             accepted: dict[tuple[str, str, str], DictRow] = {}
             scanned = 0
             with _candidates(
-                connection, text, vector, space, width, lexical, character_id, now
+                connection, terms, vector, space, width, lexical, character_id, now
             ) as cursor:
                 while len(accepted) < limit:
                     rows = cursor.fetchmany(batch_size)
@@ -56,7 +60,9 @@ def search_rows(
                                 timeout,
                             )
                         if eligible is not None:
-                            accepted[key] = eligible
+                            accepted[key] = eligible | {
+                                "lexical": lexical_score(row["search_text"], terms)
+                            }
                             if len(accepted) == limit:
                                 break
                     # Release the preceding batch before fetching its replacement.
@@ -71,7 +77,7 @@ def search_rows(
 @contextmanager
 def _candidates(
     connection: psycopg.Connection[DictRow],
-    text: str,
+    terms: tuple[str, ...],
     vector: str,
     space: VectorSpace,
     limit: int,
@@ -79,8 +85,13 @@ def _candidates(
     character_id: str,
     now: datetime,
 ) -> Iterator[psycopg.ServerCursor[DictRow]]:
-    predicate = " AND search_text LIKE likequery(%s)" if lexical else ""
-    order = "bigm_similarity(search_text,%s) DESC" if lexical else "embedding <=> %s::vector"
+    matches = ["search_text LIKE likequery(%s)" for _ in terms]
+    predicate = " AND (" + " OR ".join(matches) + ")" if lexical else ""
+    order = (
+        " + ".join(f"({match})::int" for match in matches) + " DESC"
+        if lexical
+        else "embedding <=> %s::vector"
+    )
     permission = (
         "((d.kind='anchor' AND d.owner_id=%s) OR (d.kind='memory' AND EXISTS("
         "SELECT 1 FROM derived_memories m WHERE m.character_id=d.owner_id AND m.id=d.identifier "
@@ -91,14 +102,13 @@ def _candidates(
     permission_params = (character_id, character_id, character_id, now, now, now)
     params = (
         vector,
-        text,
         *permission_params,
         space.model,
         space.revision,
         space.digest,
         space.dimensions,
-        *((text,) if lexical else permission_params),
-        text if lexical else vector,
+        *(terms if lexical else permission_params),
+        *(terms if lexical else (vector,)),
         limit,
     )
     previous = None
@@ -109,8 +119,7 @@ def _candidates(
         # All documents can match; the lexical predicate must still use the stored GIN index.
         connection.execute("SELECT set_config('enable_seqscan','off',true)")
     query = (
-        "SELECT d.*,1-(d.embedding <=> %s::vector) semantic,"
-        "bigm_similarity(d.search_text,%s) lexical," + permission + " AS allowed FROM "
+        "SELECT d.*,1-(d.embedding <=> %s::vector) semantic," + permission + " AS allowed FROM "
         "(SELECT owner_id,kind,identifier FROM recall_documents d "
         "WHERE ready AND model=%s AND revision=%s AND digest=%s AND dimensions=%s"
         + (predicate if lexical else " AND " + permission)
@@ -144,6 +153,7 @@ def _eligible(
     else:
         source_ids = [row["payload"]["turn_id"]]
     source_times: dict[str, datetime] = {}
+    source_text: dict[str, str] = {}
     for dependency in row["dependencies"]["values"]:
         turn_id = dependency["turn_id"]
         if turn_id not in materials:
@@ -171,6 +181,8 @@ def _eligible(
                 return None
         if turn_id in source_ids:
             source_times[turn_id] = material.turn.occurred_at
+            if row["kind"] == "anchor":
+                source_text["source_text"] = material.turn.text
     if not source_ids or any(identifier not in source_times for identifier in source_ids):
         return None
-    return row | {"occurred_at": max(source_times.values())}
+    return row | {"occurred_at": max(source_times.values())} | source_text
