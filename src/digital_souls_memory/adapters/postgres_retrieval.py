@@ -20,6 +20,7 @@ from digital_souls_memory.adapters.recall_records import (
     read_material,
     restore_stamp,
 )
+from digital_souls_memory.adapters.recall_search import search_rows
 from digital_souls_memory.evidence.provision import CandidateRef, ProvisionUnavailable
 from digital_souls_memory.recall.domain import (
     DocumentStamp,
@@ -351,66 +352,16 @@ class PostgresRetrievalStore:
             return ()
         vector = _vector(query_vector)
         with self._connection() as connection:
-            rows = connection.execute(
-                "WITH eligible AS NOT MATERIALIZED (SELECT d.*, (SELECT max(t.occurred_at) FROM "
-                "recall_document_sources s JOIN turns t USING(turn_id) WHERE s.owner_id=d.owner_id "
-                "AND s.kind=d.kind AND s.identifier=d.identifier "
-                "AND (d.kind='anchor' OR EXISTS(SELECT 1 FROM memory_sources ms "
-                "WHERE ms.character_id=s.owner_id AND ms.memory_id=s.identifier "
-                "AND ms.turn_id=s.turn_id))) occurred_at FROM "
-                "recall_documents d "
-                "LEFT JOIN derived_memories m ON d.kind='memory' AND "
-                "m.character_id=d.owner_id AND m.id=d.identifier "
-                "WHERE d.ready AND d.model=%s AND d.revision=%s AND d.digest=%s AND "
-                "d.dimensions=%s "
-                "AND (d.owner_id=%s OR (m.kind IN ('fact','preference') AND "
-                "%s=ANY(m.shared_with))) "
-                "AND (d.kind='anchor' OR (m.search_eligible AND m.valid_from<=%s "
-                "AND (m.valid_to IS NULL OR %s<m.valid_to) AND (m.superseded_at IS NULL OR "
-                "%s<m.superseded_at))) "
-                "AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(d.dependencies->'values') dep "
-                "JOIN turns t ON t.turn_id=dep->>'turn_id' JOIN sessions sess USING(session_id) "
-                "WHERE NOT %s=ANY(t.perceived_by) OR (t.kind='thought' AND t.actor<>%s) "
-                "OR (dep->>'used_end')::int > CASE WHEN NOT sess.reports_delivery OR t.actor=%s "
-                "OR t.kind<>'utterance' OR NOT EXISTS(SELECT 1 FROM core_identities c "
-                "WHERE c.character_id=t.actor) "
-                "THEN char_length(t.text) ELSE COALESCE((SELECT spoken_until FROM "
-                "delivery_receipts r "
-                "WHERE r.turn_id=t.turn_id ORDER BY receipt_id DESC LIMIT 1), "
-                "CASE WHEN %s>=t.recorded_at+%s THEN char_length(t.text) ELSE 0 END) END)), "
-                "semantic AS (SELECT owner_id,kind,identifier FROM eligible ORDER BY "
-                "embedding <=> %s::vector LIMIT %s), "
-                "lexical AS (SELECT owner_id,kind,identifier FROM eligible WHERE "
-                "search_text LIKE likequery(%s) "
-                "ORDER BY bigm_similarity(search_text,%s) DESC LIMIT %s), "
-                "candidates AS (SELECT * FROM semantic UNION SELECT * FROM lexical) "
-                "SELECT e.*,1-(e.embedding <=> %s::vector) "
-                "semantic,bigm_similarity(e.search_text,%s) lexical "
-                "FROM eligible e JOIN candidates USING(owner_id,kind,identifier)",
-                (
-                    space.model,
-                    space.revision,
-                    space.digest,
-                    space.dimensions,
-                    character_id,
-                    character_id,
-                    now,
-                    now,
-                    now,
-                    character_id,
-                    character_id,
-                    character_id,
-                    now,
-                    self.timeout,
-                    vector,
-                    limit,
-                    query.texts[0],
-                    query.texts[0],
-                    limit,
-                    vector,
-                    query.texts[0],
-                ),
-            ).fetchall()
+            rows = search_rows(
+                connection,
+                character_id=character_id,
+                text=query.texts[0],
+                vector=vector,
+                space=space,
+                now=now,
+                timeout=self.timeout,
+                limit=limit,
+            )
             return tuple(self._restore(row) for row in rows)
 
     def anchors_for(
