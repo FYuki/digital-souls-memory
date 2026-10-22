@@ -72,12 +72,11 @@ memory-core-st-1792644139-2を明示して手動downで全て除去した。
 
 ## 実モデル性能
 
-**NOT RUN**。order.md の2026-10-22補足に従い、TAKTでGPU・実モデルserverを使わない。
-p50 / p95 / 必達 / 目標達否は未測定。機能fakeから実モデル性能のPASSを主張しない。
-`tests/st/performance.py`、`compose.core-st.performance.yml`、
-`core-st-performance-manifest.template.json`、`docs/core-st.md` を親へ渡す。
-テンプレートの空欄は実行前に親が埋める。採用モデルのrevision・digestを保持し、
-warm-up別記、100回以上、欠測・失敗・遅い応答を捨てずnearest-rankで判定する。
+**FAIL（[実モデル性能レポート](2026-10-22-core-st-performance.md)）**。親が引き継いだ実GPU・実モデルHTTP STでは、
+合成データ100件・warm-up 5回を除く100回すべて成功応答だが、p50 **3,089.064ms** / p95 **3,350.914ms**。
+必達p95 ≤600ms、目標p95 ≤300ms / p50 ≤150msのすべてに未達。1000件は準備中断により **NOT RUN**。
+固定revision・モデルdigest・全標本・別診断の内訳・原因・修正案・cleanupは上記レポートと付属JSONを参照。
+製品修正・修正後の性能受入は未実施。以下の過去時点のNOT RUN記録は、その時点の履歴として保持する。
 
 ## reimplement の補完結果
 
