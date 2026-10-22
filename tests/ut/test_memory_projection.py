@@ -6,15 +6,47 @@ import pytest
 
 from digital_souls_memory.adapters.identity_characters import IdentityCharacters
 from digital_souls_memory.evidence.materials import EvidenceMaterials
-from digital_souls_memory.memory.domain import DeliveryBasis, ExtractionState
+from digital_souls_memory.memory.domain import (
+    DeliveryBasis,
+    DerivedMemory,
+    ExtractionProposal,
+    ExtractionState,
+    MemoryRelation,
+)
 from digital_souls_memory.memory.inputs import MemoryInputs
 from digital_souls_memory.memory.use_cases import MemoryService
-from tests.evidence_support import RECORDED, session, turn
+from digital_souls_memory.memory.worker import MemoryWorker
+from tests.evidence_support import RECORDED, TEXT, receipt, session, turn
 from tests.it1.evidence_fakes import FakeEvidenceStore, registered_identities
+from tests.it1.test_memory_extraction import Harness
 from tests.memory_fakes import FakeMemoryStore
 from tests.memory_support import memory
 
 pytestmark = pytest.mark.ut
+
+
+def test_active_excludes_invalid_baseline_and_its_dependent_without_missing_target_error() -> None:
+    h = Harness()
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    h.evidence.add_turn(turn())
+    h.evidence.add_receipt(receipt("full", len(TEXT)))
+    target = memory()
+    with store.transaction("char-b") as tx:
+        tx.add_memory(target)
+    h.evidence.add_turn(turn("turn-2"))
+    h.evidence.add_receipt(replace(receipt("full", len(TEXT)), turn_id="turn-2"))
+    candidate = replace(memory("summary"), id="dependent", source_turn_ids=("turn-2",))
+    h.gateway.output = ExtractionProposal(
+        memories=(candidate,),
+        relations=(MemoryRelation(from_id=candidate.id, to_id=target.id, type="derives"),),
+    )
+    worker.process("char-b", "turn-2")
+    assert {v.id for v in service.active("char-b")} == {target.id, candidate.id}
+
+    h.evidence.add_receipt(receipt("none", 0))
+    assert service.active("char-b") == ()
 
 
 @pytest.mark.parametrize("origin", ["baseline", "candidate"])
@@ -72,3 +104,124 @@ def test_projection_recounts_support_and_read_does_not_write(origin: str) -> Non
     assert service.active("char-b") == (saved,)
     assert (store.values, store.states, store.relations) == before
     assert replace(saved.epistemics, independent_evidence_count=8) == value.epistemics
+
+
+def test_rebuild_does_not_write_an_unchanged_projection(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tests.memory_fakes import FakeMemoryTransaction
+
+    evidence = FakeEvidenceStore()
+    evidence.add_session(session(reports_delivery=False))
+    evidence.add_turn(turn(actor="user-a"))
+    identities = registered_identities()
+    materials = EvidenceMaterials(
+        evidence, IdentityCharacters(lambda: identities), lambda: RECORDED, timedelta(minutes=10)
+    )
+    store = FakeMemoryStore(evidence)
+    service = MemoryService(
+        store,
+        MemoryInputs(
+            evidence,
+            materials,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            comment_surfaces=frozenset(),
+        ),
+        lambda: RECORDED,
+    )
+    with store.transaction("char-b") as tx:
+        tx.add_memory(memory())
+        service.rebuild(tx)
+    writes: list[str] = []
+    replace_projection = FakeMemoryTransaction.replace_projection
+
+    def observe(tx: FakeMemoryTransaction, value: DerivedMemory) -> None:
+        writes.append(value.id)
+        replace_projection(tx, value)
+
+    monkeypatch.setattr(FakeMemoryTransaction, "replace_projection", observe)
+    with store.transaction("char-b") as tx:
+        service.rebuild(tx)
+    assert store.get_memory("char-b", memory().id) == memory()
+    assert writes == [], "Unchanged projection writes invalidate its recall document"
+
+
+@pytest.mark.parametrize("relation_type", ["updates", "extends", "contradicts", "derives"])
+@pytest.mark.parametrize("withdrawn", [False, True])
+@pytest.mark.parametrize("saved_relation", [False, True])
+def test_affected_memories_include_effects_and_dependents_but_not_derives_references(
+    relation_type: str,
+    withdrawn: bool,
+    saved_relation: bool,
+) -> None:
+    evidence = FakeEvidenceStore()
+    identities = registered_identities()
+    materials = EvidenceMaterials(
+        evidence, IdentityCharacters(lambda: identities), lambda: RECORDED, timedelta(minutes=10)
+    )
+    store = FakeMemoryStore(evidence)
+    service = MemoryService(
+        store,
+        MemoryInputs(
+            evidence,
+            materials,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            comment_surfaces=frozenset(),
+        ),
+        lambda: RECORDED,
+    )
+    seed = replace(memory(), id="seed", object="seed")
+    target = replace(memory(), id="target", object="target")
+    dependent = replace(memory(), id="dependent", object="dependent")
+    same_fact = replace(seed, id="same-fact")
+    unrelated = replace(memory(), id="unrelated", object="unrelated")
+    with store.transaction("char-b") as tx:
+        tx.add_memory(target)
+        tx.add_memory(unrelated)
+        tx.set_candidates("origin", (seed,), dependencies=())
+        tx.set_candidates("another-origin", (dependent, same_fact), dependencies=())
+        tx.set_relations(
+            "origin", (MemoryRelation(from_id="seed", to_id="target", type=relation_type),)
+        )
+        tx.set_relations(
+            "another-origin", (MemoryRelation(from_id="dependent", to_id="seed", type="derives"),)
+        )
+        if saved_relation:
+            tx.add_relation(MemoryRelation(from_id="seed", to_id="target", type=relation_type))
+            tx.set_relations("origin", ())
+        if withdrawn:
+            store.withdrawn.update({("char-b", "target"), ("char-b", "unrelated")})
+        affected = service.affected(tx, "origin")
+        assert affected == frozenset(
+            {"seed", "same-fact", "dependent"}
+            | ({"target"} if relation_type != "derives" or withdrawn else set())
+        )
+        assert service.affected(tx, "absent") == frozenset()
+
+
+def test_scoped_rebuild_restores_only_the_affected_withdrawn_projection() -> None:
+    evidence = FakeEvidenceStore()
+    evidence.add_session(session(reports_delivery=False))
+    evidence.add_turn(turn(actor="user-a"))
+    identities = registered_identities()
+    materials = EvidenceMaterials(
+        evidence, IdentityCharacters(lambda: identities), lambda: RECORDED, timedelta(minutes=10)
+    )
+    store = FakeMemoryStore(evidence)
+    service = MemoryService(
+        store,
+        MemoryInputs(
+            evidence,
+            materials,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            comment_surfaces=frozenset(),
+        ),
+        lambda: RECORDED,
+    )
+    affected, unrelated = memory(), replace(memory(), id="unrelated", object="tea")
+    with store.transaction("char-b") as tx:
+        tx.add_memory(affected)
+        tx.add_memory(unrelated)
+    store.withdrawn = {("char-b", affected.id), ("char-b", unrelated.id)}
+    with store.transaction("char-b") as tx:
+        service.rebuild(tx, frozenset({affected.id}))
+    assert store.get_memory("char-b", affected.id) == affected
+    assert store.withdrawn == {("char-b", unrelated.id)}

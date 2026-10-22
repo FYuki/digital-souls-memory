@@ -104,9 +104,10 @@ class MemoryWorker:
                 used_end=None if decision.text is None else len(decision.text),
                 receipt_version=decision.receipt_version,
             )
+            affected = self.service.affected(tx, turn_id)
             tx.save_extraction(state)
             # Withdrawing the previous contribution precedes the fallible model call.
-            self.service.rebuild(tx)
+            self.service.rebuild(tx, affected)
         if not decision.text:
             return
         try:
@@ -119,10 +120,12 @@ class MemoryWorker:
                 if current.signature(tx.notification_version(turn_id)) != signature:
                     tx.save_extraction(replace(saved, status="retry", lease_until=now))
                     return
+                affected = self.service.affected(tx, turn_id)
                 tx.set_candidates(turn_id, proposal.memories, dependencies=resolved.dependencies())
                 tx.set_relations(turn_id, proposal.relations)
                 tx.save_extraction(replace(saved, status="done", token=None, lease_until=None))
-                self.service.rebuild(tx)
+                affected |= self.service.affected(tx, turn_id)
+                self.service.rebuild(tx, affected)
         except (
             MemoryValidationError,
             MemoryConflict,

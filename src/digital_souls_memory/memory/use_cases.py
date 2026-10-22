@@ -55,6 +55,8 @@ class ProjectionInput:
     versions: dict[str, int]
     proposed: tuple[MemoryRelation, ...]
     generated: frozenset[str]
+    references: tuple[DerivedMemory, ...]
+    withdrawn_references: frozenset[str]
 
 
 class MemoryService:
@@ -76,17 +78,39 @@ class MemoryService:
         result, _ = self._project(snapshot, character_id)
         return tuple(v for v in result.values() if v.superseded_at is None and v.valid_to is None)
 
-    def _snapshot(self, tx: MemoryTransaction) -> ProjectionInput:
-        contributions = tx.candidates()
+    def affected(self, tx: MemoryTransaction, turn_id: str) -> frozenset[str]:
+        identifiers = tx.contribution_ids(turn_id)
+        while True:
+            expanded = (
+                identifiers | tx.projection_neighbors(identifiers) if identifiers else identifiers
+            )
+            if expanded == identifiers:
+                return identifiers
+            identifiers = expanded
+
+    def _snapshot(
+        self, tx: MemoryTransaction, identifiers: frozenset[str] | None = None
+    ) -> ProjectionInput:
+        contributions = tx.candidates(identifiers)
         origins = {v.turn_id for v in contributions}
+        proposed = tx.proposed_relations(identifiers)
+        reference_ids = (
+            frozenset(r.to_id for r in proposed) - identifiers
+            if identifiers is not None
+            else frozenset()
+        )
+        references = tx.memories(reference_ids) if reference_ids else ()
+        withdrawn = tx.withdrawn_ids(reference_ids) if reference_ids else frozenset()
         return ProjectionInput(
-            tx.memories(),
-            tx.baselines(),
+            tx.memories(identifiers),
+            tx.baselines(identifiers),
             contributions,
             {identifier: tx.get_extraction(identifier) for identifier in origins},
             {identifier: tx.notification_version(identifier) for identifier in origins},
-            tx.proposed_relations(),
-            tx.generated_ids(),
+            proposed,
+            tx.generated_ids(identifiers),
+            references,
+            withdrawn,
         )
 
     def _source_turns(self, identifiers: tuple[str, ...]) -> tuple[Turn, ...]:
@@ -116,6 +140,12 @@ class MemoryService:
             for v in snapshot.baselines
             if all(self.materials.get_text(character_id, i) for i in v.source_turn_ids)
         }
+        result.update(
+            (v.id, v)
+            for v in snapshot.references
+            if v.id not in snapshot.withdrawn_references
+            and all(self.materials.get_text(character_id, i) for i in v.source_turn_ids)
+        )
         candidates = tuple(v.memory for v in snapshot.contributions)
         current_ids: set[str] = set()
         for contribution in snapshot.contributions:
@@ -128,7 +158,13 @@ class MemoryService:
             ):
                 current_ids.add(contribution.memory.id)
         proposed = snapshot.proposed
-        known = set(result) | {v.id for v in candidates} | generated
+        known = (
+            set(result)
+            | {v.id for v in candidates}
+            | generated
+            | {v.id for v in snapshot.baselines}
+            | {v.id for v in snapshot.references}
+        )
         if any(r.to_id not in known for r in proposed):
             raise MemoryValidationError("Relation target is absent or outside active evidence")
         relations: list[MemoryRelation] = []
@@ -202,10 +238,18 @@ class MemoryService:
         for identifier, value in existing.items():
             if identifier in generated and identifier not in result:
                 result[identifier] = supersede(value, at=self.clock())
+        for identifier, value in tuple(result.items()):
+            previous = existing.get(identifier)
+            if previous is not None and previous.superseded_at is not None and value.superseded_at:
+                result[identifier] = replace(value, superseded_at=previous.superseded_at)
+        for reference in snapshot.references:
+            result.pop(reference.id, None)
         return result, relations
 
-    def rebuild(self, tx: MemoryTransaction) -> None:
-        snapshot = self._snapshot(tx)
+    def rebuild(self, tx: MemoryTransaction, identifiers: frozenset[str] | None = None) -> None:
+        if identifiers == frozenset():
+            return
+        snapshot = self._snapshot(tx, identifiers)
         owners = {v.character_id for v in snapshot.existing} | {
             v.memory.character_id for v in snapshot.contributions
         }
@@ -214,11 +258,11 @@ class MemoryService:
         (character_id,) = owners
         result, relations = self._project(snapshot, character_id)
         existing = {v.id: v for v in snapshot.existing}
-        tx.clear_projection_relations()
+        withdrawn = tx.withdrawn_ids(frozenset(result))
         for identifier, value in result.items():
             if identifier in existing:
-                tx.replace_projection(value)
+                if value != existing[identifier] or identifier in withdrawn:
+                    tx.replace_projection(value)
             else:
                 tx.add_generated(value)
-        for relation in relations:
-            tx.add_relation(relation)
+        tx.sync_projection_relations(snapshot.generated, tuple(relations))

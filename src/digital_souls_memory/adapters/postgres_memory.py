@@ -89,6 +89,81 @@ class _MemoryTransaction:
         self.connection = connection
         self.character_id = character_id
 
+    def contribution_ids(self, turn_id: str) -> frozenset[str]:
+        rows = self.connection.execute(
+            "SELECT memory_id FROM memory_generated WHERE character_id=%s AND turn_id=%s",
+            (self.character_id, turn_id),
+        ).fetchall()
+        return frozenset(r["memory_id"] for r in rows)
+
+    def projection_neighbors(self, identifiers: frozenset[str]) -> frozenset[str]:
+        fact_matches = sql.SQL(" UNION ALL ").join(
+            sql.SQL(
+                "SELECT other.memory_id FROM {} other WHERE other.character_id=%s "
+                "AND other.payload->>'kind'='fact' "
+                "AND md5(other.payload->>'subject')=md5(seed.payload->>'subject') "
+                "AND md5(other.payload->>'predicate')=md5(seed.payload->>'predicate') "
+                "AND md5(other.payload->>'object')=md5(seed.payload->>'object') "
+                "AND (other.payload->>'subject',other.payload->>'predicate',"
+                "other.payload->>'object')="
+                "(seed.payload->>'subject',seed.payload->>'predicate',seed.payload->>'object')"
+            ).format(sql.Identifier(table))
+            for table in ("memory_generated", "memory_baselines")
+        )
+        rows = self.connection.execute(
+            sql.SQL(
+                "WITH seeds AS MATERIALIZED ("
+                "SELECT payload FROM memory_generated WHERE character_id=%s AND memory_id=ANY(%s) "
+                "AND payload->>'kind'='fact' UNION ALL "
+                "SELECT payload FROM memory_baselines WHERE character_id=%s AND memory_id=ANY(%s) "
+                "AND payload->>'kind'='fact'), "
+                "relations AS NOT MATERIALIZED (SELECT from_id,to_id,type FROM memory_relations "
+                "WHERE character_id=%s UNION SELECT from_id,to_id,type "
+                "FROM memory_candidate_relations WHERE character_id=%s) "
+                "SELECT to_id AS memory_id FROM relations WHERE from_id=ANY(%s) "
+                "AND (type<>'derives' OR EXISTS (SELECT 1 FROM derived_memories m "
+                "WHERE m.character_id=%s AND m.id=to_id AND NOT m.search_eligible)) UNION "
+                "SELECT from_id FROM relations WHERE to_id=ANY(%s) UNION "
+                "SELECT matched.memory_id FROM seeds seed CROSS JOIN LATERAL "
+                "({}) matched"
+            ).format(fact_matches),
+            (
+                self.character_id,
+                list(identifiers),
+                self.character_id,
+                list(identifiers),
+                self.character_id,
+                self.character_id,
+                list(identifiers),
+                self.character_id,
+                list(identifiers),
+                self.character_id,
+                self.character_id,
+            ),
+        ).fetchall()
+        return frozenset(r["memory_id"] for r in rows)
+
+    def withdrawn_ids(self, identifiers: frozenset[str]) -> frozenset[str]:
+        rows = self.connection.execute(
+            "SELECT id FROM derived_memories WHERE character_id=%s AND id=ANY(%s) "
+            "AND NOT search_eligible",
+            (self.character_id, list(identifiers)),
+        ).fetchall()
+        return frozenset(r["id"] for r in rows)
+
+    def _source_map(self, table: str, identifiers: list[str]) -> dict[str, tuple[str, ...]]:
+        rows = self.connection.execute(
+            sql.SQL(
+                "SELECT memory_id,turn_id FROM {} WHERE character_id=%s "
+                "AND memory_id=ANY(%s) ORDER BY memory_id,position"
+            ).format(sql.Identifier(table)),
+            (self.character_id, identifiers),
+        ).fetchall()
+        sources: dict[str, tuple[str, ...]] = {identifier: () for identifier in identifiers}
+        for row in rows:
+            sources[row["memory_id"]] += (row["turn_id"],)
+        return sources
+
     def _record(self, value: DerivedMemory) -> dict[str, object]:
         replace(value)
         if value.character_id != self.character_id:
@@ -129,20 +204,15 @@ class _MemoryTransaction:
         )
         save_copy_sources(self.connection, "memory_baselines", value)
 
-    def baselines(self) -> tuple[DerivedMemory, ...]:
+    def baselines(self, identifiers: frozenset[str] | None = None) -> tuple[DerivedMemory, ...]:
+        selected = None if identifiers is None else list(identifiers)
         rows = self.connection.execute(
-            "SELECT memory_id,payload FROM memory_baselines WHERE character_id=%s",
-            (self.character_id,),
+            "SELECT memory_id,payload FROM memory_baselines WHERE character_id=%s "
+            "AND (%s::text[] IS NULL OR memory_id=ANY(%s))",
+            (self.character_id, selected, selected),
         ).fetchall()
-        return tuple(
-            restore_memory(
-                r["payload"],
-                copy_sources(
-                    self.connection, "memory_baselines", self.character_id, r["memory_id"]
-                ),
-            )
-            for r in rows
-        )
+        sources = self._source_map("memory_baseline_sources", [r["memory_id"] for r in rows])
+        return tuple(restore_memory(r["payload"], sources[r["memory_id"]]) for r in rows)
 
     def replace_projection(self, value: DerivedMemory) -> None:
         record = self._record(value)
@@ -173,13 +243,16 @@ class _MemoryTransaction:
                 (self.character_id, value.id, identifier, position),
             )
 
-    def memories(self) -> tuple[DerivedMemory, ...]:
+    def memories(self, identifiers: frozenset[str] | None = None) -> tuple[DerivedMemory, ...]:
+        selected = None if identifiers is None else list(identifiers)
         rows = self.connection.execute(
-            "SELECT * FROM derived_memories WHERE character_id=%s ORDER BY "
+            "SELECT * FROM derived_memories WHERE character_id=%s "
+            "AND (%s::text[] IS NULL OR id=ANY(%s)) ORDER BY "
             "valid_from,recorded_at,id",
-            (self.character_id,),
+            (self.character_id, selected, selected),
         ).fetchall()
-        return tuple(self._restore(row) for row in rows)
+        sources = self._source_map("memory_sources", [r["id"] for r in rows])
+        return tuple(restore_memory(row, sources[row["id"]]) for row in rows)
 
     def _restore(self, row: DictRow) -> DerivedMemory:
         sources = self.connection.execute(
@@ -195,29 +268,42 @@ class _MemoryTransaction:
             (self.character_id, value.from_id, value.to_id, value.type),
         )
 
-    def clear_projection_relations(self) -> None:
-        self.connection.execute(
-            "DELETE FROM memory_relations WHERE character_id=%s AND from_id IN (SELECT "
-            "memory_id FROM memory_generated WHERE character_id=%s)",
-            (self.character_id, self.character_id),
-        )
+    def sync_projection_relations(
+        self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
+    ) -> None:
+        rows = self.connection.execute(
+            "SELECT from_id,to_id,type FROM memory_relations "
+            "WHERE character_id=%s AND from_id=ANY(%s)",
+            (self.character_id, list(identifiers)),
+        ).fetchall()
+        existing = tuple(MemoryRelation(**r) for r in rows)
+        for relation in existing:
+            if relation not in values:
+                self.connection.execute(
+                    "DELETE FROM memory_relations WHERE character_id=%s "
+                    "AND from_id=%s AND to_id=%s AND type=%s",
+                    (self.character_id, relation.from_id, relation.to_id, relation.type),
+                )
+        for relation in values:
+            if relation not in existing:
+                self.add_relation(relation)
 
-    def candidates(self) -> tuple[MemoryContribution, ...]:
+    def candidates(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryContribution, ...]:
+        selected = None if identifiers is None else list(identifiers)
         rows = self.connection.execute(
             "SELECT c.turn_id,c.memory_id,c.payload FROM memory_candidates c "
             "JOIN memory_extractions e "
-            "USING(character_id,turn_id) WHERE c.character_id=%s AND e.status='done'",
-            (self.character_id,),
+            "USING(character_id,turn_id) WHERE c.character_id=%s AND e.status='done' "
+            "AND (%s::text[] IS NULL OR c.memory_id=ANY(%s))",
+            (self.character_id, selected, selected),
         ).fetchall()
+        sources = self._source_map("memory_candidate_sources", [r["memory_id"] for r in rows])
         values = [
             MemoryContribution(
                 r["turn_id"],
-                restore_memory(
-                    r["payload"],
-                    copy_sources(
-                        self.connection, "memory_candidates", self.character_id, r["memory_id"]
-                    ),
-                ),
+                restore_memory(r["payload"], sources[r["memory_id"]]),
             )
             for r in rows
         ]
@@ -225,21 +311,28 @@ class _MemoryTransaction:
             sorted(values, key=lambda v: (v.memory.valid_from, v.memory.recorded_at, v.memory.id))
         )
 
-    def generated_ids(self) -> frozenset[str]:
+    def generated_ids(self, identifiers: frozenset[str] | None = None) -> frozenset[str]:
+        selected = None if identifiers is None else list(identifiers)
         rows = self.connection.execute(
-            "SELECT memory_id FROM memory_generated WHERE character_id=%s", (self.character_id,)
+            "SELECT memory_id FROM memory_generated WHERE character_id=%s "
+            "AND (%s::text[] IS NULL OR memory_id=ANY(%s))",
+            (self.character_id, selected, selected),
         ).fetchall()
         return frozenset(r["memory_id"] for r in rows)
 
     def add_generated(self, value: DerivedMemory) -> None:
         self._insert_projection(value)
 
-    def proposed_relations(self) -> tuple[MemoryRelation, ...]:
+    def proposed_relations(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryRelation, ...]:
+        selected = None if identifiers is None else list(identifiers)
         rows = self.connection.execute(
             "SELECT r.from_id,r.to_id,r.type FROM memory_candidate_relations r "
             "JOIN memory_extractions e USING(character_id,turn_id) "
-            "WHERE r.character_id=%s AND e.status='done'",
-            (self.character_id,),
+            "WHERE r.character_id=%s AND e.status='done' "
+            "AND (%s::text[] IS NULL OR r.from_id=ANY(%s))",
+            (self.character_id, selected, selected),
         ).fetchall()
         return tuple(MemoryRelation(**r) for r in rows)
 

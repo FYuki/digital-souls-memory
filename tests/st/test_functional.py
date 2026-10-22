@@ -47,7 +47,7 @@ def test_phase_one_http_lifecycle() -> None:
             "SELECT pg_has_role('memory_st_app','memory_deletion_executor','MEMBER'), "
             "pg_has_role('memory_st_delete','memory_deletion_executor','MEMBER')"
         ).fetchone() == (False, True)
-        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0009",)
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0010",)
     x, y, z = ("st-x-" + uuid4().hex, "st-y-" + uuid4().hex, "st-z-" + uuid4().hex)
     with new_client() as client:
         for character in (x, y, z):
