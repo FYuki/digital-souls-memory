@@ -1,6 +1,7 @@
 """The Core DTO boundary preserves wire values without domain inference."""
 
 import pytest
+
 from digital_souls_memory.client.models import (
     RecallRequest,
     RecallResponse,
@@ -10,7 +11,6 @@ from digital_souls_memory.client.models import (
     TurnRequest,
     TurnResponse,
 )
-
 from tests.evidence_support import RECORDED, TEXT, receipt_payload, session_payload, turn_payload
 
 pytestmark = pytest.mark.ut

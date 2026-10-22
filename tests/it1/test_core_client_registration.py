@@ -2,6 +2,9 @@
 
 import httpx
 import pytest
+from fastapi.testclient import TestClient
+
+from digital_souls_memory.api import create_app
 from digital_souls_memory.client import MemoryClient, MemoryHTTPError
 from digital_souls_memory.client.models import (
     AnchorInput,
@@ -12,9 +15,6 @@ from digital_souls_memory.client.models import (
     TemperamentInput,
     TurnRequest,
 )
-from fastapi.testclient import TestClient
-
-from digital_souls_memory.api import create_app
 from tests.evidence_support import RECORDED, session_payload, turn_payload
 from tests.identity_support import seed_payload
 from tests.it1.evidence_fakes import FakeEvidenceStore

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import httpx
 import pytest
+
 from digital_souls_memory.client import (
     MemoryClient,
     MemoryHTTPError,
@@ -24,7 +25,6 @@ from digital_souls_memory.client.models import (
     SessionRequest,
     TurnRequest,
 )
-
 from tests.evidence_support import (
     RECORDED,
     TEXT,

@@ -1,6 +1,7 @@
 """Pure aggregation must never turn missing or fake measurements into a performance PASS."""
 
 import pytest
+
 from tests.st.latency import LatencySample, summarize_latency
 
 pytestmark = pytest.mark.ut
