@@ -4,6 +4,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import replace
 from datetime import timedelta
+from hashlib import sha256
 from threading import Event, Thread
 from uuid import uuid4
 
@@ -66,13 +67,15 @@ class MemoryWorker:
                     after = page.next_after
 
     def process(self, character: str, turn_id: str) -> None:
-        resolved = self.service.inputs.resolve(character, (turn_id,))
-        decision = resolved.turns[0].decision if resolved.turns else None
-        if decision is None or decision.basis == "inaccessible":
-            return
         now = self.service.clock()
         token = uuid4().hex
         with self.service.store.transaction(character) as tx:
+            resolved = self.service.inputs.resolve(character, (turn_id,))
+            if not resolved.turns or resolved.turns[0].turn.turn_id != turn_id:
+                return
+            decision = resolved.turns[0].decision
+            if decision is None or decision.basis == "inaccessible":
+                return
             version = tx.notification_version(turn_id)
             signature = resolved.signature(version)
             old = tx.get_extraction(turn_id)
@@ -95,7 +98,10 @@ class MemoryWorker:
                 lease_until=now + timedelta(minutes=5),
                 deadline=decision.deadline,
                 error=None,
-                used_text=decision.text,
+                text_hash=None
+                if decision.text is None
+                else sha256(decision.text.encode("utf-8")).hexdigest(),
+                used_end=None if decision.text is None else len(decision.text),
                 receipt_version=decision.receipt_version,
             )
             tx.save_extraction(state)
@@ -105,8 +111,8 @@ class MemoryWorker:
             return
         try:
             proposal = self.extractor.propose_resolved(character, resolved)
-            current = self.service.inputs.resolve(character, (turn_id,))
             with self.service.store.transaction(character) as tx:
+                current = self.service.inputs.resolve(character, (turn_id,))
                 saved = tx.get_extraction(turn_id)
                 if saved is None or saved.token != token:
                     return

@@ -227,7 +227,8 @@ class ExtractionState:
     lease_until: datetime | None
     deadline: datetime
     error: str | None
-    used_text: str | None
+    text_hash: str | None
+    used_end: int | None
     receipt_version: int
 
 

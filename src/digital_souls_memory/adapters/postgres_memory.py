@@ -42,6 +42,48 @@ def _state(row: DictRow | None) -> ExtractionState | None:
     return ExtractionState(**(row | {"delivery_basis": DeliveryBasis(row["delivery_basis"])}))
 
 
+COPY_SOURCE_TABLES = {
+    "memory_candidates": "memory_candidate_sources",
+    "memory_generated": "memory_generated_sources",
+    "memory_baselines": "memory_baseline_sources",
+}
+
+
+def copy_payload(value: DerivedMemory) -> dict[str, object]:
+    record = candidate_record(value)
+    del record["source_turn_ids"]
+    return record
+
+
+def copy_sources(
+    connection: psycopg.Connection[DictRow], table: str, character_id: str, memory_id: str
+) -> tuple[str, ...]:
+    rows = connection.execute(
+        sql.SQL(
+            "SELECT turn_id FROM {} WHERE character_id=%s AND memory_id=%s ORDER BY position"
+        ).format(sql.Identifier(COPY_SOURCE_TABLES[table])),
+        (character_id, memory_id),
+    ).fetchall()
+    return tuple(r["turn_id"] for r in rows)
+
+
+def save_copy_sources(
+    connection: psycopg.Connection[DictRow], table: str, value: DerivedMemory
+) -> None:
+    source_table = sql.Identifier(COPY_SOURCE_TABLES[table])
+    connection.execute(
+        sql.SQL("DELETE FROM {} WHERE character_id=%s AND memory_id=%s").format(source_table),
+        (value.character_id, value.id),
+    )
+    for position, identifier in enumerate(value.source_turn_ids):
+        connection.execute(
+            sql.SQL(
+                "INSERT INTO {}(character_id,memory_id,turn_id,position) VALUES(%s,%s,%s,%s)"
+            ).format(source_table),
+            (value.character_id, value.id, identifier, position),
+        )
+
+
 class _MemoryTransaction:
     def __init__(self, connection: psycopg.Connection[DictRow], character_id: str) -> None:
         self.connection = connection
@@ -83,15 +125,23 @@ class _MemoryTransaction:
         self.connection.execute(
             "INSERT INTO memory_baselines(character_id,memory_id,payload) VALUES(%s,%s,%s) "
             "ON CONFLICT(character_id,memory_id) DO UPDATE SET payload=EXCLUDED.payload",
-            (self.character_id, value.id, Jsonb(candidate_record(value))),
+            (self.character_id, value.id, Jsonb(copy_payload(value))),
         )
+        save_copy_sources(self.connection, "memory_baselines", value)
 
     def baselines(self) -> tuple[DerivedMemory, ...]:
         rows = self.connection.execute(
-            "SELECT payload FROM memory_baselines WHERE character_id=%s", (self.character_id,)
+            "SELECT memory_id,payload FROM memory_baselines WHERE character_id=%s",
+            (self.character_id,),
         ).fetchall()
         return tuple(
-            restore_memory(r["payload"], tuple(r["payload"]["source_turn_ids"])) for r in rows
+            restore_memory(
+                r["payload"],
+                copy_sources(
+                    self.connection, "memory_baselines", self.character_id, r["memory_id"]
+                ),
+            )
+            for r in rows
         )
 
     def replace_projection(self, value: DerivedMemory) -> None:
@@ -154,13 +204,20 @@ class _MemoryTransaction:
 
     def candidates(self) -> tuple[MemoryContribution, ...]:
         rows = self.connection.execute(
-            "SELECT c.turn_id,c.payload FROM memory_candidates c JOIN memory_extractions e "
+            "SELECT c.turn_id,c.memory_id,c.payload FROM memory_candidates c "
+            "JOIN memory_extractions e "
             "USING(character_id,turn_id) WHERE c.character_id=%s AND e.status='done'",
             (self.character_id,),
         ).fetchall()
         values = [
             MemoryContribution(
-                r["turn_id"], restore_memory(r["payload"], tuple(r["payload"]["source_turn_ids"]))
+                r["turn_id"],
+                restore_memory(
+                    r["payload"],
+                    copy_sources(
+                        self.connection, "memory_candidates", self.character_id, r["memory_id"]
+                    ),
+                ),
             )
             for r in rows
         ]
@@ -241,7 +298,11 @@ class _MemoryTransaction:
             ).fetchone()
             if old is not None and (
                 old["turn_id"] != turn_id
-                or restore_memory(old["payload"], tuple(old["payload"]["source_turn_ids"])) != value
+                or restore_memory(
+                    old["payload"],
+                    copy_sources(self.connection, "memory_generated", self.character_id, value.id),
+                )
+                != value
             ):
                 raise MemoryConflict()
             if existing is not None and old is None:
@@ -249,13 +310,15 @@ class _MemoryTransaction:
             self.connection.execute(
                 "INSERT INTO memory_generated(character_id,memory_id,turn_id,payload) "
                 "VALUES(%s,%s,%s,%s) ON CONFLICT DO NOTHING",
-                (self.character_id, value.id, turn_id, Jsonb(candidate_record(value))),
+                (self.character_id, value.id, turn_id, Jsonb(copy_payload(value))),
             )
+            save_copy_sources(self.connection, "memory_generated", value)
             self.connection.execute(
                 "INSERT INTO memory_candidates(character_id,turn_id,memory_id,payload) "
                 "VALUES(%s,%s,%s,%s)",
-                (self.character_id, turn_id, value.id, Jsonb(candidate_record(value))),
+                (self.character_id, turn_id, value.id, Jsonb(copy_payload(value))),
             )
+            save_copy_sources(self.connection, "memory_candidates", value)
 
     def get_extraction(self, turn_id: str) -> ExtractionState | None:
         return _state(
@@ -270,11 +333,11 @@ class _MemoryTransaction:
             raise MemoryValidationError("Wrong extraction owner")
         self.connection.execute(
             "INSERT INTO memory_extractions(character_id,turn_id,delivery_basis,signature,"
-            "status,token,lease_until,deadline,error,used_text,receipt_version)"
-            " VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(character_id,turn_id) DO "
+            "status,token,lease_until,deadline,error,text_hash,used_end,receipt_version)"
+            " VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(character_id,turn_id) DO "
             "UPDATE SET delivery_basis=EXCLUDED.delivery_basis,signature=EXCLUDED.signature,"
             "status=EXCLUDED.status,token=EXCLUDED.token,lease_until=EXCLUDED.lease_until,"
-            "deadline=EXCLUDED.deadline,error=EXCLUDED.error,used_text=EXCLUDED.used_text,"
+            "deadline=EXCLUDED.deadline,error=EXCLUDED.error,text_hash=EXCLUDED.text_hash,used_end=EXCLUDED.used_end,"
             "receipt_version=EXCLUDED.receipt_version",
             (
                 value.character_id,
@@ -286,7 +349,8 @@ class _MemoryTransaction:
                 value.lease_until,
                 value.deadline,
                 value.error,
-                value.used_text,
+                value.text_hash,
+                value.used_end,
                 value.receipt_version,
             ),
         )

@@ -146,8 +146,15 @@ def test_recall_revision_preserves_evidence_and_memory_through_repeat_and_reappl
                         assert PostgresMemoryStore(url).get_memory("char-b", OLD_ID) == replace(
                             memory(), subject="char-c"
                         )
-                        with PostgresMemoryStore(url).transaction("char-b") as tx:
-                            assert tx.baselines() == (replace(memory(), subject="char-c"),)
+                        expected_payload = {
+                            key: value.isoformat() if isinstance(value, datetime) else value
+                            for key, value in old_row.items()
+                        } | {"source_turn_ids": ["turn-1"]}
+                        assert conn.execute(
+                            "SELECT payload FROM memory_baselines WHERE character_id=%s "
+                            "AND memory_id=%s",
+                            ("char-b", OLD_ID),
+                        ).fetchone() == (expected_payload,)
         finally:
             if conn.execute("SELECT to_regclass('public.turns')").fetchone() != (None,):
                 command.downgrade(config, "0005")

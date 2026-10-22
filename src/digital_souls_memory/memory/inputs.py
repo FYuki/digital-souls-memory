@@ -53,7 +53,9 @@ class ResolvedInput:
         raw = [
             (
                 v.turn.turn_id,
-                v.decision.text if v.decision else None,
+                hashlib.sha256(v.decision.text.encode("utf-8")).hexdigest()
+                if v.decision and v.decision.text is not None
+                else None,
                 v.decision.basis if v.decision else None,
                 v.decision.receipt_version if v.decision else None,
                 v.decision.deadline.isoformat() if v.decision else None,

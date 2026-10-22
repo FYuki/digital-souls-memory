@@ -26,7 +26,6 @@ def test_resident_revision_roundtrip_preserves_existing_evidence(
     monkeypatch.delenv("MEMORY_RERANKER_ENDPOINT", raising=False)
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
     scripts = ScriptDirectory.from_config(config)
-    assert scripts.get_heads() == ["0008"]
     revision = scripts.get_revision("0008")
     assert revision is not None and revision.down_revision == "0007"
     with psycopg.connect(url, autocommit=True, connect_timeout=5) as connection:
@@ -49,12 +48,12 @@ def test_resident_revision_roundtrip_preserves_existing_evidence(
                     table: connection.execute(f"SELECT * FROM {table}").fetchall()
                     for table in ("sessions", "turns", "delivery_receipts")
                 }
-            command.upgrade(config, "head")
-            command.upgrade(config, "head")
+            command.upgrade(config, "0008")
+            command.upgrade(config, "0008")
             assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
                 "0008",
             )
-            for target in ("0007", "head"):
+            for target in ("0007", "0008"):
                 if target == "0007":
                     command.downgrade(config, target)
                 else:
