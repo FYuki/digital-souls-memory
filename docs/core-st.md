@@ -89,3 +89,23 @@ embedding・pg_bigm 検索・reranker・tokenizer は製品の採用構成を使
 server duration_ms は性能判定に使わない。
 performance.json の全試行、p50/p95、判定、環境 manifest、日時、例外の型を証跡に残す。
 データ件数・入力分布を超える大規模運用保証は行わない。
+
+## 品質を維持するモデルserver設定の比較
+
+基準は [2026-10-22の診断](reports/2026-10-22-core-st-performance.md) と同じ
+llama.cpp image `sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7`、
+parallel=1、ctx / batch / ubatch=2048、threads / threads-batch=8、
+GPU layers=99、cache-ram=0 とする。これは比較用の基準であり、高速化を確認した設定ではない。
+rerankerは既に20文書を1回のHTTP要求で送る。今回の改善はこのHTTP batch化ではない。
+
+外部要求の並列度は1に固定する。server内部のparallel、ubatchは一項目ずつ変更し、
+同じmanifestの合成入力、warm-up、全100標本で基準と比較する。
+採用モデルのrevision・GGUF digest・量子化・pooling、候補数、上位20件、
+入力全文、raw relevance、棄却閾値-2、返却最大5件、JSON全体1,500トークンを維持する。
+設定ごとにraw relevanceと棄却・採用結果を照合し、品質を変える設定は推奨に採用しない。
+候補やrerank対象の削減、入力の切り詰めを高速化の代用にしない。
+
+TAKTではこれらの設定比較と実モデル性能STは **NOT RUN**。
+親がGPU環境で固定manifest、全標本、p50 / p95、必達p95 ≤600msと
+目標p95 ≤300ms / p50 ≤150msの各達否を記録する。
+接続数・SQL操作数の削減やfakeモデルの機能STから実モデルの性能達成を判断しない。

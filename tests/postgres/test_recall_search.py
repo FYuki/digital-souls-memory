@@ -43,7 +43,7 @@ def search(
         query_vector=batch(1),
         now=now,
         limit=limit,
-    )
+    ).candidates
 
 
 def publish(index: PostgresRetrievalStore, *, now: datetime) -> None:
@@ -415,7 +415,7 @@ def test_product_search_uses_lexical_index_without_document_seq_scan_at_ten_thou
 def test_search_reuses_source_reads_in_one_snapshot_and_refreshes_next_search(
     app_database_url: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from digital_souls_memory.adapters.recall_records import read_material
+    from digital_souls_memory.adapters.recall_records import read_materials
     from digital_souls_memory.recall.domain import CandidateMaterial
 
     monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
@@ -441,16 +441,16 @@ def test_search_reuses_source_reads_in_one_snapshot_and_refreshes_next_search(
     reads: list[str] = []
 
     def concurrent_receipt(
-        connection: psycopg.Connection[DictRow], turn_id: str
-    ) -> CandidateMaterial | None:
-        if not reads:
+        connection: psycopg.Connection[DictRow], turn_ids: tuple[str, ...]
+    ) -> dict[str, CandidateMaterial]:
+        if turn_ids and not reads:
             # The candidate query has already established this search's snapshot.
             evidence.add_receipt(receipt("partial", 3))
-        reads.append(turn_id)
-        return read_material(connection, turn_id)
+        reads.extend(turn_ids)
+        return read_materials(connection, turn_ids)
 
     monkeypatch.setattr(
-        "digital_souls_memory.adapters.recall_search.read_material", concurrent_receipt
+        "digital_souls_memory.adapters.recall_search.read_materials", concurrent_receipt
     )
     first = search(index, "日本語", reader="char-b", now=RECORDED, limit=4)
     assert {candidate.ref.memory_id for candidate in first} == {f"snapshot-{i}" for i in range(4)}

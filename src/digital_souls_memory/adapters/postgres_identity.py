@@ -6,9 +6,10 @@ from datetime import datetime
 
 import psycopg
 from psycopg import sql
-from psycopg.rows import DictRow, dict_row
+from psycopg.rows import DictRow
 from psycopg.types.json import Jsonb
 
+from digital_souls_memory.adapters.postgres_connections import PostgresConnections
 from digital_souls_memory.identity.domain import (
     CoreIdentity,
     IdentityValidationError,
@@ -106,15 +107,15 @@ class _IdentityTransaction:
 
 
 class PostgresIdentityStore:
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, *, connections: PostgresConnections | None = None) -> None:
         if not url.startswith(("postgresql://", "postgresql+psycopg://")):
             raise IdentityUnavailable()
-        self._url = url.replace("postgresql+psycopg://", "postgresql://", 1)
+        self._connections = connections if connections is not None else PostgresConnections(url)
 
     @contextmanager
     def _connection(self) -> Iterator[psycopg.Connection[DictRow]]:
         try:
-            with psycopg.connect(self._url, row_factory=dict_row, connect_timeout=5) as connection:
+            with self._connections.connection() as connection:
                 yield connection
         except psycopg.errors.UniqueViolation as error:
             raise IdentityConflict() from error

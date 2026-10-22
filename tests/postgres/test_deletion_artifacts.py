@@ -95,7 +95,7 @@ def test_deletion_withdraws_old_index_and_embedding_without_rebuilding_unaffecte
         )
         (found,) = index.search(
             character_id="char-b", query=loaded.input, query_vector=batch, now=RECORDED, limit=20
-        )
+        ).candidates
         assert found.memory == unaffected
 
 

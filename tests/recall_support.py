@@ -1,7 +1,8 @@
 """Synthetic port doubles for the planned recall composition boundary."""
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Literal
@@ -9,9 +10,11 @@ from typing import Literal
 import pytest
 from fastapi.testclient import TestClient
 
+from digital_souls_memory.adapters.identity_characters import IdentityCharacters
 from digital_souls_memory.api import create_app
 from digital_souls_memory.evidence.domain import Session, Turn
-from digital_souls_memory.evidence.materials import material_decision
+from digital_souls_memory.evidence.materials import aggregate_receipts, material_decision
+from digital_souls_memory.evidence.ports import CharacterRegistry, EvidenceStore
 from digital_souls_memory.evidence.provision import (
     ProvisionConflict,
     ProvisionRecord,
@@ -20,12 +23,14 @@ from digital_souls_memory.evidence.provision import (
 from digital_souls_memory.identity.sessions import SessionIdentity, choose_session_identity
 from digital_souls_memory.memory.domain import DerivedMemory
 from digital_souls_memory.recall.domain import (
+    CandidateMaterial,
     CandidateRef,
     EmbeddingBatch,
     ProvisionSnapshot,
     RecallCandidate,
     RerankInput,
     RerankScore,
+    RetrievalResult,
 )
 from digital_souls_memory.recall.inputs import ModelInput
 from tests.evidence_support import RECORDED, session
@@ -52,10 +57,36 @@ class RecordingEmbedding:
 class RecordingRetriever:
     """Returns candidates; source permission and final projection stay real."""
 
-    def __init__(self) -> None:
+    def __init__(self, evidence: EvidenceStore, characters: CharacterRegistry) -> None:
+        self.evidence = evidence
+        self.characters = characters
         self.values: list[RecallCandidate] = []
         self.calls: list[tuple[str, ModelInput, EmbeddingBatch, datetime, int]] = []
         self.anchors: list[RecallCandidate] = []
+
+    @contextmanager
+    def reading(self) -> Iterator["RecordingRetriever"]:
+        yield self
+
+    def _result(self, values: tuple[RecallCandidate, ...]) -> RetrievalResult:
+        materials = []
+        for key in dict.fromkeys(d.turn_id for v in values for d in v.dependencies):
+            source = self.evidence.get_turn(key)
+            if source is None:
+                continue
+            session = self.evidence.get_session(source.session_id)
+            if session is None:
+                continue
+            with self.evidence.list_receipts(key) as receipts:
+                materials.append(
+                    CandidateMaterial(
+                        turn=source,
+                        session=session,
+                        actor_is_character=self.characters.is_character(source.actor),
+                        receipt_state=aggregate_receipts(receipts),
+                    )
+                )
+        return RetrievalResult(candidates=values, materials=tuple(materials))
 
     def search(
         self,
@@ -65,19 +96,21 @@ class RecordingRetriever:
         query_vector: EmbeddingBatch,
         now: datetime,
         limit: int,
-    ) -> tuple[RecallCandidate, ...]:
+    ) -> RetrievalResult:
         self.calls.append((character_id, query, query_vector, now, limit))
-        return tuple(self.values[:limit])
+        return self._result(tuple(self.values[:limit]))
 
     def anchors_for(
         self, *, character_id: str, turn_ids: tuple[str, ...], now: datetime
-    ) -> tuple[RecallCandidate, ...]:
-        return tuple(
-            v
-            for v in self.anchors
-            if v.ref.owner_id == character_id
-            and v.anchor is not None
-            and v.anchor.turn_id in turn_ids
+    ) -> RetrievalResult:
+        return self._result(
+            tuple(
+                v
+                for v in self.anchors
+                if v.ref.owner_id == character_id
+                and v.anchor is not None
+                and v.anchor.turn_id in turn_ids
+            )
         )
 
 
@@ -167,7 +200,9 @@ class RecallHarness:
         self.evidence.add_session(session(reports_delivery=False))
         self.identity = registered_identities()
         self.voice = FakeVoiceStore()
-        self.retriever = RecordingRetriever()
+        self.retriever = RecordingRetriever(
+            self.evidence, IdentityCharacters(lambda: self.identity)
+        )
         self.embedding = RecordingEmbedding()
         self.reranker = RecordingReranker()
         self.counter = RecordingTokenCounter()

@@ -2,8 +2,8 @@
 
 import os
 import time
-from collections.abc import AsyncIterator, Callable
-from contextlib import ExitStack, asynccontextmanager
+from collections.abc import AsyncIterator, Callable, Iterator
+from contextlib import ExitStack, asynccontextmanager, contextmanager
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
@@ -11,6 +11,7 @@ from fastapi import FastAPI
 
 from digital_souls_memory.adapters.core_authorization import CoreAuthorizer
 from digital_souls_memory.adapters.identity_characters import IdentityCharacters
+from digital_souls_memory.adapters.postgres_connections import PostgresConnections
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
@@ -152,6 +153,9 @@ def create_app(
             reranker = model_reranker
             owned_models.append(model_reranker)
         setup.pop_all()
+    default_retriever = retriever is None
+    default_provisions = provision_store is None
+    default_selections = session_identity_store is None
     index_store: PostgresRetrievalStore | None = None
     database_url = os.environ.get("MEMORY_DATABASE_URL")
     if database_url:
@@ -304,7 +308,8 @@ def create_app(
 
     app.include_router(memory_router(memory_service))
 
-    def recall_service() -> RecallService:
+    @contextmanager
+    def recall_service() -> Iterator[RecallService]:
         if (
             retriever is None
             or embedding is None
@@ -314,22 +319,55 @@ def create_app(
             or session_identity_store is None
         ):
             raise ProvisionUnavailable()
-        return RecallService(
-            evidence=resolve_evidence_store(),
-            characters=IdentityCharacters(resolve_identity_store),
-            retriever=retriever,
-            embedding=embedding,
-            reranker=reranker,
-            counter=token_counter,
-            provisions=provision_store,
-            selections=session_identity_store,
-            clock=registration_clock,
-            monotonic=monotonic,
-            id_factory=provision_id_factory,
-            delivery_timeout=delivery_timeout,
-            non_sensitive_labels=non_sensitive_labels,
-            settings=recall_settings if recall_settings is not None else RecallSettings(),
-        )
+        with ExitStack() as resources:
+            connections = None
+            if database_url and (
+                store is None
+                or identity_store is None
+                or default_retriever
+                or default_provisions
+                or default_selections
+            ):
+                connections = PostgresConnections(database_url)
+                resources.enter_context(connections.request())
+            evidence = resolve_evidence_store()
+            identity = resolve_identity_store()
+            bound_retriever = retriever
+            bound_provisions = provision_store
+            bound_selections = session_identity_store
+            if connections is not None and database_url is not None:
+                if store is None:
+                    evidence = PostgresEvidenceStore(database_url, connections=connections)
+                if identity_store is None:
+                    identity = PostgresIdentityStore(database_url, connections=connections)
+                if default_retriever:
+                    bound_retriever = PostgresRetrievalStore(
+                        database_url, delivery_timeout=delivery_timeout, connections=connections
+                    )
+                if default_provisions:
+                    bound_provisions = PostgresProvisionStore(
+                        database_url, delivery_timeout=delivery_timeout, connections=connections
+                    )
+                if default_selections:
+                    bound_selections = PostgresSessionIdentityStore(
+                        database_url, connections=connections
+                    )
+            yield RecallService(
+                evidence=evidence,
+                characters=IdentityCharacters(lambda: identity),
+                retriever=bound_retriever,
+                embedding=embedding,
+                reranker=reranker,
+                counter=token_counter,
+                provisions=bound_provisions,
+                selections=bound_selections,
+                clock=registration_clock,
+                monotonic=monotonic,
+                id_factory=provision_id_factory,
+                delivery_timeout=delivery_timeout,
+                non_sensitive_labels=non_sensitive_labels,
+                settings=recall_settings if recall_settings is not None else RecallSettings(),
+            )
 
     app.include_router(recall_router(recall_service))
 

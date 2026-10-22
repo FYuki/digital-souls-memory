@@ -171,7 +171,7 @@ def test_anchor_index_reloads_corrected_range_and_rejects_same_range_append(
             query_vector=batch,
             now=RECORDED,
             limit=20,
-        )
+        ).candidates
         assert found.search_text == text
         with TestClient(
             create_app(

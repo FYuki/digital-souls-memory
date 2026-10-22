@@ -1,6 +1,7 @@
 """Core HTTP boundary for turn recall."""
 
 from collections.abc import Callable, Coroutine
+from contextlib import AbstractContextManager
 from typing import Literal, Self
 
 from fastapi import APIRouter, Request, Response
@@ -50,12 +51,13 @@ class RecallRoute(APIRoute):
         return handle
 
 
-def recall_router(service: Callable[[], RecallService]) -> APIRouter:
+def recall_router(service: Callable[[], AbstractContextManager[RecallService]]) -> APIRouter:
     router = APIRouter(route_class=RecallRoute)
 
     @router.post("/characters/{character_id}/recall")
     def recall(character_id: str, request: RecallRequest) -> Response:
-        result = service().recall(character_id=character_id, **request.model_dump())
+        with service() as configured:
+            result = configured.recall(character_id=character_id, **request.model_dump())
         return Response(content=serialize_response(result), media_type="application/json")
 
     return router
