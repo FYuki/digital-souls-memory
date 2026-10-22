@@ -27,8 +27,11 @@ jobs:
       - name: Lint, format and strict types
         run: |
           bash -n tools/with-test-postgres.sh
+          bash -n tools/with-core-st.sh
           docker compose config --no-interpolate --quiet
           docker compose -f compose.retrieval-evaluation.yml config --no-interpolate --quiet
+          docker compose -f compose.core-st.yml config --no-interpolate --quiet
+          docker compose -f compose.core-st.yml -f compose.core-st.performance.yml config --no-interpolate --quiet
           uv run --no-sync ruff check src tests migrations
           uv run --no-sync ruff format --check src tests migrations
           uv run --no-sync mypy
@@ -43,6 +46,7 @@ jobs:
           uv venv .package-check
           uv pip install --python .package-check/bin/python --require-hashes -r "$RUNNER_TEMP/memory-runtime.txt"
           uv pip install --python .package-check/bin/python --no-deps dist/*.whl
+          .package-check/bin/python -I -c "from digital_souls_memory.client import MemoryClient; assert callable(MemoryClient)"
           .package-check/bin/python -I -c "from digital_souls_memory.api import create_app; from digital_souls_memory.evaluation.cli import main; assert create_app().title == 'Digital Souls Memory'; assert callable(main)"
 
   postgres:

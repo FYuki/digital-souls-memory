@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: memory-retrieval-postgres:pg18-vector0.8.2-pgroonga4.1.0-bigm735dceb
+    build:
+      context: docker/retrieval-postgres
+    environment:
+      POSTGRES_USER: memory_st_admin
+      POSTGRES_DB: memory_core_st
+      POSTGRES_PASSWORD: synthetic-only
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memory_st_admin -d memory_core_st"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+  init:
+    image: memory-core-st:local
+    build:
+      context: .
+      dockerfile: docker/core-st/Dockerfile
+    command: ["python", "tools/core_st_db.py"]
+    environment:
+      MEMORY_CORE_ST_ADMIN_URL: postgresql://memory_st_admin:synthetic-only@postgres/memory_core_st
+    depends_on:
+      postgres:
+        condition: service_healthy
+  memory:
+    image: memory-core-st:local
+    command: ["uvicorn", "tests.st.app:factory", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      MEMORY_DATABASE_URL: postgresql://memory_st_app:synthetic-only@postgres/memory_core_st
+      MEMORY_DELETION_DATABASE_URL: postgresql://memory_st_delete:synthetic-only@postgres/memory_core_st
+      MEMORY_AUTHOR_ID: synthetic-author
+      MEMORY_AUTHOR_TOKEN: synthetic-st-credential
+      MEMORY_CORE_ST_MODE: functional
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://127.0.0.1:8000/health').raise_for_status()"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+  runner:
+    image: memory-core-st:local
+    command: ["pytest", "-m", "st", "--force-enable-socket", "--log-cli-level=WARNING", "-q", "tests/st/test_functional.py"]
+    environment:
+      MEMORY_CORE_ST_URL: http://memory:8000
+      MEMORY_CORE_ST_AUDIT_URL: postgresql://memory_st_admin:synthetic-only@postgres/memory_core_st
+    depends_on:
+      memory:
+        condition: service_healthy

@@ -1,0 +1,316 @@
+ Container memory-core-st-1792643774-3-memory-1 Running 
+ Container memory-core-st-1792643774-3-postgres-1 Running 
+ Container memory-core-st-1792643774-3-runner-run-1ecf2de5bb82 Creating 
+ Container memory-core-st-1792643774-3-runner-run-1ecf2de5bb82 Created 
+
+
+reimplement (2026-10-22): new executions; earlier evidence above is retained.
+Commands:
+UV_CACHE_DIR=/tmp/memory-core-client-uv uv run --no-sync pytest -m ut -q (exit 0)
+UV_CACHE_DIR=/tmp/memory-core-client-uv uv run --no-sync pytest -m it1 -q (exit 0)
+BUILDX_CONFIG=/tmp/memory-core-buildx UV_CACHE_DIR=/tmp/memory-core-client-uv bash tools/with-test-postgres.sh (exit 0)
+MEMORY_CORE_ST_EVIDENCE_DIR=/tmp/core-st-reimplement-functional bash tools/with-core-st.sh (exit 0)
+Controlling terminal: pty.fork -> exec bash tools/with-core-st.sh; parent waits until tests.log contains test_phase_one_http_lifecycle; os.write(master, b'\x03'); waitpid -> 130; outer assertions -> exit 0.
+Tool interruption: exec_command tty=true; write_stdin U+0003 -> exit 1; no result.txt; resources remained. Manually removed only project memory-core-st-1792644710-2 with docker compose down --volumes --remove-orphans.
+Minimal probe: catch INT/TERM/HUP and append signal name; repeat using subprocess.Popen(..., start_new_session=True) child plus heartbeat file. No handler records and stopped heartbeat after tool interruption; internal termination signal/order unconfirmed.
+C20 remains 未完了; real-model performance remains NOT RUN.
+
+Directly read outputs (in order: functional, active PTY, minimal tool probe, suite summaries):
+2026-10-22T04:54:18Z
+exit_status=0
+project=memory-core-st-1792644858-3
+ Container memory-core-st-1792644858-3-memory-1 Running 
+ Container memory-core-st-1792644858-3-postgres-1 Running 
+ Container memory-core-st-1792644858-3-runner-run-b077ca99cb11 Creating 
+ Container memory-core-st-1792644858-3-runner-run-b077ca99cb11 Created 
+
+tests/st/test_functional.py::test_phase_one_http_lifecycle PASSED        [ 25%]
+tests/st/test_functional.py::test_thought_privacy_and_invalid_registrations[True] PASSED [ 50%]
+tests/st/test_functional.py::test_thought_privacy_and_invalid_registrations[False] PASSED [ 75%]
+tests/st/test_functional.py::test_delivery_deadline_and_saved_outputs_follow_receipts PASSED [100%]
+
+============================== 4 passed in 41.97s ==============================
+{
+  "exit_status": 130,
+  "ctrl_c_sent": true,
+  "at": "test_phase_one_http_lifecycle"
+}
+exit_status=130
+project=memory-core-st-1792645127-4
+ Container memory-core-st-1792645127-4-runner-run-41b4860a35d7 Stopping 
+ Container memory-core-st-1792645127-4-runner-run-41b4860a35d7 Stopped 
+ Container memory-core-st-1792645127-4-runner-run-41b4860a35d7 Removing 
+ Container memory-core-st-1792645127-4-runner-run-41b4860a35d7 Removed 
+ Container memory-core-st-1792645127-4-memory-1 Stopping 
+ Container memory-core-st-1792645127-4-memory-1 Stopped 
+ Container memory-core-st-1792645127-4-memory-1 Removing 
+ Container memory-core-st-1792645127-4-memory-1 Removed 
+ Container memory-core-st-1792645127-4-init-1 Stopping 
+ Container memory-core-st-1792645127-4-init-1 Stopped 
+ Container memory-core-st-1792645127-4-init-1 Removing 
+ Container memory-core-st-1792645127-4-init-1 Removed 
+ Container memory-core-st-1792645127-4-postgres-1 Stopping 
+ Container memory-core-st-1792645127-4-postgres-1 Stopped 
+ Container memory-core-st-1792645127-4-postgres-1 Removing 
+ Container memory-core-st-1792645127-4-postgres-1 Removed 
+ Network memory-core-st-1792645127-4_default Removing 
+ Network memory-core-st-1792645127-4_default Removed 
+{
+  "heartbeat_stopped": true,
+  "heartbeat_before": "19207632776888",
+  "heartbeat_after": "19207632776888",
+  "signals": [
+    "{\"event\": \"start\", \"pid\": 2, \"ppid\": 1, \"pgid\": 1, \"sid\": 1}",
+    "{\"event\": \"start\", \"pid\": 4, \"ppid\": 3, \"pgid\": 4, \"sid\": 4}",
+    "{\"event\": \"start\", \"pid\": 4, \"ppid\": 3, \"pgid\": 4, \"sid\": 4}"
+  ],
+  "parent": "parent=3, child=4, child_group=4\ncodex\n"
+}
+==> /tmp/core-reimplement-ut.log <==
+977 passed, 1407 deselected, 1 warning in 3.46s
+
+==> /tmp/core-reimplement-it1.log <==
+909 passed, 1475 deselected, 1 warning in 27.19s
+
+==> /tmp/core-reimplement-postgres.log <==
+494 passed, 1890 deselected, 1 warning in 200.08s (0:03:20)
+tests/st/test_functional.py::test_phase_one_http_lifecycle 
+-------------------------------- live log call ---------------------------------
+WARNING  tests.st.test_functional:test_functional.py:310 Post-deletion snapshot was unavailable (503); caller explicitly retries
+PASSED                                                                   [ 25%]
+tests/st/test_functional.py::test_thought_privacy_and_invalid_registrations[True] PASSED [ 50%]
+tests/st/test_functional.py::test_thought_privacy_and_invalid_registrations[False] PASSED [ 75%]
+tests/st/test_functional.py::test_delivery_deadline_and_saved_outputs_follow_receipts PASSED [100%]
+
+============================== 4 passed in 40.89s ==============================
+452bfc053b2193d038fac51a501b14d7c43959a8ef22522ea89917312756a469  .github/workflows/ci.yml
+8ad353ded939ffd4e0b3e28948fae96dd6a2058c526d4804e9bcebe6795337e9  compose.core-st.performance.yml
+7f015aac3527574e102d1817c2b1b5e9175726596bf27fbbfa29169d97cdeefe  compose.core-st.yml
+6bde90be4f2b09d8f3a2298a42ae495ce173899dada9099db988e5477ef2e6e9  docker/core-st/Dockerfile
+52aad6237d0aacd686a10bc646a368cd7251ed7f384273cde0d3bbb37a7fea4d  docs/core-client.md
+8b2e78d9f227129e5cbd77fa82f6c61f2f5d3e2dac58e84734203862c4907107  docs/core-st.md
+c1e857f19692f9fbd33001776629ff54ccf59f77c9e3841af719dffd9dc334ba  docs/reports/core-st-performance-manifest.template.json
+90f6147fd5f5788f84fef7655483c52fd14ea4737becd42dfc5984c81a282e4c  src/digital_souls_memory/client/__init__.py
+dc6e1f932101851d4b8c441e17b939ff9ed0d337ddbcdd7f919e751b1bd91734  src/digital_souls_memory/client/http.py
+8acb9b89722e48dd1a83c94ff2cf6daee5d73a5618a7402302e6e5c325c724a2  src/digital_souls_memory/client/models.py
+765cb77fd677f8643fefbcba3ae1c7aee111cde038da5718d75966860f1f0bed  tests/it1/test_core_client.py
+0f043482a12e4b6216b533dfe0608e9814853ace2ed5b1ab6dcac2d3fd821300  tests/it1/test_core_client_registration.py
+efb4a3fb4d8169c86de42cee26aa028b67f23e2680028fc070a95acb6b7d4586  tests/it1/test_core_st_configuration.py
+d0edff05dec69de91d7ba2eabb23a1971c2e2b1a866648480e6e714e06147e2c  tests/it1/test_core_st_measurement.py
+1249c7d1307cb4434e6e90d2763f07791a477c44334d5bc3c3f12dbf65ff79e9  tests/postgres/test_core_client.py
+fb1602f12d7f006d0293d6e73d9f2e796ce0965c997740df10658720cc2c4abe  tests/st/__init__.py
+959d7e0219526c70ddd17d9328f6f56e059bab43dac004a50affcf81db6ec1f7  tests/st/app.py
+398638b586b45f71cce443b6c30bb8a4d8c7c01bf25fd5d0dab3ccf65b67f299  tests/st/fakes.py
+4994c757d354361576ce92fc2c15d3e094bef1a99a8382921cde8989049dae7e  tests/st/latency.py
+4f8fefa42bda914ffa286dea9d984f0262d9897602fef103b3310ab695545423  tests/st/performance.py
+8fb7be5f342d1d94594fb6128aaaea4bfe7403a8d0f04e5ee006d89726d12ee4  tests/st/support.py
+6db59338a3ba56f2336899ae91596aaa7519102a33adbe9147a26dcf98a7450a  tests/st/test_functional.py
+c3873f7730294fc12cc8cbdb10fe784032ebdd21f0a57c970e61fc9fbefcc701  tests/ut/test_core_client_models.py
+f40d9e343634eeaf02d73403530c6e321c818928601fdaafd05d61db7539328b  tests/ut/test_core_e2e_invariants.py
+1bfc563e48a74190809e848736baed69d4fe4b2b6a3f563e2e7892e2a17f4a2a  tests/ut/test_core_st_harness.py
+815122bb53f7a889777719935035207f7c1479c9219d436bf2be0f93b93af467  tests/ut/test_core_st_latency.py
+bb53e8811d4d52705feaf1bc4ca5e8e24f33a055df1b9c0f0c8ef967b66f6ce1  tools/core_st_db.py
+051a027f2500cc96be35462ce3e016a2be2b4682f4f0ccc9c497c3f7f8fc3fce  tools/with-core-st.sh
+
+親判断の反映（2026-10-22、上記試行後。新しい実行結果ではない）:
+親エージェント（Claude）の追加判断により、C20のうち実行ツールのPTY中断でhandlerが動かず資源が残る経路だけを本Issueの受入対象外とする。
+上記の「C20 remains 未完了」は追加判断前の評価として保持し、現在のレビュー進行の停止理由にはしない。
+通常終了・失敗・端末Ctrl-C（INT/TERM）の後片付けは受入対象のまま。既存の正常0・失敗17・端末中断130の回帰試験と実Composeの破棄証跡を保持する。
+tool終了1、result.txt不在、自動破棄失敗、資源残存と手動除去の観測は変更しない。内部のsignalと終了順は未確認のまま、追加調査・外部回答待ちは終了する。
+docs/core-st.mdに、result.txtまたはstart.log等で確認した専用projectを指定するdown -v --remove-orphansと、同じproject labelによるcontainer/network/volumeの残存確認手順を補完した。各確認コマンドの成功と出力なしを確認し、永続証跡は削除しない。
+製品コード・runner・Compose・テスト・性能条件は変更しない。文書補完後はレビューへ進む。実モデル性能はNOT RUNのまま親へ引き継ぐ。
+
+
+P01 (2026-10-22): previous execution history retained.
+| 段階 | 順序 | 試行 | 結果 | 秒 | 終了status | 専用資源破棄 |
+|---|---|---|---|---|---|---|
+| before | deadline-first | 1 | 3 PASS / 1 FAIL | 24.62 | 1 | 成功 |
+| before | deadline-first | 2 | 3 PASS / 1 FAIL | 23.19 | 1 | 成功 |
+| before | normal | 1 | 4 PASS / 0 FAIL | 38.53 | 0 | 成功 |
+| before | normal | 2 | 4 PASS / 0 FAIL | 39.15 | 0 | 成功 |
+| after | advance-one | 1 | 4 PASS / 0 FAIL | 42.8 | 0 | 成功 |
+| after | deadline-first | 1 | 4 PASS / 0 FAIL | 41.75 | 0 | 成功 |
+| after | deadline-first | 2 | 4 PASS / 0 FAIL | 43.2 | 0 | 成功 |
+| after | normal | 1 | 4 PASS / 0 FAIL | 40.3 | 0 | 成功 |
+| after | normal | 2 | 4 PASS / 0 FAIL | 39.56 | 0 | 成功 |
+
+Commands: python3 .takt/p01_compare.py before; python3 .takt/p01_compare.py after
+Runner: docker compose -f compose.core-st.yml -p <project> run --no-deps --rm -v <repo>/.takt/p01_observe.py:/app/p01_observe.py:ro -e P01_ADVANCE_ONE=<0|1> runner python -m pytest -p p01_observe -m st --force-enable-socket --log-cli-level=WARNING -s -v <four ordered node IDs>
+Exact expanded commands, revision, timestamps, source hashes, images and project: /tmp/core-st-p01-{before,after}/<order>-<trial>/result.json
+Before deadline-first trials: clock/registered_at/valid_from/provided_at=2026-01-02T11:10:00+00:00; session.started_at=2026-01-02T11:00:00+00:00; selected temperament/personality=(None,None); first failing assertion before-correction test_functional.py:178 expected (1,1).
+After deadline-first trials: clock/registered_at/valid_from/session.started_at=2026-01-02T11:10:00+00:00; selected versions=(1,1); existing resident/turn time, version and content comparisons PASS.
+Initial plugin-loading failure: /tmp/core-st-p01-before-setup-failed (FAIL before tests; python -m pytest corrected loading); all subsequent comparison trials above are separate fresh DB executions.
+Helper verification: /tmp/core-st-p01-helper-check.log; current, invalid-date, HTTP-failure, transport-failure all PASS; transport closed in each case. Initial python -m runpy invocation failed before checks; corrected to python -c with runpy.run_path.
+Quality command prefix: UV_CACHE_DIR=/tmp/memory-core-client-uv BUILDX_CONFIG=/tmp/memory-core-st-buildx
+exit=0 uv lock --check (log /tmp/core-st-p01-quality/00.log)
+exit=0 uv sync --frozen (log /tmp/core-st-p01-quality/01.log)
+exit=0 bash -n tools/with-test-postgres.sh tools/with-core-st.sh (log /tmp/core-st-p01-quality/02.log)
+exit=0 docker compose config --no-interpolate --quiet (log /tmp/core-st-p01-quality/03.log)
+exit=0 docker compose -f compose.core-st.yml config --no-interpolate --quiet (log /tmp/core-st-p01-quality/04.log)
+exit=0 docker compose -f compose.core-st.yml -f compose.core-st.performance.yml config --no-interpolate --quiet (log /tmp/core-st-p01-quality/05.log)
+exit=0 uv run --no-sync ruff check src tests migrations (log /tmp/core-st-p01-quality/06.log)
+exit=0 uv run --no-sync ruff format --check src tests migrations (log /tmp/core-st-p01-quality/07.log)
+exit=0 uv run --no-sync mypy (log /tmp/core-st-p01-quality/08.log)
+exit=0 uv run --no-sync pytest -m ut -q (log /tmp/core-st-p01-quality/09.log)
+exit=0 uv run --no-sync pytest -m it1 -q (log /tmp/core-st-p01-quality/10.log)
+exit=0 bash tools/with-test-postgres.sh (log /tmp/core-st-p01-quality/11.log)
+exit=0 uv build --no-build-isolation (log /tmp/core-st-p01-quality/12.log)
+exit=0 uv export --frozen --no-dev --no-emit-project --format requirements-txt > /tmp/core-st-p01-quality/runtime.txt (log /tmp/core-st-p01-quality/13.log)
+exit=0 uv venv /tmp/core-st-p01-quality/package-check (log /tmp/core-st-p01-quality/14.log)
+exit=0 uv pip install --python /tmp/core-st-p01-quality/package-check/bin/python --require-hashes -r /tmp/core-st-p01-quality/runtime.txt (log /tmp/core-st-p01-quality/15.log)
+exit=0 uv pip install --python /tmp/core-st-p01-quality/package-check/bin/python --no-deps dist/*.whl (log /tmp/core-st-p01-quality/16.log)
+exit=0 /tmp/core-st-p01-quality/package-check/bin/python -I -c "from digital_souls_memory.api import create_app; from digital_souls_memory.client import MemoryClient; assert create_app().title == 'Digital Souls Memory'" (log /tmp/core-st-p01-quality/17.log)
+exit=0 git diff --check (log /tmp/core-st-p01-quality/18.log)
+UT 977 PASS; IT1 909 PASS; postgres 494 PASS; real-model performance NOT RUN. No commit/add/push.
+{
+  "phases": {
+    "before": {
+      "image": "sha256:3027e0812391d2811b4312836b43ae08c469ba490e668f939726b9033510e8e4",
+      "source_sha256": {
+        "tests/st/support.py": "8fb7be5f342d1d94594fb6128aaaea4bfe7403a8d0f04e5ee006d89726d12ee4",
+        "tests/st/test_functional.py": "21fa79876afde8effff7d50aba652550131b495afd9bb36435d6aa0e012daa19",
+        "compose.core-st.yml": "7f015aac3527574e102d1817c2b1b5e9175726596bf27fbbfa29169d97cdeefe",
+        ".takt/p01_observe.py": "84bce38f18f1a4ab3c8d07880099dd4649c87237cea57d1ac82a2fcacd17e4b0"
+      },
+      "revision": "3b6070404f02563206b9b06bce7cc630de52fa61"
+    },
+    "after": {
+      "image": "sha256:29ad11cc5a23b3fcc179b9b592c9c799a6b52f0a200ea6def94461d9c3180fbd",
+      "source_sha256": {
+        "tests/st/support.py": "aabf7118a1782ac1545bf454b2dcd7c653e1ed0a5bd19906d82f9863531aef58",
+        "tests/st/test_functional.py": "9a51d26c60639f10c8935eac4738a9bffd3f31dc708a4db81bbb493f2b6ee326",
+        "compose.core-st.yml": "7f015aac3527574e102d1817c2b1b5e9175726596bf27fbbfa29169d97cdeefe",
+        ".takt/p01_observe.py": "84bce38f18f1a4ab3c8d07880099dd4649c87237cea57d1ac82a2fcacd17e4b0"
+      },
+      "revision": "3b6070404f02563206b9b06bce7cc630de52fa61"
+    }
+  },
+  "trials": [
+    {
+      "phase": "before",
+      "order": "deadline-first",
+      "trial": 1,
+      "started_at": "2026-10-22T05:56:10.809660+00:00",
+      "status": "FAIL",
+      "exit_status": 1,
+      "passed": 3,
+      "failed": 1,
+      "elapsed_seconds": 24.62,
+      "project": "memory-core-st-p01-before-deadline-first-1-4",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-before/deadline-first-1"
+    },
+    {
+      "phase": "before",
+      "order": "deadline-first",
+      "trial": 2,
+      "started_at": "2026-10-22T05:56:42.389252+00:00",
+      "status": "FAIL",
+      "exit_status": 1,
+      "passed": 3,
+      "failed": 1,
+      "elapsed_seconds": 23.19,
+      "project": "memory-core-st-p01-before-deadline-first-2-4",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-before/deadline-first-2"
+    },
+    {
+      "phase": "before",
+      "order": "normal",
+      "trial": 1,
+      "started_at": "2026-10-22T05:54:39.038716+00:00",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 38.53,
+      "project": "memory-core-st-p01-before-normal-1-4",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-before/normal-1"
+    },
+    {
+      "phase": "before",
+      "order": "normal",
+      "trial": 2,
+      "started_at": "2026-10-22T05:55:24.541053+00:00",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 39.15,
+      "project": "memory-core-st-p01-before-normal-2-4",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-before/normal-2"
+    },
+    {
+      "phase": "after",
+      "order": "advance-one",
+      "trial": 1,
+      "started_at": "2026-10-22T06:01:14.677065+00:00",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 42.8,
+      "project": "memory-core-st-p01-after-advance-one-1-3",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-after/advance-one-1"
+    },
+    {
+      "phase": "after",
+      "order": "deadline-first",
+      "trial": 1,
+      "started_at": "2026-10-22T05:59:35.447298+00:00",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 41.75,
+      "project": "memory-core-st-p01-after-deadline-first-1-3",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-after/deadline-first-1"
+    },
+    {
+      "phase": "after",
+      "order": "deadline-first",
+      "trial": 2,
+      "started_at": "2026-10-22T06:00:24.346860+00:00",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 43.2,
+      "project": "memory-core-st-p01-after-deadline-first-2-3",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-after/deadline-first-2"
+    },
+    {
+      "phase": "after",
+      "order": "normal",
+      "trial": 1,
+      "started_at": "2026-10-22T05:58:01.384079+00:00",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 40.3,
+      "project": "memory-core-st-p01-after-normal-1-3",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-after/normal-1"
+    },
+    {
+      "phase": "after",
+      "order": "normal",
+      "trial": 2,
+      "started_at": "2026-10-22T05:58:48.878753+00:00",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 39.56,
+      "project": "memory-core-st-p01-after-normal-2-3",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-p01-after/normal-2"
+    }
+  ]
+}

@@ -1,0 +1,403 @@
+{
+  "base_revision": "3b6070404f02563206b9b06bce7cc630de52fa61",
+  "dirty": true,
+  "started_at": "2026-10-22T04:36:14Z",
+  "environment": "Linux 6.18.54.1-microsoft-standard-WSL2 x86_64",
+  "python": "3.12.3",
+  "uv": "0.8.22",
+  "docker": "29.6.0",
+  "compose": "v5.2.0",
+  "db_image_config": "sha256:aa48e5bb08fed8cd7a8c83a534cfd2b7d4ac4a8d0476a6406be69a702668edab",
+  "client_image_config": "sha256:fa2f8222591b838d5fa6de9ff7b3874655da7433c00e92620d94f7919dbb8a14",
+  "functional": {
+    "command": "MEMORY_CORE_ST_EVIDENCE_DIR=/tmp/core-st-functional-10 bash tools/with-core-st.sh",
+    "status": "PASS",
+    "exit_status": 0,
+    "passed": 4,
+    "elapsed_seconds": 40.89,
+    "registered_sessions": 4,
+    "registered_turns": 14,
+    "rejected_turn_registrations": 7,
+    "author_deletions": 1,
+    "unauthorized_deletions": 1,
+    "post_deletion_503_responses_before_explicit_retry": 1,
+    "project": "memory-core-st-1792643774-3",
+    "cleanup_verified": true,
+    "sigterm_cleanup_verified": true,
+    "sigterm_exit_status": 143,
+    "fake_ports": [
+      "personality",
+      "reviewer",
+      "extraction",
+      "embedding",
+      "reranker",
+      "tokenizer",
+      "context"
+    ],
+    "raw_evidence": "/tmp/core-st-functional-10"
+  },
+  "performance": {
+    "status": "NOT RUN",
+    "reason": "order.md parent supplement: GPU and real model servers unavailable in TAKT; parent runs separately",
+    "p50_ms": null,
+    "p95_ms": null,
+    "required_pass": null
+  },
+  "quality": {
+    "ut_passed": 977,
+    "it1_passed": 906,
+    "postgres_passed": 494,
+    "lint": "PASS",
+    "format": "PASS",
+    "mypy": "PASS",
+    "wheel_build_locked_install_import": "PASS",
+    "shell_and_compose": "PASS"
+  },
+  "reimplement": {
+    "base_revision": "3b6070404f02563206b9b06bce7cc630de52fa61",
+    "runner_changed": false,
+    "runner_sha256": "051a027f2500cc96be35462ce3e016a2be2b4682f4f0ccc9c497c3f7f8fc3fce",
+    "functional": {
+      "command": "MEMORY_CORE_ST_EVIDENCE_DIR=/tmp/core-st-reimplement-functional bash tools/with-core-st.sh",
+      "started_at": "2026-10-22T04:54:18Z",
+      "status": "PASS",
+      "exit_status": 0,
+      "passed": 4,
+      "elapsed_seconds": 41.97,
+      "project": "memory-core-st-1792644858-3",
+      "cleanup_verified": true,
+      "post_deletion_503_responses_before_explicit_retry": 0,
+      "client_image_config": "sha256:2025f926976c2285aa015e996f3c6a103626dcb8e0d8398c2cb1f6550c0612d2"
+    },
+    "terminal_interruption": {
+      "method": "pty.fork; write 0x03 to controlling terminal after test_phase_one_http_lifecycle starts",
+      "runner_exit_status": 130,
+      "verification_exit_status": 0,
+      "project": "memory-core-st-1792645127-4",
+      "cleanup_verified": true,
+      "raw_evidence": "/tmp/core-st-reimplement-pty-active"
+    },
+    "tool_interruption": {
+      "method": "exec_command tty=true; write_stdin U+0003",
+      "tool_exit_status": 1,
+      "result_written": false,
+      "automatic_cleanup_verified": false,
+      "manual_cleanup_verified": true,
+      "project": "memory-core-st-1792644710-2",
+      "raw_evidence": "/tmp/core-st-reimplement-before",
+      "probe": "/tmp/core-st-interrupt-probe-result.json",
+      "probe_observations": "Separate-session child had no INT/TERM/HUP handler records and heartbeat stopped after tool interruption; internal termination signal and order remain unconfirmed",
+      "contract_status": "未完了"
+    },
+    "quality": {
+      "ut_passed": 977,
+      "it1_passed": 909,
+      "postgres_passed": 494,
+      "cleanup_regression_passed": 3,
+      "lint": "PASS",
+      "format": "PASS",
+      "mypy": "PASS",
+      "wheel_build_locked_install_import": "PASS",
+      "shell_and_compose": "PASS"
+    },
+    "performance": {
+      "status": "NOT RUN",
+      "p50_ms": null,
+      "p95_ms": null,
+      "required_pass": null
+    }
+  },
+  "acceptance_decision": {
+    "date": "2026-10-22",
+    "source": "親エージェント（Claude）の追加判断（reimplementの試行後）",
+    "C20": "実行ツールのPTY中断でhandlerが動かず資源が残る経路だけを本Issueの受入対象外とする。通常終了・失敗・端末Ctrl-C（INT/TERM）の後片付けは引き続き受入対象。",
+    "historical_assessment": "reimplement.tool_interruption.contract_statusの未完了は追加判断前の評価として保持する。終了1・result.txt不在・自動破棄失敗・手動除去の観測値は変更しない。",
+    "manual_cleanup": "docs/core-st.md: result.txtまたはstart.log等で確認した専用projectに限定してdown -v --remove-orphansを実行し、同じproject labelでcontainer・network・volumeを確認する。各確認の成功と出力なしを確認し、証跡ディレクトリは保持する。",
+    "next_step": "文書補完後のレビュー。PTY中断経路の追加調査や外部回答を進行条件にしない。",
+    "performance": "NOT RUN。親が採用構成の条件を事前固定して別途実測する。"
+  },
+  "p01": {
+    "finding_id": "TEST-NEW-tests-st-test_functional-L183",
+    "status": "resolved",
+    "commands": [
+      "python3 .takt/p01_compare.py before",
+      "python3 .takt/p01_compare.py after"
+    ],
+    "conditions": "Same revision, image, Compose, fake ports, synthetic scenarios, concurrency=1 and timeout within each phase; only test order differs. Each trial starts a new dedicated tmpfs DB; the service and DB persist across all four cases. After phase rebuilds the image with the two corrected ST modules.",
+    "normal_order": [
+      "lifecycle",
+      "thought True",
+      "thought False",
+      "delivery deadline"
+    ],
+    "deadline_first_order": [
+      "delivery deadline",
+      "lifecycle",
+      "thought True",
+      "thought False"
+    ],
+    "advance_one_condition": "POST /_st/advance seconds=1 before lifecycle character registration; then normal order",
+    "phases": {
+      "before": {
+        "image": "sha256:3027e0812391d2811b4312836b43ae08c469ba490e668f939726b9033510e8e4",
+        "source_sha256": {
+          "tests/st/support.py": "8fb7be5f342d1d94594fb6128aaaea4bfe7403a8d0f04e5ee006d89726d12ee4",
+          "tests/st/test_functional.py": "21fa79876afde8effff7d50aba652550131b495afd9bb36435d6aa0e012daa19",
+          "compose.core-st.yml": "7f015aac3527574e102d1817c2b1b5e9175726596bf27fbbfa29169d97cdeefe",
+          ".takt/p01_observe.py": "84bce38f18f1a4ab3c8d07880099dd4649c87237cea57d1ac82a2fcacd17e4b0"
+        },
+        "revision": "3b6070404f02563206b9b06bce7cc630de52fa61"
+      },
+      "after": {
+        "image": "sha256:29ad11cc5a23b3fcc179b9b592c9c799a6b52f0a200ea6def94461d9c3180fbd",
+        "source_sha256": {
+          "tests/st/support.py": "aabf7118a1782ac1545bf454b2dcd7c653e1ed0a5bd19906d82f9863531aef58",
+          "tests/st/test_functional.py": "9a51d26c60639f10c8935eac4738a9bffd3f31dc708a4db81bbb493f2b6ee326",
+          "compose.core-st.yml": "7f015aac3527574e102d1817c2b1b5e9175726596bf27fbbfa29169d97cdeefe",
+          ".takt/p01_observe.py": "84bce38f18f1a4ab3c8d07880099dd4649c87237cea57d1ac82a2fcacd17e4b0"
+        },
+        "revision": "3b6070404f02563206b9b06bce7cc630de52fa61"
+      }
+    },
+    "trials": [
+      {
+        "phase": "before",
+        "order": "deadline-first",
+        "trial": 1,
+        "started_at": "2026-10-22T05:56:10.809660+00:00",
+        "status": "FAIL",
+        "exit_status": 1,
+        "passed": 3,
+        "failed": 1,
+        "elapsed_seconds": 24.62,
+        "project": "memory-core-st-p01-before-deadline-first-1-4",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-before/deadline-first-1"
+      },
+      {
+        "phase": "before",
+        "order": "deadline-first",
+        "trial": 2,
+        "started_at": "2026-10-22T05:56:42.389252+00:00",
+        "status": "FAIL",
+        "exit_status": 1,
+        "passed": 3,
+        "failed": 1,
+        "elapsed_seconds": 23.19,
+        "project": "memory-core-st-p01-before-deadline-first-2-4",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-before/deadline-first-2"
+      },
+      {
+        "phase": "before",
+        "order": "normal",
+        "trial": 1,
+        "started_at": "2026-10-22T05:54:39.038716+00:00",
+        "status": "PASS",
+        "exit_status": 0,
+        "passed": 4,
+        "failed": 0,
+        "elapsed_seconds": 38.53,
+        "project": "memory-core-st-p01-before-normal-1-4",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-before/normal-1"
+      },
+      {
+        "phase": "before",
+        "order": "normal",
+        "trial": 2,
+        "started_at": "2026-10-22T05:55:24.541053+00:00",
+        "status": "PASS",
+        "exit_status": 0,
+        "passed": 4,
+        "failed": 0,
+        "elapsed_seconds": 39.15,
+        "project": "memory-core-st-p01-before-normal-2-4",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-before/normal-2"
+      },
+      {
+        "phase": "after",
+        "order": "advance-one",
+        "trial": 1,
+        "started_at": "2026-10-22T06:01:14.677065+00:00",
+        "status": "PASS",
+        "exit_status": 0,
+        "passed": 4,
+        "failed": 0,
+        "elapsed_seconds": 42.8,
+        "project": "memory-core-st-p01-after-advance-one-1-3",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-after/advance-one-1"
+      },
+      {
+        "phase": "after",
+        "order": "deadline-first",
+        "trial": 1,
+        "started_at": "2026-10-22T05:59:35.447298+00:00",
+        "status": "PASS",
+        "exit_status": 0,
+        "passed": 4,
+        "failed": 0,
+        "elapsed_seconds": 41.75,
+        "project": "memory-core-st-p01-after-deadline-first-1-3",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-after/deadline-first-1"
+      },
+      {
+        "phase": "after",
+        "order": "deadline-first",
+        "trial": 2,
+        "started_at": "2026-10-22T06:00:24.346860+00:00",
+        "status": "PASS",
+        "exit_status": 0,
+        "passed": 4,
+        "failed": 0,
+        "elapsed_seconds": 43.2,
+        "project": "memory-core-st-p01-after-deadline-first-2-3",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-after/deadline-first-2"
+      },
+      {
+        "phase": "after",
+        "order": "normal",
+        "trial": 1,
+        "started_at": "2026-10-22T05:58:01.384079+00:00",
+        "status": "PASS",
+        "exit_status": 0,
+        "passed": 4,
+        "failed": 0,
+        "elapsed_seconds": 40.3,
+        "project": "memory-core-st-p01-after-normal-1-3",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-after/normal-1"
+      },
+      {
+        "phase": "after",
+        "order": "normal",
+        "trial": 2,
+        "started_at": "2026-10-22T05:58:48.878753+00:00",
+        "status": "PASS",
+        "exit_status": 0,
+        "passed": 4,
+        "failed": 0,
+        "elapsed_seconds": 39.56,
+        "project": "memory-core-st-p01-after-normal-2-3",
+        "cleanup_verified": true,
+        "raw_evidence": "/tmp/core-st-p01-after/normal-2"
+      }
+    ],
+    "before_failure": {
+      "location": "tests/st/test_functional.py:178 (before correction)",
+      "assertion": "(resident.temperament_version, resident.personality_version) == (1, 1)",
+      "actual": [
+        null,
+        null
+      ],
+      "clock": "2026-01-02T11:10:00+00:00",
+      "database": {
+        "sessions": [
+          {
+            "session_id": "st-c8a3dad3c4254b88aea5ec0878869395",
+            "started_at": "2026-01-02T11:00:00+00:00"
+          },
+          {
+            "session_id": "st-5433a60466b547acbe14c7e98672aa7b",
+            "started_at": "2026-01-02T11:00:00+00:00"
+          }
+        ],
+        "temperaments": [
+          {
+            "character_id": "st-x-dddc4b37082f496db23ac922be7bf70b",
+            "version": 1,
+            "registered_at": "2026-01-02T11:10:00+00:00"
+          }
+        ],
+        "personality_profiles": [
+          {
+            "character_id": "st-x-dddc4b37082f496db23ac922be7bf70b",
+            "version": 1,
+            "valid_from": "2026-01-02T11:10:00+00:00"
+          }
+        ],
+        "selections": [
+          {
+            "session_id": "st-5433a60466b547acbe14c7e98672aa7b",
+            "character_id": "st-x-dddc4b37082f496db23ac922be7bf70b",
+            "temperament_version": null,
+            "personality_version": null
+          }
+        ],
+        "provisions": [
+          {
+            "provision_id": "b9402a07-8ed3-4faa-98fe-f28bb14a9440",
+            "kind": "turn",
+            "character_id": "st-x-dddc4b37082f496db23ac922be7bf70b",
+            "session_id": "st-5433a60466b547acbe14c7e98672aa7b",
+            "provided_at": "2026-01-02T11:10:00+00:00",
+            "temperament_version": null,
+            "personality_version": null
+          },
+          {
+            "provision_id": "fd1a1c4e-fbc7-4a04-b0c6-0f91b9743917",
+            "kind": "turn",
+            "character_id": "st-x-dddc4b37082f496db23ac922be7bf70b",
+            "session_id": "st-5433a60466b547acbe14c7e98672aa7b",
+            "provided_at": "2026-01-02T11:10:00+00:00",
+            "temperament_version": null,
+            "personality_version": null
+          },
+          {
+            "provision_id": "582c0c22-f34e-42af-8a83-797309cee319",
+            "kind": "resident",
+            "character_id": "st-x-dddc4b37082f496db23ac922be7bf70b",
+            "session_id": "st-5433a60466b547acbe14c7e98672aa7b",
+            "provided_at": "2026-01-02T11:10:00+00:00",
+            "temperament_version": null,
+            "personality_version": null
+          },
+          {
+            "provision_id": "c34fd53f-1309-4ea1-b678-40750fcbe874",
+            "kind": "turn",
+            "character_id": "st-x-dddc4b37082f496db23ac922be7bf70b",
+            "session_id": "st-5433a60466b547acbe14c7e98672aa7b",
+            "provided_at": "2026-01-02T11:10:00+00:00",
+            "temperament_version": null,
+            "personality_version": null
+          }
+        ]
+      }
+    },
+    "after_acceptance": "All five trials pass all four existing cases; both resident/turn records retain time/version/content assertions. Deadline 599/600 seconds and partial/none corrections remain continuous on the same service, session, turn and DB.",
+    "setup_failure": {
+      "status": "FAIL",
+      "reason": "Observation plugin import failed before collection; corrected runner invocation to python -m pytest, then repeated every trial",
+      "raw_evidence": "/tmp/core-st-p01-before-setup-failed"
+    },
+    "helper_check": {
+      "command": "UV_CACHE_DIR=/tmp/memory-core-client-uv uv run --no-sync python -c \"import runpy; runpy.run_path('.takt/p01_helper_check.py')\"",
+      "status": "PASS",
+      "cases": [
+        "current server time",
+        "invalid date propagates ValueError",
+        "HTTP failure propagates HTTPStatusError",
+        "connection failure propagates ConnectError"
+      ],
+      "resource_close": "verified for all four cases",
+      "raw_evidence": "/tmp/core-st-p01-helper-check.log"
+    },
+    "quality": {
+      "ut_passed": 977,
+      "it1_passed": 909,
+      "postgres_passed": 494,
+      "all_commands_exit_zero": true,
+      "raw_evidence": "/tmp/core-st-p01-quality/results.json"
+    },
+    "performance": {
+      "status": "NOT RUN",
+      "p50_ms": null,
+      "p95_ms": null,
+      "required_pass": null
+    }
+  }
+}

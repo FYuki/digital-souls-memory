@@ -1,0 +1,26 @@
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:55439:5432"
+  init:
+    environment:
+      MEMORY_CORE_ST_ADMIN_URL: postgresql://memory_st_admin:synthetic-only@postgres/memory_core_st
+  memory:
+    network_mode: host
+    command: ["uvicorn", "tests.st.app:factory", "--factory", "--host", "127.0.0.1", "--port", "18039"]
+    environment:
+      MEMORY_DATABASE_URL: postgresql://memory_st_app:synthetic-only@127.0.0.1:55439/memory_core_st
+      MEMORY_DELETION_DATABASE_URL: postgresql://memory_st_delete:synthetic-only@127.0.0.1:55439/memory_core_st
+      MEMORY_CORE_ST_MODE: performance
+      MEMORY_EMBEDDING_ENDPOINT: ${MEMORY_EMBEDDING_ENDPOINT:?required}
+      MEMORY_RERANKER_ENDPOINT: ${MEMORY_RERANKER_ENDPOINT:?required}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://127.0.0.1:18039/health').raise_for_status()"]
+  runner:
+    network_mode: host
+    command: ["python", "-m", "tests.st.performance", "/evidence/manifest.json", "/evidence/performance.json"]
+    volumes:
+      - ${MEMORY_CORE_ST_EVIDENCE_DIR:?required}:/evidence
+    environment:
+      MEMORY_CORE_ST_URL: http://127.0.0.1:18039
+      MEMORY_CORE_ST_AUDIT_URL: postgresql://memory_st_admin:synthetic-only@127.0.0.1:55439/memory_core_st
