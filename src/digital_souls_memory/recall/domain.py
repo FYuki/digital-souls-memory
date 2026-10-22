@@ -76,6 +76,12 @@ class CandidateMaterial:
 
 
 @dataclass(frozen=True, kw_only=True)
+class RetrievalResult:
+    candidates: tuple[RecallCandidate, ...]
+    materials: tuple[CandidateMaterial, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
 class ResolvedCandidate:
     candidate: RecallCandidate
     spans: tuple[SourceSpan, ...]

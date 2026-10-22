@@ -1,5 +1,6 @@
 """Model, retrieval and final persistence boundaries."""
 
+from contextlib import AbstractContextManager
 from datetime import datetime
 from typing import Literal, Protocol
 
@@ -7,9 +8,9 @@ from digital_souls_memory.evidence.provision import ProvisionRecord
 from digital_souls_memory.recall.domain import (
     EmbeddingBatch,
     ProvisionSnapshot,
-    RecallCandidate,
     RerankInput,
     RerankScore,
+    RetrievalResult,
 )
 from digital_souls_memory.recall.inputs import ModelInput
 
@@ -21,6 +22,7 @@ class Embedding(Protocol):
 
 
 class Retriever(Protocol):
+    def reading(self) -> AbstractContextManager["Retriever"]: ...
     def search(
         self,
         *,
@@ -29,10 +31,10 @@ class Retriever(Protocol):
         query_vector: EmbeddingBatch,
         now: datetime,
         limit: int,
-    ) -> tuple[RecallCandidate, ...]: ...
+    ) -> RetrievalResult: ...
     def anchors_for(
         self, *, character_id: str, turn_ids: tuple[str, ...], now: datetime
-    ) -> tuple[RecallCandidate, ...]: ...
+    ) -> RetrievalResult: ...
 
 
 class Reranker(Protocol):

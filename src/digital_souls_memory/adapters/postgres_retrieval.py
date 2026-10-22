@@ -9,15 +9,17 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import psycopg
-from psycopg.rows import DictRow, dict_row
+from psycopg.rows import DictRow
 from psycopg.types.json import Jsonb
 
 from digital_souls_memory.adapters.memory_records import candidate_record, restore_memory
+from digital_souls_memory.adapters.postgres_connections import PostgresConnections
 from digital_souls_memory.adapters.postgres_memory import _MemoryTransaction
 from digital_souls_memory.adapters.recall_records import (
     current_stamp,
     json_record,
     read_material,
+    read_materials,
     restore_stamp,
 )
 from digital_souls_memory.adapters.recall_search import search_rows
@@ -26,6 +28,7 @@ from digital_souls_memory.recall.domain import (
     DocumentStamp,
     EmbeddingBatch,
     RecallCandidate,
+    RetrievalResult,
     SourceStamp,
     VectorSpace,
 )
@@ -51,14 +54,21 @@ def _vector(batch: EmbeddingBatch) -> str:
 
 
 class PostgresRetrievalStore:
-    def __init__(self, url: str, *, delivery_timeout: timedelta = timedelta(minutes=10)) -> None:
+    def __init__(
+        self,
+        url: str,
+        *,
+        delivery_timeout: timedelta = timedelta(minutes=10),
+        connections: PostgresConnections | None = None,
+    ) -> None:
         self.url = url.replace("postgresql+psycopg://", "postgresql://", 1)
+        self._connections = connections if connections is not None else PostgresConnections(url)
         self.timeout = delivery_timeout
 
     @contextmanager
     def _connection(self) -> Iterator[psycopg.Connection[DictRow]]:
         try:
-            with psycopg.connect(self.url, row_factory=dict_row, connect_timeout=5) as connection:
+            with self._connections.connection() as connection:
                 yield connection
         except psycopg.Error as error:
             raise ProvisionUnavailable() from error
@@ -359,6 +369,36 @@ class PostgresRetrievalStore:
             labels=tuple(InputLabel(**v) for v in row["labels"]),
         )
 
+    @contextmanager
+    def reading(self) -> Iterator["PostgresRetrievalStore"]:
+        # Direct users also receive a private connection owner, never shared store state.
+        connections = (
+            self._connections
+            if self._connections.bound is not None
+            else PostgresConnections(self.url)
+        )
+        reader = PostgresRetrievalStore(
+            self.url, delivery_timeout=self.timeout, connections=connections
+        )
+        if connections.bound is None:
+            with connections.request(), connections.snapshot():
+                yield reader
+        else:
+            with connections.snapshot():
+                yield reader
+
+    def _result(self, rows: tuple[DictRow, ...]) -> RetrievalResult:
+        materials = {
+            key: value
+            for row in rows
+            for key, value in row["materials"].items()
+            if value is not None
+        }
+        return RetrievalResult(
+            candidates=tuple(self._restore(row) for row in rows),
+            materials=tuple(materials.values()),
+        )
+
     def search(
         self,
         *,
@@ -367,10 +407,10 @@ class PostgresRetrievalStore:
         query_vector: EmbeddingBatch,
         now: datetime,
         limit: int,
-    ) -> tuple[RecallCandidate, ...]:
+    ) -> RetrievalResult:
         space = query_vector.space
         if space.dimensions != 1024:
-            return ()
+            return RetrievalResult(candidates=(), materials=())
         vector = _vector(query_vector)
         with self._connection() as connection:
             rows = search_rows(
@@ -382,12 +422,13 @@ class PostgresRetrievalStore:
                 now=now,
                 timeout=self.timeout,
                 limit=limit,
+                start_snapshot=not self._connections.reading,
             )
-            return tuple(self._restore(row) for row in rows)
+            return self._result(rows)
 
     def anchors_for(
         self, *, character_id: str, turn_ids: tuple[str, ...], now: datetime
-    ) -> tuple[RecallCandidate, ...]:
+    ) -> RetrievalResult:
         with self._connection() as connection:
             rows = connection.execute(
                 "SELECT d.*,t.occurred_at,t.text AS source_text,0.0 AS semantic,0.0 AS lexical "
@@ -397,7 +438,15 @@ class PostgresRetrievalStore:
                 "WHERE d.kind='anchor' AND d.ready AND d.owner_id=%s AND a.turn_id=ANY(%s)",
                 (character_id, list(turn_ids)),
             ).fetchall()
-            return tuple(self._restore(row) for row in rows)
+            materials = read_materials(
+                connection,
+                tuple(
+                    dict.fromkeys(
+                        d["turn_id"] for row in rows for d in row["dependencies"]["values"]
+                    )
+                ),
+            )
+            return self._result(tuple(row | {"materials": materials} for row in rows))
 
     def get_candidates(
         self, *, refs: tuple[CandidateRef, ...], now: datetime

@@ -12,6 +12,9 @@ from fastapi.testclient import TestClient
 from psycopg.pq import TransactionStatus
 from psycopg.rows import DictRow
 
+from digital_souls_memory.adapters.identity_characters import IdentityCharacters
+from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
+from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.adapters.postgres_provision import PostgresProvisionStore
 from digital_souls_memory.adapters.postgres_voice import PostgresVoiceStore
@@ -58,7 +61,10 @@ def test_resident_and_recall_concurrent_selection_survives_reconnect_and_later_v
                 clock=lambda: now[0],
                 llm_gateway=FakeLLMGateway(),
                 reviewer=FakeReviewer(),
-                retriever=RecordingRetriever(),
+                retriever=RecordingRetriever(
+                    PostgresEvidenceStore(app_database_url),
+                    IdentityCharacters(lambda: PostgresIdentityStore(app_database_url)),
+                ),
                 embedding=RecordingEmbedding(),
                 reranker=RecordingReranker(),
                 token_counter=RecordingTokenCounter(),

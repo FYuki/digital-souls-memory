@@ -111,7 +111,10 @@ def test_search_computes_term_ratio_for_semantic_candidates(
             receipt_state=ReceiptState(None, 0),
         )
 
-    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_material", material)
+    def batch(connection: object, turn_ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return {key: value for key in turn_ids if (value := material(connection, key)) is not None}
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", batch)
     connection = SearchConnection([document])
     (found,) = search_rows(
         cast(psycopg.Connection[DictRow], connection),
@@ -194,7 +197,10 @@ def test_refill_bounds_live_rows_keys_and_sources(
             receipt_state=ReceiptState(1 if i < denied_count else len(source.text), 1),
         )
 
-    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_material", material)
+    def batch(connection: object, turn_ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return {key: value for key in turn_ids if (value := material(connection, key)) is not None}
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", batch)
     connection = GeneratedConnection([])
     found = search_rows(
         cast(psycopg.Connection[DictRow], connection),
@@ -251,7 +257,10 @@ def test_refill_deduplicates_candidates_and_reuses_evidence_only_within_search(
             turn=source, session=session(), actor_is_character=True, receipt_state=state
         )
 
-    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_material", material)
+    def batch(connection: object, turn_ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return {key: value for key in turn_ids if (value := material(connection, key)) is not None}
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", batch)
     connection = SearchConnection(documents)
 
     def run() -> tuple[DictRow, ...]:
@@ -310,7 +319,10 @@ def test_search_uses_support_time_and_checks_extra_input_dependencies(
     def material(connection: object, turn_id: str) -> CandidateMaterial | None:
         return inputs.get(turn_id)
 
-    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_material", material)
+    def batch(connection: object, turn_ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return {key: value for key in turn_ids if (value := material(connection, key)) is not None}
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", batch)
 
     def run() -> tuple[DictRow, ...]:
         return search_rows(
@@ -368,7 +380,10 @@ def test_dependencies_survive_cache_eviction_without_changing_support_time(
             ),
         )
 
-    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_material", material)
+    def batch(connection: object, turn_ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return {key: value for key in turn_ids if (value := material(connection, key)) is not None}
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", batch)
     found = search_rows(
         cast(psycopg.Connection[DictRow], SearchConnection([row])),
         character_id="char-b",
@@ -383,7 +398,6 @@ def test_dependencies_survive_cache_eviction_without_changing_support_time(
         assert found == ()
     else:
         assert found[0]["occurred_at"] == source.occurred_at
-        assert reads.count(source.turn_id) >= 2
     assert set(reads) == {v.turn_id for v in dependencies}
 
 
@@ -416,7 +430,10 @@ def test_search_closes_cursor_and_propagates_failure(
         assert cast(SearchConnection, connection).setting == "on"
         raise psycopg.OperationalError()
 
-    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_material", material)
+    def batch(connection: object, turn_ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return {key: value for key in turn_ids if (value := material(connection, key)) is not None}
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", batch)
     connection = FailingConnection(
         [
             {

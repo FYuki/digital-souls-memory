@@ -90,7 +90,7 @@ def test_lexical_match_outside_semantic_limit_reaches_http_and_provision(
                 query_vector=embedding.embed(query, purpose="query"),
                 now=RECORDED,
                 limit=20,
-            )
+            ).candidates
             for candidate in candidates:
                 assert candidate.semantic == pytest.approx(
                     0.79 if candidate.ref == target else 0.80

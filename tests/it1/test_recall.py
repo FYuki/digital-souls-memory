@@ -36,6 +36,30 @@ def test_recall_without_dependencies_is_unavailable_and_health_stays_live(
         assert client.post("/characters/char-b/recall", json=request()).status_code == 503
 
 
+def test_injected_recall_stores_do_not_open_a_configured_database(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import psycopg
+
+    from tests.recall_support import RecallHarness
+
+    monkeypatch.setenv("MEMORY_DATABASE_URL", "postgresql://synthetic-unused")
+    connections = []
+
+    def unexpected_connection(*args: object, **kwargs: object) -> None:
+        connections.append(args)
+        raise RuntimeError("Injected stores must own their dependencies")
+
+    monkeypatch.setattr(psycopg, "connect", unexpected_connection)
+    h = RecallHarness()
+    h.seed(turn(text=TEXT), memory())
+    response = h.client.post("/characters/char-b/recall", json=request())
+    assert response.is_success
+    assert response.json()["memories"]
+    assert h.provisions.get(response.json()["provision_id"]) is not None
+    assert connections == []
+
+
 @pytest.mark.parametrize("form", ["materials", "assembled"])
 def test_http_returns_original_spans_in_both_formats_and_records_exactly_what_was_sent(
     harness: "RecallHarness", form: str

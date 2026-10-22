@@ -75,11 +75,13 @@ def test_index_normalizes_search_key_and_keeps_original_model_text(
         query_vector=embedding.embed(query, purpose="query"),
         now=RECORDED,
         limit=20,
-    )
+    ).candidates
     assert restored.search_text == original
     assert restored.lexical == pytest.approx(1.0)
     if kind == "anchor":
-        (related,) = index.anchors_for(character_id="char-b", turn_ids=("turn-1",), now=RECORDED)
+        (related,) = index.anchors_for(
+            character_id="char-b", turn_ids=("turn-1",), now=RECORDED
+        ).candidates
         assert related.search_text == original
         assert related.dependencies[0].used_end == len(original)
 
@@ -119,7 +121,9 @@ def test_index_publication_rejects_changed_input_and_can_publish_current_work(
     assert index.publish(work, input=loaded, embedding=batch, now=now) is False
     query = RecallLocalOnly(texts=("日本語",), labels=(InputLabel("sensitive", "v1"),))
     assert (
-        index.search(character_id="char-b", query=query, query_vector=batch, now=now, limit=20)
+        index.search(
+            character_id="char-b", query=query, query_vector=batch, now=now, limit=20
+        ).candidates
         == ()
     )
     if change == "projection":
@@ -129,7 +133,7 @@ def test_index_publication_rejects_changed_input_and_can_publish_current_work(
         assert index.publish(current_work, input=current, embedding=batch, now=now) is True
         (found,) = index.search(
             character_id="char-b", query=query, query_vector=batch, now=now, limit=20
-        )
+        ).candidates
         assert found.memory is not None
         assert found.memory.id == original.id
         assert found.search_text == "更新された検索文書"
@@ -163,7 +167,7 @@ def test_persisted_passages_are_never_searched_in_a_different_vector_space(
         len(
             index.search(
                 character_id="char-b", query=query, query_vector=batch, now=RECORDED, limit=20
-            )
+            ).candidates
         )
         == 1
     )
@@ -177,7 +181,7 @@ def test_persisted_passages_are_never_searched_in_a_different_vector_space(
     assert (
         index.search(
             character_id="char-b", query=query, query_vector=mismatched, now=RECORDED, limit=20
-        )
+        ).candidates
         == ()
     )
 
@@ -334,7 +338,7 @@ def test_index_preserves_combined_input_dependencies_and_supporting_source_time(
     assert index.publish(work, input=loaded, embedding=batch, now=RECORDED)
     (restored,) = index.search(
         character_id="char-b", query=loaded.input, query_vector=batch, now=RECORDED, limit=20
-    )
+    ).candidates
     if observed == "source_time":
         assert loaded.candidate.occurred_at == source.occurred_at
         assert restored.occurred_at == source.occurred_at

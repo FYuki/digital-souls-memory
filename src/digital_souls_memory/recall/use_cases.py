@@ -91,11 +91,12 @@ class RecallService:
         session = self.evidence.get_session(turn.session_id)
         if session is None:
             return None
+        actor_is_character = self.characters.is_character(turn.actor)
         with self.evidence.list_receipts(identifier) as receipts:
             return CandidateMaterial(
                 turn=turn,
                 session=session,
-                actor_is_character=self.characters.is_character(turn.actor),
+                actor_is_character=actor_is_character,
                 receipt_state=aggregate_receipts(receipts),
             )
 
@@ -107,10 +108,7 @@ class RecallService:
         material_by_id: dict[str, CandidateMaterial | None],
     ) -> ResolvedCandidate | None:
         ids = dict.fromkeys(v.turn_id for v in candidate.dependencies)
-        for key in ids:
-            if key not in material_by_id:
-                material_by_id[key] = self._material(key)
-        materials = tuple(v for key in ids if (v := material_by_id[key]) is not None)
+        materials = tuple(v for key in ids if (v := material_by_id.get(key)) is not None)
         return resolve_candidate(
             candidate,
             character_id=character_id,
@@ -171,154 +169,159 @@ class RecallService:
         model_query = self._input((search_text,), labels)
         selection = self.selections.select(character_id=character_id, session=session)
         vector = self.embedding.embed(model_query, purpose="query")
-        candidates = self.retriever.search(
-            character_id=character_id,
-            query=model_query,
-            query_vector=vector,
-            now=now,
-            limit=self.settings.candidate_limit,
-        )
-        material_by_id: dict[str, CandidateMaterial | None] = {}
-        eligible = tuple(
-            v
-            for c in candidates
-            if c.document.space == vector.space
-            and (v := self._resolve(c, character_id, now, material_by_id)) is not None
-        )
-        scores: list[CandidateScore] = []
-        for resolved in eligible:
-            c = resolved.candidate
-            memory = c.memory
-            terms = dict(
-                semantic=c.semantic,
-                lexical=c.lexical,
-                recency=recency(
-                    kind=memory.kind if memory else "verbatim_anchor",
-                    occurred_at=c.occurred_at,
-                    last_reinforced_at=memory.last_reinforced_at if memory else None,
-                    now=now,
-                ),
-                importance=c.importance,
-                self_relevance=memory.identity_links.self_relevance if memory else 1.0,
-                trust=trust_score(memory.epistemics) if memory else 1.0,
+        with self.retriever.reading() as reader:
+            retrieved = reader.search(
+                character_id=character_id,
+                query=model_query,
+                query_vector=vector,
+                now=now,
+                limit=self.settings.candidate_limit,
             )
-            scores.append(
-                CandidateScore(
-                    ref=c.ref,
-                    **terms,
-                    composite=composite_score(weights=self.settings.weights, **terms),
-                    relevance=None,
-                )
+            material_by_id: dict[str, CandidateMaterial | None] = {
+                v.turn.turn_id: v for v in retrieved.materials
+            }
+            eligible = tuple(
+                v
+                for c in retrieved.candidates
+                if c.document.space == vector.space
+                and (v := self._resolve(c, character_id, now, material_by_id)) is not None
             )
-        ranked_scores = sorted(scores, key=lambda v: (-v.composite, v.ref.sort_key))[:20]
-        by_ref = {v.candidate.ref: v for v in eligible}
-        relevance: dict[object, float] = {}
-        if ranked_scores:
-            output = self.reranker.rerank(
-                RerankInput(
-                    query=model_query,
-                    documents=tuple(
-                        RerankDocument(
-                            ref=s.ref,
-                            input=self._input(
-                                (by_ref[s.ref].candidate.search_text,),
-                                by_ref[s.ref].candidate.labels,
-                            ),
-                        )
-                        for s in ranked_scores
+            scores: list[CandidateScore] = []
+            for resolved in eligible:
+                c = resolved.candidate
+                memory = c.memory
+                terms = dict(
+                    semantic=c.semantic,
+                    lexical=c.lexical,
+                    recency=recency(
+                        kind=memory.kind if memory else "verbatim_anchor",
+                        occurred_at=c.occurred_at,
+                        last_reinforced_at=memory.last_reinforced_at if memory else None,
+                        now=now,
                     ),
+                    importance=c.importance,
+                    self_relevance=memory.identity_links.self_relevance if memory else 1.0,
+                    trust=trust_score(memory.epistemics) if memory else 1.0,
                 )
-            )
-            if (
-                len(output) != len(ranked_scores)
-                or len({s.ref for s in output}) != len(output)
-                or {s.ref for s in output} != {s.ref for s in ranked_scores}
-                or any(not isfinite(s.relevance) for s in output)
-            ):
-                raise ProvisionUnavailable()
-            relevance = {s.ref: s.relevance for s in output}
-        scores = [replace(s, relevance=relevance.get(s.ref)) for s in scores]
-        ranked = tuple(
-            by_ref[s.ref]
-            for s in sorted(
-                (
-                    s
-                    for s in scores
-                    if s.relevance is not None and s.relevance >= self.settings.relevance_threshold
-                ),
-                key=lambda s: (-float(s.relevance or 0), s.ref.sort_key),
-            )
-        )
-        identifier = self.id_factory()
-        accepted: tuple[ResolvedCandidate, ...] = ()
-        all_labels = labels + tuple(label for v in eligible for label in v.candidate.labels)
-
-        def response(values: tuple[ResolvedCandidate, ...]) -> RecallResponse:
-            return assemble_response(
-                provision_id=identifier, selection=selection, candidates=values, format=format
-            )
-
-        def fits(values: tuple[ResolvedCandidate, ...]) -> bool:
-            count = self.counter.count(
-                self._input((serialize_response(response(values)),), all_labels)
-            )
-            if type(count) is not int or count < 0:
-                raise ProvisionUnavailable()
-            return count <= 1500
-
-        if not fits(()):
-            raise ProvisionUnavailable()
-        for value in ranked:
-            if sum(v.candidate.memory is not None for v in accepted) >= 5:
-                break
-            group: tuple[ResolvedCandidate, ...] = (value,)
-            if value.candidate.memory is not None:
-                anchors = self.retriever.anchors_for(
-                    character_id=character_id,
-                    turn_ids=value.candidate.memory.source_turn_ids,
-                    now=now,
+                scores.append(
+                    CandidateScore(
+                        ref=c.ref,
+                        **terms,
+                        composite=composite_score(weights=self.settings.weights, **terms),
+                        relevance=None,
+                    )
                 )
-                group += tuple(
-                    v
-                    for c in anchors
-                    if c.document.space == vector.space
-                    and (v := self._resolve(c, character_id, now, material_by_id)) is not None
-                )
-            trial = accepted + group
-            if fits(trial):
-                accepted = trial
-                continue
-            width = max((len(s.text) for v in group for s in v.spans), default=0) // 2
-            while width >= max(1, len(search_text)):
-                smaller = tuple(
-                    replace(
-                        v,
-                        spans=tuple(
-                            window_span(s, query=search_text, width=width) for s in v.spans
+            ranked_scores = sorted(scores, key=lambda v: (-v.composite, v.ref.sort_key))[:20]
+            by_ref = {v.candidate.ref: v for v in eligible}
+            relevance: dict[object, float] = {}
+            if ranked_scores:
+                output = self.reranker.rerank(
+                    RerankInput(
+                        query=model_query,
+                        documents=tuple(
+                            RerankDocument(
+                                ref=s.ref,
+                                input=self._input(
+                                    (by_ref[s.ref].candidate.search_text,),
+                                    by_ref[s.ref].candidate.labels,
+                                ),
+                            )
+                            for s in ranked_scores
                         ),
                     )
-                    for v in group
                 )
-                if fits(accepted + smaller):
-                    accepted += smaller
+                if (
+                    len(output) != len(ranked_scores)
+                    or len({s.ref for s in output}) != len(output)
+                    or {s.ref for s in output} != {s.ref for s in ranked_scores}
+                    or any(not isfinite(s.relevance) for s in output)
+                ):
+                    raise ProvisionUnavailable()
+                relevance = {s.ref: s.relevance for s in output}
+            scores = [replace(s, relevance=relevance.get(s.ref)) for s in scores]
+            ranked = tuple(
+                by_ref[s.ref]
+                for s in sorted(
+                    (
+                        s
+                        for s in scores
+                        if s.relevance is not None
+                        and s.relevance >= self.settings.relevance_threshold
+                    ),
+                    key=lambda s: (-float(s.relevance or 0), s.ref.sort_key),
+                )
+            )
+            identifier = self.id_factory()
+            accepted: tuple[ResolvedCandidate, ...] = ()
+            all_labels = labels + tuple(label for v in eligible for label in v.candidate.labels)
+
+            def response(values: tuple[ResolvedCandidate, ...]) -> RecallResponse:
+                return assemble_response(
+                    provision_id=identifier, selection=selection, candidates=values, format=format
+                )
+
+            def fits(values: tuple[ResolvedCandidate, ...]) -> bool:
+                count = self.counter.count(
+                    self._input((serialize_response(response(values)),), all_labels)
+                )
+                if type(count) is not int or count < 0:
+                    raise ProvisionUnavailable()
+                return count <= 1500
+
+            if not fits(()):
+                raise ProvisionUnavailable()
+            for value in ranked:
+                if sum(v.candidate.memory is not None for v in accepted) >= 5:
                     break
-                width //= 2
-        result = response(accepted)
-        # Count precisely the bytes of JSON that the HTTP adapter will return.
-        if not fits(accepted):
-            raise ProvisionUnavailable()
-        documents = tuple(dict.fromkeys(v.candidate.document for v in (*eligible, *accepted)))
-        sources = tuple(
-            dict.fromkeys((*origin, *(s for v in (*eligible, *accepted) for s in v.sources)))
-        )
-        snapshot = ProvisionSnapshot(
-            character_id=character_id,
-            session_id=session_id,
-            temperament_version=selection.temperament_version,
-            personality_version=selection.personality_version,
-            documents=documents,
-            sources=sources,
-        )
+                group: tuple[ResolvedCandidate, ...] = (value,)
+                if value.candidate.memory is not None:
+                    anchors = reader.anchors_for(
+                        character_id=character_id,
+                        turn_ids=value.candidate.memory.source_turn_ids,
+                        now=now,
+                    )
+                    material_by_id.update((v.turn.turn_id, v) for v in anchors.materials)
+                    group += tuple(
+                        v
+                        for c in anchors.candidates
+                        if c.document.space == vector.space
+                        and (v := self._resolve(c, character_id, now, material_by_id)) is not None
+                    )
+                trial = accepted + group
+                if fits(trial):
+                    accepted = trial
+                    continue
+                width = max((len(s.text) for v in group for s in v.spans), default=0) // 2
+                while width >= max(1, len(search_text)):
+                    smaller = tuple(
+                        replace(
+                            v,
+                            spans=tuple(
+                                window_span(s, query=search_text, width=width) for s in v.spans
+                            ),
+                        )
+                        for v in group
+                    )
+                    if fits(accepted + smaller):
+                        accepted += smaller
+                        break
+                    width //= 2
+            result = response(accepted)
+            # Count precisely the bytes of JSON that the HTTP adapter will return.
+            if not fits(accepted):
+                raise ProvisionUnavailable()
+            documents = tuple(dict.fromkeys(v.candidate.document for v in (*eligible, *accepted)))
+            sources = tuple(
+                dict.fromkeys((*origin, *(s for v in (*eligible, *accepted) for s in v.sources)))
+            )
+            snapshot = ProvisionSnapshot(
+                character_id=character_id,
+                session_id=session_id,
+                temperament_version=selection.temperament_version,
+                personality_version=selection.personality_version,
+                documents=documents,
+                sources=sources,
+            )
         self.provisions.save(
             ProvisionRecord(
                 provision_id=identifier,

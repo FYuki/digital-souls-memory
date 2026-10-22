@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import psycopg
 from psycopg.rows import DictRow
 
-from digital_souls_memory.adapters.recall_records import read_material
+from digital_souls_memory.adapters.recall_records import read_materials
 from digital_souls_memory.evidence.materials import material_decision
 from digital_souls_memory.recall.domain import CandidateMaterial, VectorSpace
 from digital_souls_memory.recall.lexical import lexical_score, lexical_terms
@@ -24,8 +24,10 @@ def search_rows(
     now: datetime,
     timeout: timedelta,
     limit: int,
+    start_snapshot: bool = True,
 ) -> tuple[DictRow, ...]:
-    connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
+    if start_snapshot:
+        connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
     materials: OrderedDict[str, CandidateMaterial | None] = OrderedDict()
     batch_size = limit
     cache_capacity = 2 * limit
@@ -46,15 +48,31 @@ def search_rows(
                     if not rows:
                         break
                     scanned += len(rows)
+                    ids = tuple(
+                        dict.fromkeys(
+                            d["turn_id"]
+                            for row in rows
+                            if row["allowed"]
+                            for d in row["dependencies"]["values"]
+                        )
+                    )
+                    batch_materials = dict(materials)
+                    missing = tuple(key for key in ids if key not in batch_materials)
+                    loaded = read_materials(connection, missing)
+                    batch_materials.update((key, loaded.get(key)) for key in missing)
+                    for key in ids:
+                        materials[key] = batch_materials[key]
+                        materials.move_to_end(key)
+                        if len(materials) > cache_capacity:
+                            materials.popitem(last=False)
+                    del loaded, ids, missing
                     for row in rows:
                         key = (row["owner_id"], row["kind"], row["identifier"])
                         eligible = found.get(key)
                         if eligible is None:
                             eligible = _eligible(
-                                connection,
                                 row,
-                                materials,
-                                cache_capacity,
+                                batch_materials,
                                 character_id,
                                 now,
                                 timeout,
@@ -66,7 +84,7 @@ def search_rows(
                             if len(accepted) == limit:
                                 break
                     # Release the preceding batch before fetching its replacement.
-                    del rows
+                    del rows, batch_materials
             if len(accepted) == limit or scanned < width:
                 found.update(accepted)
                 break
@@ -138,10 +156,8 @@ def _candidates(
 
 
 def _eligible(
-    connection: psycopg.Connection[DictRow],
     row: DictRow,
-    materials: OrderedDict[str, CandidateMaterial | None],
-    cache_capacity: int,
+    materials: dict[str, CandidateMaterial | None],
     character_id: str,
     now: datetime,
     timeout: timedelta,
@@ -156,11 +172,6 @@ def _eligible(
     source_text: dict[str, str] = {}
     for dependency in row["dependencies"]["values"]:
         turn_id = dependency["turn_id"]
-        if turn_id not in materials:
-            if len(materials) == cache_capacity:
-                materials.popitem(last=False)
-            materials[turn_id] = read_material(connection, turn_id)
-        materials.move_to_end(turn_id)
         material = materials[turn_id]
         if material is None:
             return None
@@ -185,4 +196,5 @@ def _eligible(
                 source_text["source_text"] = material.turn.text
     if not source_ids or any(identifier not in source_times for identifier in source_ids):
         return None
-    return row | {"occurred_at": max(source_times.values())} | source_text
+    retained = {d["turn_id"]: materials[d["turn_id"]] for d in row["dependencies"]["values"]}
+    return row | {"occurred_at": max(source_times.values()), "materials": retained} | source_text

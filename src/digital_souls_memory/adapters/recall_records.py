@@ -46,33 +46,41 @@ def restore_stamp(value: dict[str, object]) -> SourceStamp:
 def read_material(
     connection: psycopg.Connection[DictRow], turn_id: str
 ) -> CandidateMaterial | None:
-    row = connection.execute("SELECT * FROM turns WHERE turn_id=%s", (turn_id,)).fetchone()
-    if row is None:
-        return None
-    turn = Turn(**row)
-    session = connection.execute(
-        "SELECT * FROM sessions WHERE session_id=%s", (turn.session_id,)
-    ).fetchone()
-    if session is None:
-        return None
-    actor = connection.execute(
-        "SELECT 1 WHERE EXISTS (SELECT 1 FROM core_identities WHERE character_id=%s) "
-        "OR EXISTS (SELECT 1 FROM temperaments WHERE character_id=%s)",
-        (turn.actor, turn.actor),
-    ).fetchone()
-    receipts = connection.execute(
-        "SELECT (SELECT count(*) FROM delivery_receipts WHERE turn_id=%s) AS count, "
-        "(SELECT spoken_until FROM delivery_receipts WHERE turn_id=%s "
-        "ORDER BY receipt_id DESC LIMIT 1) AS spoken_until",
-        (turn_id, turn_id),
-    ).fetchone()
-    assert receipts is not None
-    return CandidateMaterial(
-        turn=turn,
-        session=Session(**session),
-        actor_is_character=actor is not None,
-        receipt_state=ReceiptState(spoken_until=receipts["spoken_until"], count=receipts["count"]),
-    )
+    return read_materials(connection, (turn_id,)).get(turn_id)
+
+
+def read_materials(
+    connection: psycopg.Connection[DictRow], turn_ids: tuple[str, ...]
+) -> dict[str, CandidateMaterial]:
+    if not turn_ids:
+        return {}
+    rows = connection.execute(
+        "SELECT t.*,row_to_json(s) AS session, "
+        "(EXISTS(SELECT 1 FROM core_identities c WHERE c.character_id=t.actor) OR "
+        "EXISTS(SELECT 1 FROM temperaments c WHERE c.character_id=t.actor)) AS registered, "
+        "r.count,r.spoken_until FROM turns t JOIN sessions s USING(session_id) "
+        "CROSS JOIN LATERAL (SELECT count(*) AS count, "
+        "(SELECT spoken_until FROM delivery_receipts WHERE turn_id=t.turn_id "
+        "ORDER BY receipt_id DESC LIMIT 1) AS spoken_until "
+        "FROM delivery_receipts WHERE turn_id=t.turn_id) r WHERE t.turn_id=ANY(%s)",
+        (list(turn_ids),),
+    ).fetchall()
+    result = {}
+    for row in rows:
+        payload = dict(row)
+        session = payload.pop("session")
+        registered = payload.pop("registered")
+        receipts = ReceiptState(payload.pop("spoken_until"), payload.pop("count"))
+        for key in ("started_at", "ended_at"):
+            if session[key] is not None:
+                session[key] = datetime.fromisoformat(session[key])
+        result[payload["turn_id"]] = CandidateMaterial(
+            turn=Turn(**payload),
+            session=Session(**session),
+            actor_is_character=registered,
+            receipt_state=receipts,
+        )
+    return result
 
 
 def current_stamp(
@@ -87,6 +95,19 @@ def current_stamp(
     material = read_material(connection, turn_id)
     if material is None:
         return None
+    return material_stamp(
+        material, character_id=character_id, used_end=used_end, now=now, timeout=timeout
+    )
+
+
+def material_stamp(
+    material: CandidateMaterial,
+    *,
+    character_id: str,
+    used_end: int | None,
+    now: datetime,
+    timeout: timedelta,
+) -> SourceStamp | None:
     decision = material_decision(
         character_id=character_id,
         session=material.session,
@@ -99,7 +120,7 @@ def current_stamp(
     if decision.text is None:
         return None
     return SourceStamp(
-        turn_id=turn_id,
+        turn_id=material.turn.turn_id,
         character_id=character_id,
         basis=decision.basis,
         receipt_version=decision.receipt_version,
