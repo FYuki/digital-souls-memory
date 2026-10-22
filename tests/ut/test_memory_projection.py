@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import timedelta
+from hashlib import sha256
 
 import pytest
 
@@ -55,7 +56,10 @@ def test_projection_recounts_support_and_read_does_not_write(origin: str) -> Non
                     lease_until=None,
                     deadline=decision.deadline,
                     error=None,
-                    used_text=decision.text,
+                    text_hash=None
+                    if decision.text is None
+                    else sha256(decision.text.encode("utf-8")).hexdigest(),
+                    used_end=None if decision.text is None else len(decision.text),
                     receipt_version=decision.receipt_version,
                 )
             )

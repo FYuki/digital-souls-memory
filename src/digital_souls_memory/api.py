@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI
 
+from digital_souls_memory.adapters.core_authorization import CoreAuthorizer
 from digital_souls_memory.adapters.identity_characters import IdentityCharacters
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStore
@@ -24,12 +25,21 @@ from digital_souls_memory.adapters.recall_models import (
     LlamaCppReranker,
     LlamaCppTokenCounter,
 )
+from digital_souls_memory.deletion_http import deletion_router
 from digital_souls_memory.episodes_http import episodes_router
 from digital_souls_memory.evidence.materials import EvidenceMaterials
 from digital_souls_memory.evidence.ports import EvidenceStore, EvidenceUnavailable
 from digital_souls_memory.evidence.provision import ProvisionUnavailable
 from digital_souls_memory.evidence.use_cases import Clock, EvidenceService
 from digital_souls_memory.evidence_http import evidence_router
+from digital_souls_memory.governance.ports import (
+    Authorizer,
+    AuthorUnavailable,
+    DeletionStore,
+    RecalculationGateway,
+)
+from digital_souls_memory.governance.recalculation import MemoryRecalculator
+from digital_souls_memory.governance.use_cases import DeletionService
 from digital_souls_memory.identity.ports import (
     IdentityStore,
     IdentityUnavailable,
@@ -111,6 +121,9 @@ def create_app(
     context_gateway: ContextGateway | None = None,
     state_ttl: timedelta = timedelta(minutes=30),
     episode_id_factory: Callable[[], str] = lambda: str(uuid4()),
+    authorizer: Authorizer | None = None,
+    deletion_store: DeletionStore | None = None,
+    recalculation_gateway: RecalculationGateway | None = None,
 ) -> FastAPI:
     if state_ttl <= timedelta(0):
         raise ValueError("State TTL must be positive")
@@ -378,4 +391,34 @@ def create_app(
 
     app.include_router(resident_router(resident_service, profile_service, context_reader))
     app.include_router(episodes_router(context_reader))
+
+    def resolve_authorizer() -> Authorizer:
+        if authorizer is not None:
+            return authorizer
+        author_id = os.environ.get("MEMORY_AUTHOR_ID")
+        token = os.environ.get("MEMORY_AUTHOR_TOKEN")
+        if author_id is None or token is None:
+            raise AuthorUnavailable()
+        return CoreAuthorizer(author_id=author_id, token=token)
+
+    def deletion_service() -> DeletionService:
+        resolved_deletion = deletion_store
+        if resolved_deletion is None:
+            url = os.environ.get("MEMORY_DELETION_DATABASE_URL")
+            if not url:
+                raise MemoryUnavailable()
+            from digital_souls_memory.adapters.postgres_deletion import PostgresDeletionStore
+
+            resolved_deletion = PostgresDeletionStore(url)
+        return DeletionService(
+            resolved_deletion,
+            MemoryRecalculator(
+                recalculation_gateway,
+                delivery_timeout=delivery_timeout,
+                non_sensitive_labels=non_sensitive_labels,
+            ),
+            registration_clock,
+        )
+
+    app.include_router(deletion_router(resolve_authorizer, deletion_service))
     return app

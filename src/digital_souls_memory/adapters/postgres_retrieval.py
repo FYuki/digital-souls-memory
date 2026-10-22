@@ -145,6 +145,20 @@ class PostgresRetrievalStore:
                     used_end=item["used_end"],
                     deadline=item["deadline"],
                 )
+            baseline_inputs = connection.execute(
+                "SELECT * FROM memory_baseline_dependencies WHERE character_id=%s AND memory_id=%s",
+                (memory.character_id, memory.id),
+            ).fetchall()
+            for item in baseline_inputs:
+                saved[item["turn_id"]] = SourceStamp(
+                    turn_id=item["turn_id"],
+                    character_id=memory.character_id,
+                    basis=item["basis"],
+                    receipt_version=item["receipt_version"],
+                    available_end=item["available_end"],
+                    used_end=item["used_end"],
+                    deadline=item["deadline"],
+                )
             source_ids = memory.source_turn_ids
             search_text = memory.content
         else:

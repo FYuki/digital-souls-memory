@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import timedelta
+from hashlib import sha256
 from threading import Event
 from uuid import NAMESPACE_URL, uuid5
 
@@ -316,7 +317,8 @@ def test_index_preserves_combined_input_dependencies_and_supporting_source_time(
                     lease_until=None,
                     deadline=timeout,
                     error=None,
-                    used_text=TEXT,
+                    text_hash=sha256(TEXT.encode("utf-8")).hexdigest(),
+                    used_end=len(TEXT),
                     receipt_version=0,
                 )
             )

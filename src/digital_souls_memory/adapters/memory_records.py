@@ -1,5 +1,6 @@
 """Explicit persistence representation shared by projections and extraction contributions."""
 
+import json
 from dataclasses import asdict
 from datetime import datetime
 from typing import cast
@@ -110,4 +111,4 @@ def candidate_record(value: DerivedMemory) -> dict[str, object]:
         if isinstance(at, datetime):
             record[key] = at.isoformat()
     record["source_turn_ids"] = list(value.source_turn_ids)
-    return record
+    return cast(dict[str, object], json.loads(json.dumps(record)))
