@@ -11,7 +11,6 @@ Docker 運用とした。Python サービスの初期基盤には、空 DB か�
 目的は Memory 自身の DB スキーマの版管理であり、Core からのデータ移設ではない。
 Phase 1 以降に追加する Turn などのテーブルも管理し、運用開始後に蓄積する原文台帳を
 消さずにスキーマを変更できるようにする。Core のデータは開発時のものなので移行しない。
-Phase 0 ではドメインテーブルを作らず、pgvector 拡張の有効化までを対象にする。
 
 ## 決定
 
@@ -19,11 +18,8 @@ Phase 0 ではドメインテーブルを作らず、pgvector 拡張の有効化
 - Alembic の実行基盤として SQLAlchemy 2.0.43 の `postgresql+psycopg` dialect を使う。
   ORM によるドメインモデルや自動 schema 生成の採用は決めない。
 - DB 接続先は `MEMORY_DATABASE_URL` で明示する。認証情報は設定ファイルやログへ出さない。
-- 初期 revision の upgrade は `CREATE EXTENSION vector` だけとする。
-  downgrade は `DROP EXTENSION vector` とし、`CASCADE` で依存データを消さない。
+- migration は依存データを暗黙に削除しない。取り消しが依存データを壊す場合は失敗させる。
 - アプリ起動時には migration を行わず、適用を独立したコマンドにする。
-- digest 固定の pgvector 0.8.2 / PostgreSQL 18 コンテナで、空 DB から upgrade head、
-  拡張の有効化、再 upgrade、downgrade base を合成データだけで検証する。
 - 日本語全文検索（pg_bigm / PGroonga）は導入せず、Phase 1 の比較で決定する。
 
 ## 検討した案
@@ -37,7 +33,6 @@ Phase 0 ではドメインテーブルを作らず、pgvector 拡張の有効化
 
 ## 影響
 
-- SQLAlchemy は Alembic のための依存として加わる。migration revision は手動でレビューする。
-- 拡張の作成権限を持つ DB role で適用する必要がある。
-- 取り消しは依存オブジェクトがあると失敗する。運用時のバックアップ・復旧手順が別途必要となる。
-- CI の DB 試験には実コンテナが必要だが、実モデル・秘密・本番データは不要である。
+- SQLAlchemy は Alembic の実行基盤として必要になる。
+- スキーマの適用はアプリ起動と分離し、デプロイ側が管理する。
+- 依存オブジェクトを壊す取り消しを許可しないため、取り消せない変更もある。

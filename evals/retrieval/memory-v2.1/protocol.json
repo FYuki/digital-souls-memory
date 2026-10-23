@@ -1,0 +1,16 @@
+{
+  "comparison_version": "memory-v2.1",
+  "top_k": 5,
+  "token_budget": 1500,
+  "repetitions": 3,
+  "percentile_method": "linear",
+  "threshold": 0.2,
+  "weights": {
+    "semantic": 0.55,
+    "lexical": 0.25,
+    "recency": 0.05,
+    "importance": 0.05,
+    "self_relevance": 0.05,
+    "trust": 0.05
+  }
+}

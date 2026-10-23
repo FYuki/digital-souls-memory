@@ -1,0 +1,44 @@
+{
+  "revision": "",
+  "environment": "",
+  "hardware": "",
+  "db_image": "",
+  "client_image": "",
+  "db_version": "",
+  "embedding": {
+    "model_alias": "bge-m3",
+    "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+    "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "dimensions": 1024,
+    "pooling": "cls",
+    "quantization": "Q8_0",
+    "query_prefix": "",
+    "passage_prefix": "",
+    "extension": "pg_bigm"
+  },
+  "reranker": {
+    "model_alias": "bge-reranker-v2-m3",
+    "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+    "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+    "quantization": "Q8_0"
+  },
+  "dimensions": 1024,
+  "data_counts": [
+    100,
+    1000,
+    10000
+  ],
+  "input_text": "日本語",
+  "input_length": 3,
+  "candidate_limit": 200,
+  "rerank_limit": 20,
+  "result_limit": 5,
+  "token_limit": 1500,
+  "relevance_threshold": -2,
+  "repetitions": 100,
+  "warm_up": 5,
+  "concurrency": 1,
+  "cold_condition": "",
+  "period": "",
+  "aggregation": "nearest-rank"
+}

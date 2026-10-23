@@ -1,0 +1,1247 @@
+{
+  "core_commit": "b062a49a32d261d0ce472938c40711c6cb41d7c0",
+  "source_repository": "digital-souls-core",
+  "license": "未特定。Coreルートのファイル一覧・pyproject.toml・評価文書ではCoreコード/ケースのライセンス表示を確認できない。モデルのライセンスは転用しない。",
+  "files": [
+    {
+      "path": "evals/semantic/cases.json",
+      "sha256": "44b90af81bdbc9a7c117fd5158d23bde4878571de2584b99bb1973f85a2ecdcf"
+    },
+    {
+      "path": "evals/semantic/expectations.json",
+      "sha256": "0e979d561be09a45faf019baba285c14605f46ebacc6194f86b5298aa981caa4"
+    },
+    {
+      "path": "evals/semantic/tuning/cases.json",
+      "sha256": "2016bec4aa1248a10201b6570dba6711c35910bd64372d82438a20e4f0153de1"
+    },
+    {
+      "path": "evals/semantic/tuning/expectations.json",
+      "sha256": "200f8995ed497265a0d3ca9069900d1190cd877c28b04eccfa8412e110be57dc"
+    }
+  ],
+  "cases": [
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-warm-drink-ja",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-warm-drink-ja",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-weekend-ja",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-weekend-ja",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-herb",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-herb",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-observatory",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-observatory",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "negated-coffee-preference",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "negated-coffee-preference",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "updated-morning-drink",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "updated-morning-drink",
+      "reason": "Session/Turnと独立DerivedMemoryへ変換。原文を保持し、旧Factの添付・版リンク・回答生成は移さない。3属性は合成中立値0.5、再強化なし。 旧valid_toを閉じ、新Factを独立して検索する期待値へ変更。旧Coreのリンク不在による新Fact非添付を、Memoryの現行Fact取得へ改修。更新前Factを禁止IDとして保持。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "multisource-picnic",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "multisource-picnic",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "multisource-partial-revocation",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "multisource-partial-revocation",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "private-source",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": null,
+      "reason": "旧private permissionの検索拒否は持ち込まない。G6は明示sensitiveを許可されたローカル送信へ限定する規則であり、検索拒否と同一ではない。機微ラベルとloopback制限を独立して検証する。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_turn_without_sensitivity_is_rejected"
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "excluded-source",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": null,
+      "reason": "旧exclude_on_appendの登録policyは対象外。出典のない派生物を送信しない検索規則を代替検証する。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_runner.py::test_ineligible_source_never_reaches_embedding_or_search_port"
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "deleted-source",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "deleted-source",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "deleted-memory",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "deleted-memory",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "binding-character",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "binding-character",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "binding-subject",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": null,
+      "reason": "M6の知覚範囲で代替。旧subject境界はMemoryに存在せず移さない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_perception_scope_controls_eligibility"
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "binding-client",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": null,
+      "reason": "M6の知覚範囲で代替。旧client境界はMemoryに存在せず移さない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_perception_scope_controls_eligibility"
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "long-text-explicit-detail",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "long-text-explicit-detail",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "post-search-revocation",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": null,
+      "reason": "Coreのdispatch時再検証は対象外。検索前の出典欠落を代替検証し、回答ライフサイクルの同等性を主張しない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_missing_source_is_not_an_eligible_memory"
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "post-answer-revocation",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": null,
+      "reason": "Coreの回答破棄は対象外。検索前の出典欠落を代替検証し、回答ライフサイクルの同等性を主張しない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_missing_source_is_not_an_eligible_memory"
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "source-epoch-changed",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": null,
+      "reason": "旧epoch/permissionは持ち込まない。利用不能な出典を除外する規則を代替検証する。epoch復旧後の振る舞いの同等性は主張しない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_missing_source_is_not_an_eligible_memory"
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-02",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-03",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-04",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-05",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-06",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-07",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-08",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-09",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "synonym-10",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "synonym-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-02",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-03",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-04",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-05",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-06",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-07",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-08",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-09",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "paraphrase-10",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "paraphrase-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-02",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-03",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-04",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-05",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-06",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-07",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-08",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-09",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "cross-language-10",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "cross-language-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-02",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-03",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-04",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-05",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-06",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-07",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-08",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-09",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "unrelated-10",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "unrelated-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "valid-fact-attachment",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "valid-fact-attachment",
+      "reason": "Session/Turnと独立DerivedMemoryへ変換。原文を保持し、旧Factの添付・版リンク・回答生成は移さない。3属性は合成中立値0.5、再強化なし。 Factを別DerivedMemoryとして正解に含め、EpisodeとFactの双方の原文区間を必須化。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "stale-fact-link",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "stale-fact-link",
+      "reason": "Session/Turnと独立DerivedMemoryへ変換。原文を保持し、旧Factの添付・版リンク・回答生成は移さない。3属性は合成中立値0.5、再強化なし。 旧valid_toを閉じ、新Factを独立して検索する期待値へ変更。旧Coreのリンク不在による新Fact非添付を、Memoryの現行Fact取得へ改修。更新前Factを禁止IDとして保持。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "revoked-fact-source",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "revoked-fact-source",
+      "reason": "Session/Turnと独立DerivedMemoryへ変換。原文を保持し、旧Factの添付・版リンク・回答生成は移さない。3属性は合成中立値0.5、再強化なし。 削除されたFact出典はsnapshotから除外し、そのDerivedMemoryを不適格とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "direct-semantic",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "direct-semantic",
+      "reason": "Session/Turnと独立DerivedMemoryへ変換。原文を保持し、旧Factの添付・版リンク・回答生成は移さない。3属性は合成中立値0.5、再強化なし。 直接引用またはepisode_evidenceの葉をsource_turn_idsへ展開し、正解の全原文を必須化。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "derived-semantic",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "derived-semantic",
+      "reason": "Session/Turnと独立DerivedMemoryへ変換。原文を保持し、旧Factの添付・版リンク・回答生成は移さない。3属性は合成中立値0.5、再強化なし。 直接引用またはepisode_evidenceの葉をsource_turn_idsへ展開し、正解の全原文を必須化。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "equivalent-band-order",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "equivalent-band-order",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。完全同点の合成6項とID昇順の期待順位をboundary-fixtures.jsonに固定。実モデルでは実スコアの順位を同じgoldで判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "acceptance",
+      "source_case_id": "below-threshold",
+      "source_file": "evals/semantic/cases.json",
+      "target_case_id": "below-threshold",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-daily-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-daily-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-daily-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-daily-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-daily-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-daily-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-daily-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-daily-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-daily-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-daily-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-daily-06",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-daily-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-07",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-08",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-09",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-synonym-10",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-synonym-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-daily-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-daily-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-daily-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-daily-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-daily-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-daily-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-daily-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-daily-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-daily-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-daily-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-daily-06",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-daily-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-07",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-08",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-09",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-paraphrase-10",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-paraphrase-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-daily-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-daily-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-daily-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-daily-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-daily-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-daily-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-daily-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-daily-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-daily-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-daily-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-daily-06",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-daily-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-07",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-08",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-09",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-10",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-11",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-11",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-en-query-12",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-en-query-12",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-daily-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-daily-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-daily-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-daily-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-daily-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-daily-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-daily-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-daily-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-daily-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-daily-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-daily-06",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-daily-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-07",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-08",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-09",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-10",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-11",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-11",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-cross-ja-query-12",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-cross-ja-query-12",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-daily-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-daily-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-daily-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-daily-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-daily-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-daily-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-daily-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-daily-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-daily-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-daily-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-tech-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-tech-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-tech-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-tech-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-tech-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-tech-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-tech-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-tech-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-near-tech-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-near-tech-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-06",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-07",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-daily-08",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-daily-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-tech-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-tech-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-tech-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-tech-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-tech-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-tech-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-unrelated-far-tech-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-unrelated-far-tech-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-daily-01",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-daily-01",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-daily-02",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-daily-02",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-daily-03",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-daily-03",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-tech-04",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-tech-04",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-tech-05",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-tech-05",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-tech-06",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-tech-06",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-daily-07",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-daily-07",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-daily-08",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-daily-08",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-daily-09",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-daily-09",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-tech-10",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-tech-10",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-tech-11",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-tech-11",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-threshold-near-tech-12",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-threshold-near-tech-12",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。合成6項の0.49/0.50/0.51による直下・境界・直上をboundary-fixtures.jsonとtest_provenance.pyで検証する。実モデルでは合成値を使わず固定goldのまま判定する。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-private",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": null,
+      "reason": "旧private permissionの検索拒否は持ち込まない。G6は明示sensitiveを許可されたローカル送信へ限定する規則であり、検索拒否と同一ではない。機微ラベルとloopback制限を独立して検証する。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_turn_without_sensitivity_is_rejected"
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-excluded",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": null,
+      "reason": "旧exclude_on_appendの登録policyは対象外。出典のない派生物を送信しない検索規則を代替検証する。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_runner.py::test_ineligible_source_never_reaches_embedding_or_search_port"
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-deleted-source",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-deleted-source",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-deleted-memory",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-deleted-memory",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-binding-character",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-binding-character",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修する。Coreのvector・Binding・permission・dispatch・回答生成契約は移さない。 原文・query・正解/禁止IDを保持。削除は検索前snapshotで出典欠落として表現する。機微ラベルは合成入力の明示ラベル、3属性は比較用中立値0.5、再強化履歴なしとしてcreated_atを起点とする。",
+      "remaining_work": null
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-binding-subject",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": null,
+      "reason": "M6の知覚範囲で代替。旧subject境界はMemoryに存在せず移さない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_perception_scope_controls_eligibility"
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-binding-client",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": null,
+      "reason": "M6の知覚範囲で代替。旧client境界はMemoryに存在せず移さない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_perception_scope_controls_eligibility"
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-after-search",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": null,
+      "reason": "Coreのdispatch時再検証は対象外。検索前の出典欠落を代替検証し、回答ライフサイクルの同等性を主張しない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_missing_source_is_not_an_eligible_memory"
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-after-answer",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": null,
+      "reason": "Coreの回答破棄は対象外。検索前の出典欠落を代替検証し、回答ライフサイクルの同等性を主張しない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_missing_source_is_not_an_eligible_memory"
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-epoch-change",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": null,
+      "reason": "旧epoch/permissionは持ち込まない。利用不能な出典を除外する規則を代替検証する。epoch復旧後の振る舞いの同等性は主張しない。",
+      "remaining_work": null,
+      "replacement_test": "tests/evaluation/test_domain.py::test_missing_source_is_not_an_eligible_memory"
+    },
+    {
+      "source_split": "tuning",
+      "source_case_id": "tuning-equivalent-order",
+      "source_file": "evals/semantic/tuning/cases.json",
+      "target_case_id": "tuning-equivalent-order",
+      "reason": "MemoryのSession/Turn/DerivedMemoryへ改修。query・原文・正解/禁止IDの意味を保持。旧vector・0.52・同等帯は移さない。完全同点の合成6項とID昇順の期待順位をboundary-fixtures.jsonに固定。実モデルでは実スコアの順位を同じgoldで判定する。",
+      "remaining_work": null
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "model_alias": "bge-m3",
+    "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+    "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "pooling": "cls",
+    "query_prefix": "",
+    "passage_prefix": "",
+    "id": "bge-m3-pg_bigm",
+    "extension": "pg_bigm",
+    "dimensions": 1024,
+    "quantization": "Q8_0",
+    "max_context_length": null
+  },
+  {
+    "model_alias": "bge-m3",
+    "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+    "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "pooling": "cls",
+    "query_prefix": "",
+    "passage_prefix": "",
+    "id": "bge-m3-pgroonga",
+    "extension": "pgroonga",
+    "dimensions": 1024,
+    "quantization": "Q8_0",
+    "max_context_length": null
+  },
+  {
+    "id": "Qwen3-Embedding-0.6B-pg_bigm",
+    "model_alias": "Qwen3-Embedding-0.6B",
+    "extension": "pg_bigm",
+    "revision": null,
+    "sha256": null,
+    "dimensions": null,
+    "pooling": null,
+    "quantization": null,
+    "query_prefix": null,
+    "passage_prefix": null,
+    "max_context_length": null
+  },
+  {
+    "id": "Qwen3-Embedding-0.6B-pgroonga",
+    "model_alias": "Qwen3-Embedding-0.6B",
+    "extension": "pgroonga",
+    "revision": null,
+    "sha256": null,
+    "dimensions": null,
+    "pooling": null,
+    "quantization": null,
+    "query_prefix": null,
+    "passage_prefix": null,
+    "max_context_length": null
+  },
+  {
+    "id": "ruri-v3-310m-pg_bigm",
+    "model_alias": "ruri-v3-310m",
+    "extension": "pg_bigm",
+    "revision": null,
+    "sha256": null,
+    "dimensions": null,
+    "pooling": null,
+    "quantization": null,
+    "query_prefix": null,
+    "passage_prefix": null,
+    "max_context_length": null
+  },
+  {
+    "id": "ruri-v3-310m-pgroonga",
+    "model_alias": "ruri-v3-310m",
+    "extension": "pgroonga",
+    "revision": null,
+    "sha256": null,
+    "dimensions": null,
+    "pooling": null,
+    "quantization": null,
+    "query_prefix": null,
+    "passage_prefix": null,
+    "max_context_length": null
+  }
+]

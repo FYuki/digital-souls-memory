@@ -1,0 +1,101 @@
+"""Atomic projection and durable extraction work ports."""
+
+from collections.abc import Iterator
+from contextlib import AbstractContextManager
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Protocol
+
+from digital_souls_memory.memory.domain import (
+    DerivedMemory,
+    ExtractionState,
+    InputDependency,
+    MemoryRelation,
+)
+
+
+class MemoryConflict(Exception):
+    """A memory identifier already exists."""
+
+
+class MemoryUnavailable(Exception):
+    """The configured storage cannot serve the operation."""
+
+
+@dataclass(frozen=True, order=True)
+class WorkCursor:
+    occurred_at: datetime
+    recorded_at: datetime
+    turn_id: str
+    character_id: str
+
+
+@dataclass(frozen=True)
+class SurfacePage:
+    surfaces: tuple[str, ...]
+    next_after: str | None
+
+
+@dataclass(frozen=True)
+class WorkPage:
+    items: tuple[WorkCursor, ...]
+    next_after: WorkCursor | None
+
+
+@dataclass(frozen=True)
+class MemoryContribution:
+    turn_id: str
+    memory: DerivedMemory
+
+
+class MemoryTransaction(Protocol):
+    def contribution_ids(self, turn_id: str) -> frozenset[str]: ...
+    def projection_neighbors(self, identifiers: frozenset[str]) -> frozenset[str]: ...
+    def withdrawn_ids(self, identifiers: frozenset[str]) -> frozenset[str]: ...
+    def add_memory(self, value: DerivedMemory) -> None: ...
+    def replace_memory(self, value: DerivedMemory) -> None: ...
+    def replace_projection(self, value: DerivedMemory) -> None: ...
+    def baselines(self, identifiers: frozenset[str] | None = None) -> tuple[DerivedMemory, ...]: ...
+    def proposed_relations(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryRelation, ...]: ...
+    def applied_relations(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryRelation, ...]: ...
+    def set_relations(self, turn_id: str, values: tuple[MemoryRelation, ...]) -> None: ...
+    def add_relation(self, value: MemoryRelation) -> None: ...
+    def memories(self, identifiers: frozenset[str] | None = None) -> tuple[DerivedMemory, ...]: ...
+    def candidates(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryContribution, ...]: ...
+    def generated_ids(self, identifiers: frozenset[str] | None = None) -> frozenset[str]: ...
+    def add_generated(self, value: DerivedMemory) -> None: ...
+    def set_candidates(
+        self,
+        turn_id: str,
+        values: tuple[DerivedMemory, ...],
+        *,
+        dependencies: tuple[InputDependency, ...],
+    ) -> None: ...
+    def sync_projection_relations(
+        self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
+    ) -> None: ...
+    def get_extraction(self, turn_id: str) -> ExtractionState | None: ...
+    def save_extraction(self, value: ExtractionState) -> None: ...
+    def notification_version(self, turn_id: str) -> int: ...
+
+
+class MemoryStore(Protocol):
+    def transaction(self, character_id: str) -> AbstractContextManager[MemoryTransaction]: ...
+    def get_memory(self, character_id: str, identifier: str) -> DerivedMemory | None: ...
+    def list_memories(
+        self, character_id: str
+    ) -> AbstractContextManager[Iterator[DerivedMemory]]: ...
+    def list_relations(
+        self, character_id: str, identifier: str
+    ) -> AbstractContextManager[Iterator[MemoryRelation]]: ...
+    def get_extraction(self, character_id: str, turn_id: str) -> ExtractionState | None: ...
+    def surface_page(self, *, after: str | None, limit: int) -> SurfacePage: ...
+    def work_page(self, surface: str, *, after: WorkCursor | None, limit: int) -> WorkPage: ...
+    def requeue(self, turn_id: str) -> None: ...
+    def claim_surface(self, surface: str, now: datetime) -> AbstractContextManager[bool]: ...

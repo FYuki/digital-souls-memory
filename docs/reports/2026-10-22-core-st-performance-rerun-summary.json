@@ -1,0 +1,2810 @@
+{
+  "schema_version": 1,
+  "revision": "39352b9cb7aecb123822993f25c9671f1f00e4be",
+  "scope": "100 records, 100 measured recalls; overall multi-size runner interrupted during 1000-record preparation",
+  "result_100": "PASS",
+  "required_p95_ms": 600,
+  "targets": {
+    "p95_ms": 300,
+    "p50_ms": 150
+  },
+  "manifest": {
+    "revision": "39352b9cb7aecb123822993f25c9671f1f00e4be",
+    "environment": "Linux 6.18.54.1-microsoft-standard-WSL2 x86_64 GNU/Linux; Python 3.12.3; uv 0.8.22; Docker Docker version 29.6.0, build fb59821; Docker Compose version v5.2.0",
+    "hardware": "NVIDIA GeForce RTX 4070 Ti SUPER, 610.88, 16376 MiB; {\n   \"lscpu\": [\n      {\n         \"field\": \"Architecture:\",\n         \"data\": \"x86_64\"\n      },{\n         \"field\": \"CPU op-mode(s):\",\n         \"data\": \"32-bit, 64-bit\"\n      },{\n         \"field\": \"Address sizes:\",\n         \"data\": \"46 bits physical, 48 bits virtual\"\n      },{\n         \"field\": \"Byte Order:\",\n         \"data\": \"Little Endian\"\n      },{\n         \"field\": \"CPU(s):\",\n         \"data\": \"28\"\n      },{\n         \"field\": \"On-line CPU(s) list:\",\n         \"data\": \"0-27\"\n      },{\n         \"field\": \"Vendor ID:\",\n         \"data\": \"GenuineIntel\"\n      },{\n         \"field\": \"Model name:\",\n         \"data\": \"Intel(R) Core(TM) i7-14700K\"\n      },{\n         \"field\": \"CPU family:\",\n         \"data\": \"6\"\n      },{\n         \"field\": \"Model:\",\n         \"data\": \"183\"\n      },{\n         \"field\": \"Thread(s) per core:\",\n         \"data\": \"2\"\n      },{\n         \"field\": \"Core(s) per socket:\",\n         \"data\": \"14\"\n      },{\n         \"field\": \"Socket(s):\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"Stepping:\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"BogoMIPS:\",\n         \"data\": \"6835.19\"\n      },{\n         \"field\": \"Flags:\",\n         \"data\": \"fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology tsc_reliable nonstop_tsc cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves avx_vnni vnmi umip waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear serialize ibt flush_l1d arch_capabilities\"\n      },{\n         \"field\": \"Virtualization:\",\n         \"data\": \"VT-x\"\n      },{\n         \"field\": \"Hypervisor vendor:\",\n         \"data\": \"Microsoft\"\n      },{\n         \"field\": \"Virtualization type:\",\n         \"data\": \"full\"\n      },{\n         \"field\": \"L1d cache:\",\n         \"data\": \"672 KiB (14 instances)\"\n      },{\n         \"field\": \"L1i cache:\",\n         \"data\": \"448 KiB (14 instances)\"\n      },{\n         \"field\": \"L2 cache:\",\n         \"data\": \"28 MiB (14 instances)\"\n      },{\n         \"field\": \"L3 cache:\",\n         \"data\": \"33 MiB (1 instance)\"\n      },{\n         \"field\": \"NUMA node(s):\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"NUMA node0 CPU(s):\",\n         \"data\": \"0-27\"\n      },{\n         \"field\": \"Vulnerability Gather data sampling:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Ghostwrite:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Indirect target selection:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Itlb multihit:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability L1tf:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Mds:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Meltdown:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Mmio stale data:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Old microcode:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Reg file data sampling:\",\n         \"data\": \"Mitigation; Clear Register File\"\n      },{\n         \"field\": \"Vulnerability Retbleed:\",\n         \"data\": \"Mitigation; Enhanced IBRS\"\n      },{\n         \"field\": \"Vulnerability Spec rstack overflow:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Spec store bypass:\",\n         \"data\": \"Mitigation; Speculative Store Bypass disabled via prctl\"\n      },{\n         \"field\": \"Vulnerability Spectre v1:\",\n         \"data\": \"Mitigation; usercopy/swapgs barriers and __user pointer sanitization\"\n      },{\n         \"field\": \"Vulnerability Spectre v2:\",\n         \"data\": \"Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S\"\n      },{\n         \"field\": \"Vulnerability Srbds:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Tsa:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Tsx async abort:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Vmscape:\",\n         \"data\": \"Not affected\"\n      }\n   ]\n}",
+    "db_image": "sha256:172dd70ff434d5a2d8e4c848a74ac0dca61c3ae6eed688ca843829be261d40e7",
+    "client_image": "sha256:510b0501c1c26cabfb3fceef3b6bec76a2dab80a82ad448654e10f5d523f9f70",
+    "db_version": "PostgreSQL 18.6; vector 0.8.2; pg_bigm 1.2; PGroonga installed in image but extension unused",
+    "embedding": {
+      "model_alias": "bge-m3",
+      "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+      "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+      "dimensions": 1024,
+      "pooling": "cls",
+      "quantization": "Q8_0",
+      "query_prefix": "",
+      "passage_prefix": "",
+      "extension": "pg_bigm"
+    },
+    "reranker": {
+      "model_alias": "bge-reranker-v2-m3",
+      "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+      "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+      "quantization": "Q8_0"
+    },
+    "dimensions": 1024,
+    "data_counts": [
+      100,
+      1000
+    ],
+    "input_text": "日本語",
+    "input_length": 3,
+    "candidate_limit": 200,
+    "rerank_limit": 20,
+    "result_limit": 5,
+    "token_limit": 1500,
+    "relevance_threshold": -2,
+    "repetitions": 100,
+    "warm_up": 5,
+    "concurrency": 1,
+    "cold_condition": "Warm steady-state: fresh tmpfs DB, real HTTP ingestion and indexing, 5 warm-up recalls per size excluded from measured quantiles and recorded separately; OS/DB/GPU cache not cleared; model servers already loaded. No cold-start claim.",
+    "period": "2026-10-22 UTC; started_at/finished_at recorded in performance.json",
+    "aggregation": "nearest-rank"
+  },
+  "model_server": {
+    "model": {
+      "image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+      "args": [
+        "-m",
+        "/models/model.gguf",
+        "--alias",
+        "bge-m3",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--embeddings",
+        "--pooling",
+        "cls",
+        "--ctx-size",
+        "2048",
+        "--batch-size",
+        "2048",
+        "--ubatch-size",
+        "2048",
+        "--parallel",
+        "1",
+        "--gpu-layers",
+        "99",
+        "--threads",
+        "8",
+        "--threads-batch",
+        "8",
+        "--cache-ram",
+        "0",
+        "--no-webui",
+        "--log-timestamps"
+      ],
+      "port": 18049,
+      "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+      "container_id": "5726a1ebbba43bbcba66fd176d74650f1e112538610ec15750cdba7366b3a440"
+    },
+    "reranker": {
+      "image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+      "args": [
+        "-m",
+        "/models/model.gguf",
+        "--alias",
+        "bge-reranker-v2-m3",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--embeddings",
+        "--pooling",
+        "rank",
+        "--ctx-size",
+        "2048",
+        "--batch-size",
+        "2048",
+        "--ubatch-size",
+        "2048",
+        "--parallel",
+        "1",
+        "--gpu-layers",
+        "99",
+        "--threads",
+        "8",
+        "--threads-batch",
+        "8",
+        "--cache-ram",
+        "0",
+        "--no-webui",
+        "--log-timestamps",
+        "--reranking"
+      ],
+      "port": 18050,
+      "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+      "container_id": "0ed8e49ad72460d85c78b5f62321b8921783b833991fcffeb08dec9ee848bb57"
+    }
+  },
+  "model_preflight": {
+    "embedding_dimensions": 1024,
+    "tokenize": "PASS",
+    "digest_verification": "PASS"
+  },
+  "started_at": "2026-10-22T10:12:01.576739+00:00",
+  "checkpoint_100_observed_at": "2026-10-22T10:23:10.922056+00:00",
+  "original_artifact_status": "FAIL",
+  "original_artifact_finished_at": null,
+  "runner_exit_status": 137,
+  "run_100": {
+    "data_count": 100,
+    "summary": {
+      "p50_ms": 104.97349700017367,
+      "p95_ms": 140.71860299736727,
+      "required_pass": true,
+      "p95_target_pass": true,
+      "p50_target_pass": true
+    },
+    "warm_up": [
+      {
+        "elapsed_ms": 493.22132999805035,
+        "success": true,
+        "provision_id": "3bea1eaf-03f3-4793-9b65-c381d62ac6ab",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.60163900238695,
+        "success": true,
+        "provision_id": "5398783e-5c49-4a52-8f86-566dca879149",
+        "error": null
+      },
+      {
+        "elapsed_ms": 118.19454600481549,
+        "success": true,
+        "provision_id": "99e47a15-d884-4f63-803d-aa652949fb22",
+        "error": null
+      },
+      {
+        "elapsed_ms": 106.03699700004654,
+        "success": true,
+        "provision_id": "320e5521-66ac-430b-b817-dc2bac9b074a",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.21900599915534,
+        "success": true,
+        "provision_id": "7f869c10-8866-45c2-8fcf-978aa98a3043",
+        "error": null
+      }
+    ],
+    "trials": [
+      {
+        "elapsed_ms": 102.02346599544398,
+        "success": true,
+        "provision_id": "10003f2d-bd96-4b46-8257-e17612bada6d",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.92878799675964,
+        "success": true,
+        "provision_id": "ee2d76d9-e8da-43bb-bc46-96ee94621ddd",
+        "error": null
+      },
+      {
+        "elapsed_ms": 98.7646540015703,
+        "success": true,
+        "provision_id": "90c08777-647f-43eb-b14d-e71ace0020d6",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.79266700288281,
+        "success": true,
+        "provision_id": "a4e71444-12a9-4ec7-aab4-212a7dd188a0",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.30436399433529,
+        "success": true,
+        "provision_id": "bc00dc10-d7e9-478f-9051-d41eb023d810",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.92960400268203,
+        "success": true,
+        "provision_id": "a5b2cbdb-d6e4-47bc-b57a-dded8c2e7d3b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 104.79243299778318,
+        "success": true,
+        "provision_id": "d5adceb6-6ee0-4040-bae5-9d5d8c79b8f1",
+        "error": null
+      },
+      {
+        "elapsed_ms": 123.27397499757353,
+        "success": true,
+        "provision_id": "477dc08f-e029-4a06-8657-53ad8bbb19f0",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.80515500198817,
+        "success": true,
+        "provision_id": "fb034252-0f5e-4881-8654-b44d4845d2a5",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.65469599794596,
+        "success": true,
+        "provision_id": "76db7ce2-b9f9-401e-979f-d59f4b2b6387",
+        "error": null
+      },
+      {
+        "elapsed_ms": 104.97349700017367,
+        "success": true,
+        "provision_id": "352aa681-592f-4528-8953-45062f988fba",
+        "error": null
+      },
+      {
+        "elapsed_ms": 105.11419000249589,
+        "success": true,
+        "provision_id": "fe27ce51-2e13-436f-8926-cda5f350ff72",
+        "error": null
+      },
+      {
+        "elapsed_ms": 131.98567200015532,
+        "success": true,
+        "provision_id": "779f62ff-30cc-46b2-b620-e369cbecff0d",
+        "error": null
+      },
+      {
+        "elapsed_ms": 135.71697699808283,
+        "success": true,
+        "provision_id": "bf45640f-cb89-4b4f-8b8b-d066c77c0450",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.81667799729621,
+        "success": true,
+        "provision_id": "c18c440f-ee24-4640-98b8-664030a7de39",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.5015840017004,
+        "success": true,
+        "provision_id": "a025431d-32f3-47bc-9ead-a210bcbc2cad",
+        "error": null
+      },
+      {
+        "elapsed_ms": 117.07443799969042,
+        "success": true,
+        "provision_id": "28445e15-a19f-43e0-a80a-6923a7af5f1b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.27106900088256,
+        "success": true,
+        "provision_id": "1120b04e-df8f-4c26-a061-c675ef3e4b2a",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.93348299799254,
+        "success": true,
+        "provision_id": "403da05d-b590-4efd-95f8-84bb08440d04",
+        "error": null
+      },
+      {
+        "elapsed_ms": 133.90326099761296,
+        "success": true,
+        "provision_id": "16a09a97-71ed-4974-95f7-67ef779c5802",
+        "error": null
+      },
+      {
+        "elapsed_ms": 138.5327980024158,
+        "success": true,
+        "provision_id": "5237dd0b-6979-49f3-ba9e-e2679ccbce04",
+        "error": null
+      },
+      {
+        "elapsed_ms": 105.7310129981488,
+        "success": true,
+        "provision_id": "e5a9242b-ca1a-478e-bfb3-6e6da3f75064",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.61584800475975,
+        "success": true,
+        "provision_id": "bc9c6dbd-8f1b-4326-ae55-d2a620e4b0e9",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.46544100239407,
+        "success": true,
+        "provision_id": "41ed0056-cbc6-47c9-8567-f4132e51a7b2",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.40919300122187,
+        "success": true,
+        "provision_id": "5ae60faa-7ef1-41b3-b3cc-ed7fb59616e5",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.93869400245603,
+        "success": true,
+        "provision_id": "d582db37-bb79-46f7-9cbf-e3f7887f2734",
+        "error": null
+      },
+      {
+        "elapsed_ms": 118.96404100116342,
+        "success": true,
+        "provision_id": "e2d8d8fe-04b9-47f3-88f9-a4d984defb05",
+        "error": null
+      },
+      {
+        "elapsed_ms": 97.76643599616364,
+        "success": true,
+        "provision_id": "d2721928-31ae-41e6-b41e-68f58059616b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 122.60206100472715,
+        "success": true,
+        "provision_id": "53daf48c-b21d-4cad-b1e2-35e31e7b5b0e",
+        "error": null
+      },
+      {
+        "elapsed_ms": 98.22711799643002,
+        "success": true,
+        "provision_id": "6da64e6b-071c-4cf6-b059-539580ca0da7",
+        "error": null
+      },
+      {
+        "elapsed_ms": 143.57287099846872,
+        "success": true,
+        "provision_id": "d40dc044-1836-4513-b18a-7eb265ccbca3",
+        "error": null
+      },
+      {
+        "elapsed_ms": 145.576301998517,
+        "success": true,
+        "provision_id": "a9fbb23c-e6ca-4f9a-a661-a02ebeacb78f",
+        "error": null
+      },
+      {
+        "elapsed_ms": 139.86940400354797,
+        "success": true,
+        "provision_id": "2b2d7ff0-9af5-471d-9a60-a5aceb03c2cc",
+        "error": null
+      },
+      {
+        "elapsed_ms": 136.25949600100284,
+        "success": true,
+        "provision_id": "901c259b-eb55-4024-acec-229d7d0f8870",
+        "error": null
+      },
+      {
+        "elapsed_ms": 139.19581200025277,
+        "success": true,
+        "provision_id": "0f0fbbed-8901-4b90-93fc-3e79d1c5b1b3",
+        "error": null
+      },
+      {
+        "elapsed_ms": 149.45462699688505,
+        "success": true,
+        "provision_id": "c44d0fc8-0b68-42e7-848f-d214cde624f2",
+        "error": null
+      },
+      {
+        "elapsed_ms": 135.5621719994815,
+        "success": true,
+        "provision_id": "c31868b3-72f9-43fb-86d9-c2a11d869e88",
+        "error": null
+      },
+      {
+        "elapsed_ms": 139.73224399524042,
+        "success": true,
+        "provision_id": "0584ecf2-976a-4042-a73f-830d61d72ff8",
+        "error": null
+      },
+      {
+        "elapsed_ms": 136.10873500147136,
+        "success": true,
+        "provision_id": "e536cef5-1eaf-4e8d-8b7b-faf02f59d58c",
+        "error": null
+      },
+      {
+        "elapsed_ms": 132.13693800207693,
+        "success": true,
+        "provision_id": "2c983d75-49b7-4a2e-b124-8ca14bfa8bf4",
+        "error": null
+      },
+      {
+        "elapsed_ms": 103.6615580014768,
+        "success": true,
+        "provision_id": "918d8b68-781e-4fe3-add2-8a51cf534a4a",
+        "error": null
+      },
+      {
+        "elapsed_ms": 103.96896699967328,
+        "success": true,
+        "provision_id": "1e57aeda-9ca6-4eef-8475-547e3daa5849",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.59281099913642,
+        "success": true,
+        "provision_id": "a01a164b-9e94-48ad-a7cc-d423c5a53e6b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.16495799552649,
+        "success": true,
+        "provision_id": "e5d10638-42c7-48d5-afd7-3b9ccb737c4e",
+        "error": null
+      },
+      {
+        "elapsed_ms": 97.44262399908621,
+        "success": true,
+        "provision_id": "f3fd475c-f9fe-4f76-8607-d61a972de66b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 113.20020800485509,
+        "success": true,
+        "provision_id": "4d033650-544a-4d93-a14e-7e31256a0412",
+        "error": null
+      },
+      {
+        "elapsed_ms": 98.8237229976221,
+        "success": true,
+        "provision_id": "2f704de5-3e55-4bf6-aac6-4eb80cdf504e",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.08736099593807,
+        "success": true,
+        "provision_id": "1b97b464-da8c-4865-861c-2dbe8adb8411",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.28276299999561,
+        "success": true,
+        "provision_id": "7c867de3-363f-49aa-8f04-5dc5f586e571",
+        "error": null
+      },
+      {
+        "elapsed_ms": 97.96481800003676,
+        "success": true,
+        "provision_id": "2613a17a-4f57-41eb-9c18-56cbe9ec783b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.05103799974313,
+        "success": true,
+        "provision_id": "3053a0dd-db67-486a-8a58-24b7ee2ae803",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.52282599988393,
+        "success": true,
+        "provision_id": "8a717111-2f60-43ae-81c6-7b563d94ecfd",
+        "error": null
+      },
+      {
+        "elapsed_ms": 105.58997800399084,
+        "success": true,
+        "provision_id": "a43857dd-bfdc-4da1-81e2-eb982601ccca",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.90969800553285,
+        "success": true,
+        "provision_id": "9cd7e058-80d7-4dc9-8847-f3f793d7c356",
+        "error": null
+      },
+      {
+        "elapsed_ms": 114.36778499773936,
+        "success": true,
+        "provision_id": "f64e4ecb-3045-4e1b-81be-fe4cf4bdaa39",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.23389699927066,
+        "success": true,
+        "provision_id": "32e6e7af-d468-41a5-a211-3c68c2793187",
+        "error": null
+      },
+      {
+        "elapsed_ms": 135.5683079964365,
+        "success": true,
+        "provision_id": "ee9c3d0b-2459-4488-b0b8-d2cd401006d4",
+        "error": null
+      },
+      {
+        "elapsed_ms": 141.3672859998769,
+        "success": true,
+        "provision_id": "2b92b32d-413e-458e-b98d-00cae36c7070",
+        "error": null
+      },
+      {
+        "elapsed_ms": 138.85670499439584,
+        "success": true,
+        "provision_id": "b7f5fca0-e557-4f9b-9f8c-8c7ed08a8db1",
+        "error": null
+      },
+      {
+        "elapsed_ms": 133.16084400139516,
+        "success": true,
+        "provision_id": "2f5f556c-b7c4-423f-8012-dae1dbbf218e",
+        "error": null
+      },
+      {
+        "elapsed_ms": 133.7186210002983,
+        "success": true,
+        "provision_id": "50289cb5-a415-42b4-91cf-859a9e2e2767",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.98126300383592,
+        "success": true,
+        "provision_id": "74a93298-fec3-4c00-9a87-9c394917e69f",
+        "error": null
+      },
+      {
+        "elapsed_ms": 106.70387700520223,
+        "success": true,
+        "provision_id": "8715d2dd-8463-4e75-935f-9761b0eb6b81",
+        "error": null
+      },
+      {
+        "elapsed_ms": 106.41528300038772,
+        "success": true,
+        "provision_id": "a12780a5-ad2d-4115-838a-e44b058e1a57",
+        "error": null
+      },
+      {
+        "elapsed_ms": 119.01231500087306,
+        "success": true,
+        "provision_id": "9bcf34fc-678c-471e-8e8e-706c4a3dd306",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.60918199492153,
+        "success": true,
+        "provision_id": "77f94d1a-bf42-436d-b4b9-ba7d7b4ad0f6",
+        "error": null
+      },
+      {
+        "elapsed_ms": 104.63055600121152,
+        "success": true,
+        "provision_id": "0ae09586-3fbd-4f23-8272-5d8a2cf25fd6",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.93677699862747,
+        "success": true,
+        "provision_id": "1c2235ec-26cc-48a5-8a68-681c1a560bce",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.07077399879927,
+        "success": true,
+        "provision_id": "70f070bf-4909-4f0f-9710-5d9387068d4f",
+        "error": null
+      },
+      {
+        "elapsed_ms": 134.87751300272066,
+        "success": true,
+        "provision_id": "600012a2-20d1-400a-84ce-3679ffc962f7",
+        "error": null
+      },
+      {
+        "elapsed_ms": 118.6830070000724,
+        "success": true,
+        "provision_id": "5833a5bd-3644-474c-aaba-b826f886e1e2",
+        "error": null
+      },
+      {
+        "elapsed_ms": 136.24932999664452,
+        "success": true,
+        "provision_id": "9a467a41-f1c4-4707-841e-36d7084dd81d",
+        "error": null
+      },
+      {
+        "elapsed_ms": 135.90945900068618,
+        "success": true,
+        "provision_id": "29416b8c-41b2-4d00-88ed-29db444e898b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 120.7454739997047,
+        "success": true,
+        "provision_id": "d1087be9-b9d7-46d6-8d2d-a69374d8d18f",
+        "error": null
+      },
+      {
+        "elapsed_ms": 134.1544579991023,
+        "success": true,
+        "provision_id": "b779712b-fe85-40cd-8189-d3f194b62e9d",
+        "error": null
+      },
+      {
+        "elapsed_ms": 132.5818059995072,
+        "success": true,
+        "provision_id": "194c50fc-a396-4b27-9a9c-c47b83089211",
+        "error": null
+      },
+      {
+        "elapsed_ms": 141.85971500410233,
+        "success": true,
+        "provision_id": "5ee57569-3264-43d6-9ebc-21585d4aaedd",
+        "error": null
+      },
+      {
+        "elapsed_ms": 138.44681599584874,
+        "success": true,
+        "provision_id": "de1a148d-fea4-4d26-9545-2cbf9a515256",
+        "error": null
+      },
+      {
+        "elapsed_ms": 136.56710499344626,
+        "success": true,
+        "provision_id": "dae0fd0c-3bf4-4db2-b915-cf2545f9a853",
+        "error": null
+      },
+      {
+        "elapsed_ms": 140.36768200458027,
+        "success": true,
+        "provision_id": "8e09ba48-bf92-419b-9b55-fd0c99141c16",
+        "error": null
+      },
+      {
+        "elapsed_ms": 137.65245999820763,
+        "success": true,
+        "provision_id": "7ecc1421-b510-4489-b8e8-6728cabe1be8",
+        "error": null
+      },
+      {
+        "elapsed_ms": 137.53714300401043,
+        "success": true,
+        "provision_id": "b12f0082-8ebe-46d5-9fa5-39de85d38c99",
+        "error": null
+      },
+      {
+        "elapsed_ms": 140.71860299736727,
+        "success": true,
+        "provision_id": "a443fee6-a489-4387-b4e2-cfaf30f1bfca",
+        "error": null
+      },
+      {
+        "elapsed_ms": 115.82458499469794,
+        "success": true,
+        "provision_id": "1bdd5d67-4cd6-4a35-9702-648dbb780737",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.18487499514595,
+        "success": true,
+        "provision_id": "81208b40-90c0-46b2-9b52-4ef5d03d3397",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.80075499718077,
+        "success": true,
+        "provision_id": "68d6f213-62b5-4df7-bafc-c564ce0ad4f8",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.3838139984291,
+        "success": true,
+        "provision_id": "80aee405-d0dd-4c56-a3f2-c9f428f534f4",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.96882400446339,
+        "success": true,
+        "provision_id": "cb765d79-1755-4ef6-922e-625bd0420b9b",
+        "error": null
+      },
+      {
+        "elapsed_ms": 134.65886199992383,
+        "success": true,
+        "provision_id": "b30b9dad-68d7-4c18-a0ea-40ef0d77c3e0",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.20977499859873,
+        "success": true,
+        "provision_id": "7387fd9f-8e70-4e36-b37b-5a89c4c0ded6",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.6633069991949,
+        "success": true,
+        "provision_id": "99505bcf-d0e3-49b2-931f-28cc21a0f63e",
+        "error": null
+      },
+      {
+        "elapsed_ms": 99.75552799733123,
+        "success": true,
+        "provision_id": "f9213977-4771-42a9-9abd-a017a3eaf7c5",
+        "error": null
+      },
+      {
+        "elapsed_ms": 121.61768499936443,
+        "success": true,
+        "provision_id": "2ecc8ccd-a1a9-43a8-a175-341540e90223",
+        "error": null
+      },
+      {
+        "elapsed_ms": 106.67032699711854,
+        "success": true,
+        "provision_id": "5ea4d2ab-2a49-44c3-afd2-bfa9f62dac38",
+        "error": null
+      },
+      {
+        "elapsed_ms": 101.549453996995,
+        "success": true,
+        "provision_id": "96352d59-7457-4b14-bfb3-bdaf1f3e4675",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.7142229937017,
+        "success": true,
+        "provision_id": "d4951df3-5fa6-477e-90c2-2e79c37e5e26",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.94659200008027,
+        "success": true,
+        "provision_id": "1bce1e63-f8ed-4d46-81e9-a9dc08a6fa1d",
+        "error": null
+      },
+      {
+        "elapsed_ms": 100.87989299790934,
+        "success": true,
+        "provision_id": "9671356b-1da6-4e6b-8131-97d83cec7b3e",
+        "error": null
+      },
+      {
+        "elapsed_ms": 102.76483200141229,
+        "success": true,
+        "provision_id": "15854a6d-68c0-4e65-9a8c-4c753baecc64",
+        "error": null
+      },
+      {
+        "elapsed_ms": 134.6761399981915,
+        "success": true,
+        "provision_id": "1d4779fa-5361-4d12-87f1-b6b65e418fd6",
+        "error": null
+      }
+    ]
+  },
+  "distribution": {
+    "n": 100,
+    "min_ms": 97.44262399908621,
+    "mean_ms": 115.26798740953382,
+    "max_ms": 149.45462699688505
+  },
+  "comparison": {
+    "p50_ms": {
+      "before_ms": 3089.0643790007744,
+      "after_ms": 104.97349700017367,
+      "reduction_percent": 96.6017705000331
+    },
+    "p95_ms": {
+      "before_ms": 3350.9135200001765,
+      "after_ms": 140.71860299736727,
+      "reduction_percent": 95.80058983445923
+    }
+  },
+  "provision_audit": [
+    {
+      "provision_id": "3bea1eaf-03f3-4793-9b65-c381d62ac6ab",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "5398783e-5c49-4a52-8f86-566dca879149",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "99e47a15-d884-4f63-803d-aa652949fb22",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "320e5521-66ac-430b-b817-dc2bac9b074a",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "7f869c10-8866-45c2-8fcf-978aa98a3043",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "10003f2d-bd96-4b46-8257-e17612bada6d",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "ee2d76d9-e8da-43bb-bc46-96ee94621ddd",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "90c08777-647f-43eb-b14d-e71ace0020d6",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a4e71444-12a9-4ec7-aab4-212a7dd188a0",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "bc00dc10-d7e9-478f-9051-d41eb023d810",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a5b2cbdb-d6e4-47bc-b57a-dded8c2e7d3b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "d5adceb6-6ee0-4040-bae5-9d5d8c79b8f1",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "477dc08f-e029-4a06-8657-53ad8bbb19f0",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "fb034252-0f5e-4881-8654-b44d4845d2a5",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "76db7ce2-b9f9-401e-979f-d59f4b2b6387",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "352aa681-592f-4528-8953-45062f988fba",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "fe27ce51-2e13-436f-8926-cda5f350ff72",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "779f62ff-30cc-46b2-b620-e369cbecff0d",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "bf45640f-cb89-4b4f-8b8b-d066c77c0450",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "c18c440f-ee24-4640-98b8-664030a7de39",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a025431d-32f3-47bc-9ead-a210bcbc2cad",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "28445e15-a19f-43e0-a80a-6923a7af5f1b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "1120b04e-df8f-4c26-a061-c675ef3e4b2a",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "403da05d-b590-4efd-95f8-84bb08440d04",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "16a09a97-71ed-4974-95f7-67ef779c5802",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "5237dd0b-6979-49f3-ba9e-e2679ccbce04",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "e5a9242b-ca1a-478e-bfb3-6e6da3f75064",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "bc9c6dbd-8f1b-4326-ae55-d2a620e4b0e9",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "41ed0056-cbc6-47c9-8567-f4132e51a7b2",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "5ae60faa-7ef1-41b3-b3cc-ed7fb59616e5",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "d582db37-bb79-46f7-9cbf-e3f7887f2734",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "e2d8d8fe-04b9-47f3-88f9-a4d984defb05",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "d2721928-31ae-41e6-b41e-68f58059616b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "53daf48c-b21d-4cad-b1e2-35e31e7b5b0e",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "6da64e6b-071c-4cf6-b059-539580ca0da7",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "d40dc044-1836-4513-b18a-7eb265ccbca3",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a9fbb23c-e6ca-4f9a-a661-a02ebeacb78f",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "2b2d7ff0-9af5-471d-9a60-a5aceb03c2cc",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "901c259b-eb55-4024-acec-229d7d0f8870",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "0f0fbbed-8901-4b90-93fc-3e79d1c5b1b3",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "c44d0fc8-0b68-42e7-848f-d214cde624f2",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "c31868b3-72f9-43fb-86d9-c2a11d869e88",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "0584ecf2-976a-4042-a73f-830d61d72ff8",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "e536cef5-1eaf-4e8d-8b7b-faf02f59d58c",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "2c983d75-49b7-4a2e-b124-8ca14bfa8bf4",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "918d8b68-781e-4fe3-add2-8a51cf534a4a",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "1e57aeda-9ca6-4eef-8475-547e3daa5849",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a01a164b-9e94-48ad-a7cc-d423c5a53e6b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "e5d10638-42c7-48d5-afd7-3b9ccb737c4e",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "f3fd475c-f9fe-4f76-8607-d61a972de66b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "4d033650-544a-4d93-a14e-7e31256a0412",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "2f704de5-3e55-4bf6-aac6-4eb80cdf504e",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "1b97b464-da8c-4865-861c-2dbe8adb8411",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "7c867de3-363f-49aa-8f04-5dc5f586e571",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "2613a17a-4f57-41eb-9c18-56cbe9ec783b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "3053a0dd-db67-486a-8a58-24b7ee2ae803",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "8a717111-2f60-43ae-81c6-7b563d94ecfd",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a43857dd-bfdc-4da1-81e2-eb982601ccca",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "9cd7e058-80d7-4dc9-8847-f3f793d7c356",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "f64e4ecb-3045-4e1b-81be-fe4cf4bdaa39",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "32e6e7af-d468-41a5-a211-3c68c2793187",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "ee9c3d0b-2459-4488-b0b8-d2cd401006d4",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "2b92b32d-413e-458e-b98d-00cae36c7070",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "b7f5fca0-e557-4f9b-9f8c-8c7ed08a8db1",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "2f5f556c-b7c4-423f-8012-dae1dbbf218e",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "50289cb5-a415-42b4-91cf-859a9e2e2767",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "74a93298-fec3-4c00-9a87-9c394917e69f",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "8715d2dd-8463-4e75-935f-9761b0eb6b81",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a12780a5-ad2d-4115-838a-e44b058e1a57",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "9bcf34fc-678c-471e-8e8e-706c4a3dd306",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "77f94d1a-bf42-436d-b4b9-ba7d7b4ad0f6",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "0ae09586-3fbd-4f23-8272-5d8a2cf25fd6",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "1c2235ec-26cc-48a5-8a68-681c1a560bce",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "70f070bf-4909-4f0f-9710-5d9387068d4f",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "600012a2-20d1-400a-84ce-3679ffc962f7",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "5833a5bd-3644-474c-aaba-b826f886e1e2",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "9a467a41-f1c4-4707-841e-36d7084dd81d",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "29416b8c-41b2-4d00-88ed-29db444e898b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "d1087be9-b9d7-46d6-8d2d-a69374d8d18f",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "b779712b-fe85-40cd-8189-d3f194b62e9d",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "194c50fc-a396-4b27-9a9c-c47b83089211",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "5ee57569-3264-43d6-9ebc-21585d4aaedd",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "de1a148d-fea4-4d26-9545-2cbf9a515256",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "dae0fd0c-3bf4-4db2-b915-cf2545f9a853",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "8e09ba48-bf92-419b-9b55-fd0c99141c16",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "7ecc1421-b510-4489-b8e8-6728cabe1be8",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "b12f0082-8ebe-46d5-9fa5-39de85d38c99",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "a443fee6-a489-4387-b4e2-cfaf30f1bfca",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "1bdd5d67-4cd6-4a35-9702-648dbb780737",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "81208b40-90c0-46b2-9b52-4ef5d03d3397",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "68d6f213-62b5-4df7-bafc-c564ce0ad4f8",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "80aee405-d0dd-4c56-a3f2-c9f428f534f4",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "cb765d79-1755-4ef6-922e-625bd0420b9b",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "b30b9dad-68d7-4c18-a0ea-40ef0d77c3e0",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "7387fd9f-8e70-4e36-b37b-5a89c4c0ded6",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "99505bcf-d0e3-49b2-931f-28cc21a0f63e",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "f9213977-4771-42a9-9abd-a017a3eaf7c5",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "2ecc8ccd-a1a9-43a8-a175-341540e90223",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "5ea4d2ab-2a49-44c3-afd2-bfa9f62dac38",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "96352d59-7457-4b14-bfb3-bdaf1f3e4675",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "d4951df3-5fa6-477e-90c2-2e79c37e5e26",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "1bce1e63-f8ed-4d46-81e9-a9dc08a6fa1d",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "9671356b-1da6-4e6b-8131-97d83cec7b3e",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "15854a6d-68c0-4e65-9a8c-4c753baecc64",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    },
+    {
+      "provision_id": "1d4779fa-5361-4d12-87f1-b6b65e418fd6",
+      "memories": 5,
+      "scored_candidates": 100,
+      "reranked_candidates": 20
+    }
+  ],
+  "diagnostic": {
+    "db_image": "sha256:3c84c8a7dd1996b84faff720dc74942e63f6fa323a1a0ed8dbe834d98ed3c1c8",
+    "warm_up_count": 2,
+    "measured_count": 10,
+    "http_mean_ms": 99.97206769985496,
+    "http_server_mean_ms": 99.31265020059072,
+    "service_mean_ms": 95.00110569933895,
+    "mean_stages": {
+      "candidate.resolve": {
+        "count": 100,
+        "ms": 0.5174923157028388
+      },
+      "db.connect": {
+        "count": 1,
+        "ms": 3.6456091998843476
+      },
+      "http.embedding": {
+        "count": 1,
+        "ms": 3.712246800569119
+      },
+      "http.rerank": {
+        "count": 1,
+        "ms": 45.511076698312536
+      },
+      "http.tokenize": {
+        "count": 7,
+        "ms": 6.465944203227991
+      },
+      "identity.select": {
+        "count": 1,
+        "ms": 1.1399372000596486
+      },
+      "provision.save": {
+        "count": 1,
+        "ms": 11.450738299754448
+      },
+      "retriever.anchors": {
+        "count": 5,
+        "ms": 2.1970030014927033
+      },
+      "retriever.search": {
+        "count": 1,
+        "ms": 20.610850900266087
+      },
+      "sql.commit": {
+        "count": 6,
+        "ms": 0.6248843958019279
+      },
+      "sql.execute": {
+        "count": 21,
+        "ms": 12.995782997313654
+      }
+    },
+    "http": [
+      {
+        "index": 0,
+        "warmup": true,
+        "elapsed_ms": 397.5456649932312,
+        "status": 200
+      },
+      {
+        "index": 1,
+        "warmup": true,
+        "elapsed_ms": 95.99529299885035,
+        "status": 200
+      },
+      {
+        "index": 2,
+        "warmup": false,
+        "elapsed_ms": 97.88408799795434,
+        "status": 200
+      },
+      {
+        "index": 3,
+        "warmup": false,
+        "elapsed_ms": 111.9686069941963,
+        "status": 200
+      },
+      {
+        "index": 4,
+        "warmup": false,
+        "elapsed_ms": 99.48965700459667,
+        "status": 200
+      },
+      {
+        "index": 5,
+        "warmup": false,
+        "elapsed_ms": 98.43853799975477,
+        "status": 200
+      },
+      {
+        "index": 6,
+        "warmup": false,
+        "elapsed_ms": 100.78712399990764,
+        "status": 200
+      },
+      {
+        "index": 7,
+        "warmup": false,
+        "elapsed_ms": 97.58901900204364,
+        "status": 200
+      },
+      {
+        "index": 8,
+        "warmup": false,
+        "elapsed_ms": 98.05072400195058,
+        "status": 200
+      },
+      {
+        "index": 9,
+        "warmup": false,
+        "elapsed_ms": 98.8898319992586,
+        "status": 200
+      },
+      {
+        "index": 10,
+        "warmup": false,
+        "elapsed_ms": 98.42413599835709,
+        "status": 200
+      },
+      {
+        "index": 11,
+        "warmup": false,
+        "elapsed_ms": 98.19895200052997,
+        "status": 200
+      }
+    ],
+    "stages": [
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.7255180068314075
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 13.194293016567826
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.5724029906559736
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.2643739974009804
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 29.507269005989656
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 22.424193994083907
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.6249740326893516
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 314.1802540048957
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.404723015089985
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.24998399062315
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.48395000200253
+          }
+        },
+        "started_at_unix": 1792666511.0226414,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 390.6385219961521,
+        "http_server_total_ms": 395.9815880007227
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.5466930057737045
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.819566996768117
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.5858299919054843
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.0905739982263185
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.755263998755254
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.006017002742738
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.48798297211760655
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 43.587671003479045
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.109189987706486
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.2280790071818046
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.384682002244517
+          }
+        },
+        "started_at_unix": 1792666511.4196298,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 91.0633909952594,
+        "http_server_total_ms": 95.26765099872136
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.6236269952496514
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.91912700253306
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.5837659991811961
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.2077779974788427
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.572426998289302
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 19.910187998902984
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.48994500684784725
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.74067999783438
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.1394770125625655
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.155956011847593
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.254721001023427
+          }
+        },
+        "started_at_unix": 1792666511.515691,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 92.89196300233016,
+        "http_server_total_ms": 97.15461900486844
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.7607999984174967
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 13.339667981199455
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.648127002932597
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.075877997209318
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.732190001755953
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.727283001178876
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.4901020147372037
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.40684899984626
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 18.10967599885771
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.706169994780794
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.184196999238338
+          }
+        },
+        "started_at_unix": 1792666511.613592,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 106.81339100119658,
+        "http_server_total_ms": 111.27545099589042
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.5820970006170683
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.704476997896563
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.6230919971130788
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.1241940010222606
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.804519998084288
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.983223999792244
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.4787760117324069
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.99292499915464
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.391649989178404
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.146599996194709
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.149215999466833
+          }
+        },
+        "started_at_unix": 1792666511.7255256,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 94.60183899500407,
+        "http_server_total_ms": 98.82633100642124
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.5488049979903735
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.763191007252317
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.5917569942539558
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.161318003141787
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.572453002561815
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 21.079505000670906
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.5341440410120413
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.93185299745528
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 4.8136109980987385
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.0940620015608147
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.175319996254984
+          }
+        },
+        "started_at_unix": 1792666511.8250246,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 93.65965199685888,
+        "http_server_total_ms": 97.84747799858451
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.914870001608506
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 14.241865988878999
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.6503170006908476
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.196816003357526
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.7493240015464835
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.636786000977736
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.6222100128070451
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.703080999373924
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.230647009739187
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.253648010082543
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 12.68695999897318
+          }
+        },
+        "started_at_unix": 1792666511.923538,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 95.50783799932105,
+        "http_server_total_ms": 100.09813899523579
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.514967000228353
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.76103298732778
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.5978390036034398
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.1899300006916746
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.7390770012279972
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.830765999562573
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.49318802484776825
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 44.754928996553645
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 4.922867999994196
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.1630999981425703
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.312212998745963
+          }
+        },
+        "started_at_unix": 1792666512.0243173,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 92.77739100070903,
+        "http_server_total_ms": 96.96269100095378
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.6249859986128286
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.835865003580693
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.6667900015600026
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.183100997877773
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.7359859998105094
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.36252799734939
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.5062060008640401
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.18937799730338
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.042934004450217
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.0211129885865375
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.579181002161931
+          }
+        },
+        "started_at_unix": 1792666512.1219156,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 93.02713400393259,
+        "http_server_total_ms": 97.38291199755622
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.660045003925916
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.868725010775961
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.6656029872829095
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.034613000229001
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.723761001310777
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.457562000956386
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.5431360041256994
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.76799299684353
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.61341000138782
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.2692360071232542
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.181091002072208
+          }
+        },
+        "started_at_unix": 1792666512.2200382,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 93.96222699433565,
+        "http_server_total_ms": 98.26098100165837
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.5263899990241043
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.658770989219192
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.5973149818601087
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.0560369992163032
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.6516359978122637
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.679369001300074
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.5049080500612035
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 45.724643001449294
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.135903011250775
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.070820002700202
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.373699002433568
+          }
+        },
+        "started_at_unix": 1792666512.3189442,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 93.56466399913188,
+        "http_server_total_ms": 97.7727240024251
+      },
+      {
+        "stages": {
+          "db.connect": {
+            "count": 1,
+            "ms": 3.699505003169179
+          },
+          "sql.execute": {
+            "count": 21,
+            "ms": 12.86510700447252
+          },
+          "sql.commit": {
+            "count": 6,
+            "ms": 0.6242379895411432
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 1.169707000372
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.8410940032918006
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 20.4412980019697
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 0.5123079899931327
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 44.898435997311026
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.259266006760299
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 2.089325003908016
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 11.61078499717405
+          }
+        },
+        "started_at_unix": 1792666512.4174047,
+        "sql_categories": {
+          "SELECT": 16,
+          "Composed([SQL('SELECT": 1,
+          "INSERT": 1,
+          "SET": 1,
+          "SHOW": 1,
+          "INSERT provision_records": 1
+        },
+        "candidate_count": 100,
+        "rerank_documents": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ],
+        "tokenizer_input_lengths": [
+          172,
+          488,
+          806,
+          1124,
+          1442,
+          1760,
+          1760
+        ],
+        "snapshot_counts": {
+          "documents": 100,
+          "sources": 100
+        },
+        "success": true,
+        "returned_memories": 5,
+        "total_ms": 93.2049580005696,
+        "http_server_total_ms": 97.54517600231338
+      }
+    ],
+    "final_counts": "100|100|0",
+    "model_server_restarted_with_identical_image_and_args": true
+  },
+  "run_1000": {
+    "status": "NOT RUN",
+    "reason": "30-minute preparation budget exceeded; no warm-up or measured recall at 1000 records",
+    "stop": {
+      "stage": "1000 preparation",
+      "budget_seconds": 1800,
+      "stopped_at": "2026-10-22T10:53:11.111111+00:00"
+    },
+    "final_observation": {
+      "at": "2026-10-22T10:53:20.672347+00:00",
+      "counts_turns_documents_ready_provisions": "429|199|0|105",
+      "status": 0
+    }
+  },
+  "cleanup": {
+    "memory-core-perf-rerun-model": "removed",
+    "memory-core-perf-rerun-reranker": "removed",
+    "memory-core-perf-rerun-diag-api": "removed",
+    "memory-core-perf-rerun-20261022": {
+      "containers": [],
+      "networks": [],
+      "volumes": []
+    },
+    "memory-core-perf-rerun-diag-20261022": {
+      "containers": [],
+      "networks": [],
+      "volumes": []
+    },
+    "finished_at": "2026-10-22T10:55:14.624614+00:00"
+  },
+  "quality": {
+    "ruff_check": "PASS",
+    "ruff_format_check": "PASS (268 files)",
+    "mypy": "PASS (268 source files)",
+    "ut": "984 PASS",
+    "it1_first_attempt": "INTERRUPTED, exit 143; stopped after no progress",
+    "it1_retry": "910 PASS, exit 0, outside sandbox",
+    "postgres": "504 PASS",
+    "build_locked_install_import": "PASS"
+  },
+  "evidence_sha256": {
+    "attempt1-cleanup.json": "42a238f5638aa777bb8095b0809f60fa49509045a1552802c4dc383535ca046b",
+    "run.py": "0bc24867329caf353527f0da6dac87c75a2a8b745d767b7147731defa468e0cd",
+    "start.log": "3c5a5d06cc324cd12e72804de4d3ef7e747dcb586e86a258242cfc05a066a465",
+    "diagnostic-override.yml": "f565008fb400b0c0b3472f72542bed189c047866c388c4986201256cb7dba3bf",
+    "budget-stop.json": "2851a422655912daaf2a6208c115cff479471513500f9ded6693a0caaf3923e4",
+    "provision-audit.json": "e4e2dd0ff0fa4f59555a677ec33a0911a177c17bdcfd449b8c6596779323cfa8",
+    "memory-core-perf-rerun-20261022-cleanup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diag-seed.log": "08ffa1d634338f3029e0ee4f4f30f15ea6d704fa5eb05c2ae4cf3f2a238ef221",
+    "memory-core-perf-rerun-model.log": "960344354621b64dca76be5ef7d54380296f8be0d53c23f700c914d2122edf5e",
+    "diag-final-counts.txt": "0c7f02c803ac9ffbe505dc338b55d84c31c2d3297fe87ff478c5f2141345f08e",
+    "environment.json": "640dbe0299267fb681d41163235f96903e1876857092e63022ac8d7975ddfe2b",
+    "memory-core-perf-rerun-diag-api.log": "816402058ea529bde9765d167a0f22bc841e221898c432fc5b5b410501f3551d",
+    "diagnostic-launch.log": "94ad2a39dae875a63036b87308fbf8e8d95cd533daf8a48ad14c86fc1a5aecba",
+    "diag-http.log": "779b61df95baba59ac521a67210386c1c246a94741f24fe6731321dc49e181de",
+    "memory-core-perf-rerun-diag-20261022-cleanup.log": "436e8711b32104db97ac483d8bc721fab7a9f669ac9d9677d5fd59a57e724763",
+    "diagnostic-stages.jsonl": "e7f16e469c2712a97bb9968c728d3169636227a0d68a6a2a622772f675239438",
+    "attempt2-cleanup.json": "8d55dfaad08847acd0b4c3dcb2a1e4cc3c26a889b24363558a3f064346fcdf65",
+    "memory-core-perf-rerun-reranker.log": "cdbc1c6bf813f93d474da54e4f7366920aec3f8da45fa3fecb41e9d727704626",
+    "attempt1-diagnostic-launch.log": "f32a1557c451fe0aa6381fa69d6d756aeaaee803daa64ab8366dcc76f1ae4043",
+    "compose.log": "84ff50d2dd5b21ae589acbef06b2e64c3cd4946ce347603a4c898240dccc1ea7",
+    "main-cleanup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "manifest.json": "1bfe267bccfd2276ea5e107721facec8cb1fe7ab2d6eac47d95f3b808b1fc26c",
+    "tests.log": "316ce71a473edb2b06effc477baf15bcd8a302fa437cf2bdd29b81fb98a83b74",
+    "attempt2-diagnostic-launch.log": "00e8cb7c90a8cd02fe5fbdfde056805f2805adb505ad25bbd75da194f111d76e",
+    "diagnostic-requests.py": "04dd5fec76f22e750d5a1e424f02a88a463bb4db90f605337d0ead485a7e39fe",
+    "diagnostic-http.json": "1337509586010a413f05254dc3da89f34760e956c9a961a7fb62ab72680d7f0b",
+    "diagnostic-db-image.txt": "95d6833b1896c98f9f84497bc145888b0857c1ea1b40f79122431187771f7546",
+    "diagnostic-seed.py": "b17311457aa18fd3db6b64cf66bf20e708e8642eb8ee2d775644d777a3b2b562",
+    "diagnostic-wrapper.py": "908b205552070445ad019f5a57530e4a4fec1c864098aca38a0813894cc9ebeb",
+    "1000-preparation-start.txt": "77327e81059fca723192e95bc0e29beaf70b906e29e9b5619e5c9f5302c2aa75",
+    "config.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cleanup.json": "3e64df2db091ffecc5e8b4ab1323d11f0ca4a8cf0a52cd09aede73aa966c8e15",
+    "diagnostic-run.py": "1a04691f4c952578325a39d223c4abc3b2e269d20148d8554b36d1c80bbd7ef4",
+    "performance.json": "3780ed74c1f4204f914940800069423b88cb48f39ba88e47f15ab19facd826a7",
+    "prebuild.log": "d6b1a48f815728435323ac2532df4fddc155229ff644af1f40eb66a871da4a63",
+    "diag-start.log": "0e4d7213723b01a4a7013e4d920d701543a8dd8c4e85ec3d64bcfdadea7aa57c",
+    "override.yml": "d67fdc06264768c2d2ee73e9b703238917384e9880240cf6a44153e88c733fa7"
+  }
+}

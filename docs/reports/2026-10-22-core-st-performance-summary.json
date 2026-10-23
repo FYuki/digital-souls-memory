@@ -1,0 +1,1017 @@
+{
+  "schema_version": 1,
+  "issue": 14,
+  "revision": "68c8edb9f95c6ce4451cfe576399249f967cb8cb",
+  "result": "FAIL",
+  "required_p95_ms": 600,
+  "targets": {
+    "p95_ms": 300,
+    "p50_ms": 150
+  },
+  "conditions": {
+    "embedding": {
+      "model_alias": "bge-m3",
+      "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+      "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+      "dimensions": 1024,
+      "pooling": "cls",
+      "quantization": "Q8_0",
+      "query_prefix": "",
+      "passage_prefix": "",
+      "extension": "pg_bigm"
+    },
+    "reranker": {
+      "model_alias": "bge-reranker-v2-m3",
+      "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+      "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+      "quantization": "Q8_0"
+    },
+    "dimensions": 1024,
+    "candidate_limit": 200,
+    "rerank_limit": 20,
+    "result_limit": 5,
+    "token_limit": 1500,
+    "relevance_threshold": -2,
+    "input_text": "日本語",
+    "input_length": 3,
+    "repetitions": 100,
+    "warm_up": 5,
+    "concurrency": 1,
+    "aggregation": "nearest-rank",
+    "db_version": "PostgreSQL 18.6; vector 0.8.2; pg_bigm 1.2; PGroonga installed in image but extension unused",
+    "db_image": "sha256:8490caa743a009824333d154ca954e454ad2444731f074d380237cc19d64bdfa",
+    "client_image": "sha256:1820daf0a6c031489775ad79314c3a884068036524c439888acc3c0c7243559e"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+    "gpu_memory_mib": 16376,
+    "driver": "610.88",
+    "cpu": "Intel Core i7-14700K",
+    "logical_cpus": 28
+  },
+  "model_server": {
+    "image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+    "ctx_batch_ubatch": 2048,
+    "parallel": 1,
+    "gpu_layers": 99,
+    "threads": 8,
+    "threads_batch": 8,
+    "cache_ram": 0
+  },
+  "original_st": {
+    "started_at": "2026-10-22T07:17:34.407968+00:00",
+    "finished_at": null,
+    "runner_exit_status": 137,
+    "interrupted_during": "1000-record preparation; no measured recall was interrupted",
+    "data_count": 100,
+    "status": "FAIL",
+    "summary": {
+      "p50_ms": 3089.0643790007744,
+      "p95_ms": 3350.9135200001765,
+      "required_pass": false,
+      "p95_target_pass": false,
+      "p50_target_pass": false
+    },
+    "distribution": {
+      "n": 100,
+      "min_ms": 2795.820793002349,
+      "p50_ms": 3089.0643790007744,
+      "p95_ms": 3350.9135200001765,
+      "max_ms": 3456.464546998177,
+      "mean_ms": 3101.596792119999
+    },
+    "success_count": 100,
+    "warmup_success_count": 5,
+    "warmup_elapsed_ms": [
+      3253.900515999703,
+      3033.2606010015297,
+      3154.983860000357,
+      3008.0356479993497,
+      3000.9508790026302
+    ],
+    "elapsed_ms": [
+      3137.695719997282,
+      3239.1272919994663,
+      2996.240240998304,
+      3349.561167997308,
+      3136.1074409978755,
+      3183.854153001448,
+      3130.0551909989736,
+      3202.4382099989452,
+      3043.742457000917,
+      3170.2454689984734,
+      2795.820793002349,
+      3149.631362997752,
+      2872.459631998936,
+      3116.1861619984847,
+      2925.918353997986,
+      3241.5930120005214,
+      2926.0632270015776,
+      3160.099786000501,
+      3005.460275999212,
+      2991.377296002611,
+      3045.127836001484,
+      3456.464546998177,
+      3011.117217996798,
+      3236.4405799999076,
+      3187.400008999248,
+      3102.294375003112,
+      3313.9516599985654,
+      3170.3260960021,
+      3303.1966059970728,
+      2892.777802000637,
+      3083.380992000457,
+      3089.0643790007744,
+      3053.771049999341,
+      2976.070406002691,
+      3167.952278003213,
+      2901.736310999695,
+      3135.2860300030443,
+      3022.2964589993353,
+      3081.346256996767,
+      2960.421766001673,
+      3226.7228420023457,
+      3152.726606000215,
+      3384.6732189995237,
+      2964.3324319986277,
+      3391.7827920013224,
+      2993.269107002561,
+      3194.874015000096,
+      3047.2348440016503,
+      3055.2684139984194,
+      2997.2403860010672,
+      3183.31651599874,
+      2973.3900480023294,
+      3159.643402999791,
+      2930.760488001397,
+      3072.752414002025,
+      2847.56554300111,
+      3140.325700998801,
+      2924.884046002262,
+      3126.773203999619,
+      2900.984296000388,
+      3341.3862339984917,
+      2993.9264269996784,
+      3380.614797999442,
+      2954.845034997561,
+      3364.1741989995353,
+      3154.170311001508,
+      3030.095981001068,
+      3211.3716780004324,
+      3044.491098000435,
+      3037.9135780021898,
+      3066.6505909975967,
+      3130.7678740013216,
+      3063.204948997736,
+      3094.0901399990253,
+      2966.8810589973873,
+      3007.252127998072,
+      3067.2891790018184,
+      3134.2860650001967,
+      3105.2412380013266,
+      3150.6334240002616,
+      3188.1992150010774,
+      3305.9469909967447,
+      3128.0847469970468,
+      3350.9135200001765,
+      3175.9016059986607,
+      3187.9180039977655,
+      3027.5200930009305,
+      3317.7037140012544,
+      3222.305381001206,
+      2993.6731130001135,
+      3109.7929229981673,
+      2975.226245001977,
+      3030.47702099866,
+      2938.0908040002396,
+      2988.166416002059,
+      2982.6162470017152,
+      3037.4111400014954,
+      3044.959953000216,
+      3080.249246002495,
+      3142.6166309975088
+    ],
+    "provision_audit": {
+      "records": 105,
+      "scored_candidates_per_record": 100,
+      "reranked_candidates_per_record": 20,
+      "returned_memories_per_record": 5
+    }
+  },
+  "data_count_1000": {
+    "status": "NOT RUN",
+    "reason": "Manual stop during slow preparation, not a completed performance run",
+    "last_stop_observation": {
+      "turns": 256,
+      "documents": 128,
+      "ready": 0,
+      "pending": 128,
+      "provisions": 105
+    },
+    "budget_declared_seconds": 600,
+    "budget_observation_started_at": "2026-10-22T07:34:00.191579+00:00",
+    "budget_exhaustion_not_claimed": true,
+    "cleanup_finished_at": "2026-10-22T07:41:00.708132+00:00"
+  },
+  "diagnostic": {
+    "period_unix": [
+      1792655059.404189,
+      1792655083.4319193
+    ],
+    "purpose": "Cause isolation only; not a replacement ST acceptance run",
+    "setup": "100 HTTP source turns; direct synthetic derived-memory fixture matching EchoGateway content/subject/object/source shape; real IndexWorker.process publishing; no extraction/index background threads during requests; API lifespan off",
+    "warmup": 2,
+    "repetitions": 10,
+    "data_count": 100,
+    "ready": 100,
+    "pending": 0,
+    "candidate_count": 100,
+    "rerank_documents": 20,
+    "rerank_document_characters": {
+      "min": 3,
+      "max": 3
+    },
+    "tokenizer_calls": 7,
+    "tokenizer_input_characters": [
+      172,
+      488,
+      806,
+      1124,
+      1442,
+      1760,
+      1760
+    ],
+    "snapshot_documents": 100,
+    "snapshot_sources": 100,
+    "http_statuses": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "http_distribution": {
+      "n": 10,
+      "min_ms": 2547.994733999076,
+      "p50_ms": 2682.352160998562,
+      "p95_ms": 2775.7086679994245,
+      "max_ms": 2775.7086679994245,
+      "mean_ms": 2671.7983409995213
+    },
+    "service_distribution": {
+      "n": 10,
+      "min_ms": 2546.598693003034,
+      "p50_ms": 2680.9725130005972,
+      "p95_ms": 2774.255198000901,
+      "max_ms": 2774.255198000901,
+      "mean_ms": 2670.3302422007255
+    },
+    "stages_inclusive": {
+      "db.connect": {
+        "n": 10,
+        "min_ms": 1666.4287629973842,
+        "p50_ms": 1681.8410919840971,
+        "p95_ms": 1707.7492700300354,
+        "max_ms": 1707.7492700300354,
+        "mean_ms": 1689.0290470113541,
+        "calls_per_request": [
+          510
+        ]
+      },
+      "sql.execute": {
+        "n": 10,
+        "min_ms": 447.4621409717656,
+        "p50_ms": 456.48016603445285,
+        "p95_ms": 459.8330209773849,
+        "max_ms": 459.8330209773849,
+        "mean_ms": 454.6261119630799,
+        "calls_per_request": [
+          1318
+        ]
+      },
+      "sql.commit": {
+        "n": 10,
+        "min_ms": 58.2904530056112,
+        "p50_ms": 59.889883024879964,
+        "p95_ms": 62.37828099983744,
+        "max_ms": 62.37828099983744,
+        "mean_ms": 60.067714101751335,
+        "calls_per_request": [
+          510
+        ]
+      },
+      "identity.select": {
+        "n": 10,
+        "min_ms": 4.720078002719674,
+        "p50_ms": 4.926003999571549,
+        "p95_ms": 5.277846001263242,
+        "max_ms": 5.277846001263242,
+        "mean_ms": 4.919261200120673,
+        "calls_per_request": [
+          1
+        ]
+      },
+      "http.embedding": {
+        "n": 10,
+        "min_ms": 3.6195319989928976,
+        "p50_ms": 3.880405998643255,
+        "p95_ms": 15.792043002875289,
+        "max_ms": 15.792043002875289,
+        "mean_ms": 7.520085999931325,
+        "calls_per_request": [
+          1
+        ]
+      },
+      "retriever.search": {
+        "n": 10,
+        "min_ms": 81.05427999907988,
+        "p50_ms": 84.63397699961206,
+        "p95_ms": 87.2051559999818,
+        "max_ms": 87.2051559999818,
+        "mean_ms": 84.70339009945747,
+        "calls_per_request": [
+          1
+        ]
+      },
+      "evidence.material": {
+        "n": 10,
+        "min_ms": 2142.4173539708136,
+        "p50_ms": 2167.544778007141,
+        "p95_ms": 2200.8601979832747,
+        "max_ms": 2200.8601979832747,
+        "mean_ms": 2172.4955968940776,
+        "calls_per_request": [
+          100
+        ]
+      },
+      "candidate.resolve": {
+        "n": 10,
+        "min_ms": 2145.705711998744,
+        "p50_ms": 2170.874810017267,
+        "p95_ms": 2204.213601016818,
+        "max_ms": 2204.213601016818,
+        "mean_ms": 2175.8428815992374,
+        "calls_per_request": [
+          100
+        ]
+      },
+      "http.rerank": {
+        "n": 10,
+        "min_ms": 122.11634800041793,
+        "p50_ms": 270.39172099830466,
+        "p95_ms": 330.0700270010566,
+        "max_ms": 330.0700270010566,
+        "mean_ms": 259.223690500221,
+        "calls_per_request": [
+          1
+        ]
+      },
+      "http.tokenize": {
+        "n": 10,
+        "min_ms": 5.900300999201136,
+        "p50_ms": 6.433151989767794,
+        "p95_ms": 7.294852999621071,
+        "max_ms": 7.294852999621071,
+        "mean_ms": 6.536390197288711,
+        "calls_per_request": [
+          7
+        ]
+      },
+      "retriever.anchors": {
+        "n": 10,
+        "min_ms": 26.12838599816314,
+        "p50_ms": 26.93698800430866,
+        "p95_ms": 28.676149999228073,
+        "max_ms": 28.676149999228073,
+        "mean_ms": 27.128116099265753,
+        "calls_per_request": [
+          5
+        ]
+      },
+      "provision.save": {
+        "n": 10,
+        "min_ms": 90.65339600056177,
+        "p50_ms": 92.74620200085337,
+        "p95_ms": 95.98880200064741,
+        "max_ms": 95.98880200064741,
+        "mean_ms": 92.95870640016801,
+        "calls_per_request": [
+          1
+        ]
+      }
+    },
+    "stage_overlap_note": "candidate.resolve includes evidence.material. db.connect/sql.execute/sql.commit are nested across stages; do not add them to phase totals. SQL execute counts only Connection.execute, not named cursor operations.",
+    "samples": [
+      {
+        "service_ms": 2644.8295709997183,
+        "http_ms": 2646.341040999687,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1705.9713610251492
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 459.21081096093985
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 61.54850597886252
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 4.7636589988542255
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 5.813579002278857
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 86.66938599708374
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2200.8601979832747
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2204.213601016818
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 205.95529899946996
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 6.2271269962366205
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 26.30900399526581
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 93.63344599842094
+          }
+        }
+      },
+      {
+        "service_ms": 2546.598693003034,
+        "http_ms": 2547.994733999076,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1697.8753079783928
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 458.7469339094241
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 61.007482014247216
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 4.720078002719674
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.6195319989928976
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 87.2051559999818
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2191.203000002133
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2194.607498971891
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 122.11634800041793
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 6.085042998165591
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 26.162445999943884
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 90.65339600056177
+          }
+        }
+      },
+      {
+        "service_ms": 2624.5676370017463,
+        "http_ms": 2626.041231000272,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1666.4287629973842
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 449.81455493325484
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 59.05351602268638
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 5.015677001210861
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 5.74754999979632
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 81.05427999907988
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2142.4173539708136
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2145.705711998744
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 246.18411700066645
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 6.86079699153197
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 26.93698800430866
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 95.98880200064741
+          }
+        }
+      },
+      {
+        "service_ms": 2680.9725130005972,
+        "http_ms": 2682.352160998562,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1681.8410919840971
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 457.55499393999344
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 62.37828099983744
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 4.966360000253189
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.811950999079272
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 84.63397699961206
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2167.544778007141
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2170.874810017267
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 273.5226419972605
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 7.294852999621071
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 28.381997002725257
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 95.6849530011823
+          }
+        }
+      },
+      {
+        "service_ms": 2691.187140000693,
+        "http_ms": 2692.5535129994387,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1681.6331229820207
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 449.8278619394114
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 59.60201597918058
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 4.742033997899853
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 15.792043002875289
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 85.58610399995814
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2157.0377459902375
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2160.3898479843338
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 288.53901700131246
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 6.568668995896587
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 27.00801299579325
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 91.16768699823297
+          }
+        }
+      },
+      {
+        "service_ms": 2646.6761769988807,
+        "http_ms": 2648.079790000338,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1670.62961900956
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 447.4621409717656
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 58.45297093037516
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 4.809255999134621
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.65980800052057
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 81.37951000026078
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2147.526390985149
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2150.8925080161134
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 270.39172099830466
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 5.900300999201136
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 26.66480299740215
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 91.47717199812178
+          }
+        }
+      },
+      {
+        "service_ms": 2705.145021001954,
+        "http_ms": 2706.693042000552,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1674.5245730417082
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 450.32170892955037
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 58.2904530056112
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 5.021733999456046
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 13.5454170012963
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 85.72316299978411
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2150.843931991403
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2154.0600480002468
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 311.25387200154364
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 6.049764997442253
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 26.12838599816314
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 91.80487599951448
+          }
+        }
+      },
+      {
+        "service_ms": 2700.0700130010955,
+        "http_ms": 2701.5103669982636,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1704.341042051965
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 456.48016603445285
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 60.46489902291796
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 4.926003999571549
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.7291199987521395
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 83.89950700075133
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2190.124219021527
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2193.532270986907
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 274.9698460029322
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 6.804136006394401
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 27.964717002760153
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 92.96565800104872
+          }
+        }
+      },
+      {
+        "service_ms": 2774.255198000901,
+        "http_ms": 2775.7086679994245,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1707.7492700300354
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 459.8330209773849
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 59.889883024879964
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 4.949964000843465
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 15.601453997078352
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 86.7853269992338
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2193.2946359775087
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2196.708305997163
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 330.0700270010566
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 7.140058998629684
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 28.676149999228073
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 92.74620200085337
+          }
+        }
+      },
+      {
+        "service_ms": 2689.0004589986347,
+        "http_ms": 2690.7088629995997,
+        "stages": {
+          "db.connect": {
+            "count": 510,
+            "ms": 1699.2963190132286
+          },
+          "sql.execute": {
+            "count": 1318,
+            "ms": 457.0089270346216
+          },
+          "sql.commit": {
+            "count": 510,
+            "ms": 59.989134038914926
+          },
+          "identity.select": {
+            "count": 1,
+            "ms": 5.277846001263242
+          },
+          "http.embedding": {
+            "count": 1,
+            "ms": 3.880405998643255
+          },
+          "retriever.search": {
+            "count": 1,
+            "ms": 84.09749099882902
+          },
+          "evidence.material": {
+            "count": 100,
+            "ms": 2184.103715011588
+          },
+          "candidate.resolve": {
+            "count": 100,
+            "ms": 2187.444213002891
+          },
+          "http.rerank": {
+            "count": 1,
+            "ms": 269.23401599924546
+          },
+          "http.tokenize": {
+            "count": 7,
+            "ms": 6.433151989767794
+          },
+          "retriever.anchors": {
+            "count": 5,
+            "ms": 27.048656997067155
+          },
+          "provision.save": {
+            "count": 1,
+            "ms": 93.46487200309639
+          }
+        }
+      }
+    ]
+  },
+  "db_server_separate_probe": {
+    "logged_duration_count": 4632,
+    "sum_ms": 306.379,
+    "max_ms": 3.966,
+    "provision_insert_ms": [
+      0.061,
+      0.302,
+      0.353
+    ]
+  },
+  "cleanup": {
+    "inherited": {
+      "compose_cleanup": "PASS",
+      "server_cleanup": "PASS",
+      "remaining_resources": {
+        "containers": [],
+        "networks": [],
+        "volumes": []
+      },
+      "finished_at": "2026-10-22T07:41:00.708132+00:00"
+    },
+    "diagnostic": {
+      "finished_at": "2026-10-22T07:48:01.999079+00:00",
+      "containers_removed": [
+        "memory-core-perf-diagnostic-api",
+        "memory-core-perf-diagnostic-20261022-init-1",
+        "memory-core-perf-diagnostic-20261022-postgres-1",
+        "memory-core-perf-st-reranker",
+        "memory-core-perf-st-model"
+      ],
+      "resources_removed": {
+        "network": [
+          "memory-core-perf-diagnostic-20261022_default"
+        ],
+        "volume": []
+      },
+      "remaining_containers": [],
+      "remaining_networks": [],
+      "remaining_volumes": [],
+      "scope": "Only names starting memory-core-perf-; unrelated containers untouched"
+    }
+  },
+  "verification": {
+    "ruff_check": "PASS",
+    "ruff_format_check": "PASS: 264 files",
+    "product_code_changed": false,
+    "other_suites": "NOT RUN in this research-only change"
+  },
+  "limitations": [
+    "Original ST was not phase-instrumented; stage times are from a separate diagnostic fixture and cannot exactly partition original p50/p95.",
+    "No optimized implementation or post-fix acceptance run.",
+    "No 1000-record latency, cold-start, concurrency>1, long-text or real user data measurements."
+  ],
+  "evidence_sha256": {
+    "manifest.json": "520db01b23b6dbb6a61664d32fb406a9fc3ba01edc76ab0a3e5190077f144cf1",
+    "performance.json": "5e44f3cec0b2e9e0701122444aade535722f30d2f8cc11d68f6c0eae3b7b23fb",
+    "environment.json": "a2b49ce5bff363e845001ad576d67b9c65a6090b0ff209d18bca28d718743df3",
+    "audit.jsonl": "7b711fd4a08e813bec7d4b1da263c1bfc769de31ba4f9ec4bafe37d4272ca3bb",
+    "provision-records-audit.json": "e6bab11193a6755366f58751cea2a96894268ef883d605f854cc3f5f3034813c",
+    "diagnostic-stages.jsonl": "540fad7de3dbc930edd5eff8122aa91faa01bc45dd9142aab54a410c329ade56",
+    "diagnostic-http.json": "37f0a3e6c7bfbdfd14d469d3e78745f9c50b7b4c7065cdcfd6d9821c90190201",
+    "diagnostic-db-statements.log": "0501d32f02aa52cbbe46fb5e8a900d0ab9fdad258714bffa5209b93af0ef6d29",
+    "diagnostic-db-summary.json": "d5b8cfde64c226555d97b5b8c77d067e70336278314b9747bcd81fe0eadbcee8",
+    "diagnostic-cleanup.json": "1a0ed0b7dd6aa34261bdb791d00f35c4a8c8a2976fdd897d3096ad72d7ecc399"
+  }
+}

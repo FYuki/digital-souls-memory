@@ -97,10 +97,11 @@ bash tools/with-test-postgres.sh
 bash tools/with-test-postgres.sh uv run --no-sync pytest -m postgres -q
 ```
 
-スクリプトは `compose.yml` のタグ＋digest 固定イメージを使い、ネットワーク無効・公開ポートなし・
+スクリプトは `compose.retrieval-evaluation.yml` と固定依存の Dockerfile から作る比較イメージを使い、ネットワーク無効・公開ポートなし・
 DB 本体は tmpfs の新規コンテナへ、一時 Unix socket から接続します。
 終了時にコンテナと socket を削除し、開発 DB の volume は使いません。取得時のみネットワークが必要です。
-CI は同じイメージのサービスコンテナと runner の localhost を使います。
+CI も同じスクリプトで比較イメージをビルドし、使い捨てコンテナと Unix socket を使います。
+vector・pg_bigm・PGroonga の同居と、製品 migration・証拠台帳を同じ postgres suite で確認します。
 `MEMORY_TEST_DATABASE_URL` は **空の専用合成 DB** だけに指定してください。
 未設定なら試験は失敗し、通常実行用の `MEMORY_DATABASE_URL` にはフォールバックしません。
 空 DB → upgrade head → vector 拡張・距離演算 → 再 upgrade → downgrade base を確認します。

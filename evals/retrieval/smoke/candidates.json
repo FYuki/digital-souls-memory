@@ -1,0 +1,13 @@
+[
+  {
+    "id": "synthetic-e5-bigm",
+    "model_alias": "synthetic-e5",
+    "revision": "synthetic-v1",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "dimensions": 2,
+    "pooling": "mean",
+    "query_prefix": "query: ",
+    "passage_prefix": "passage: ",
+    "extension": "pg_bigm"
+  }
+]

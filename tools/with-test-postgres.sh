@@ -2,7 +2,8 @@
 # Synthetic disposable DB only; no published ports and no container networking.
 set -euo pipefail
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
-image=$(docker compose -f "$repo_root/compose.yml" config --no-interpolate --images)
+image=$(docker compose -f "$repo_root/compose.retrieval-evaluation.yml" config --no-interpolate --images)
+docker compose -f "$repo_root/compose.retrieval-evaluation.yml" build
 fixture_dir=$(mktemp -d /tmp/memory-pg.XXXXXXXX)
 container_name="memory-pg-${fixture_dir##*.}"
 cleanup() {
@@ -12,7 +13,7 @@ cleanup() {
 }
 trap cleanup EXIT
 mkdir -m 700 "$fixture_dir/socket"
-docker run --detach --name "$container_name" --network none --cpus 1 --memory 512m \
+docker run --detach --name "$container_name" --network none --cpus 1 --memory 1g \
   --user "$(id -u):$(id -g)" \
   --tmpfs "/var/lib/postgresql:uid=$(id -u),gid=$(id -g),mode=0700" \
   --mount "type=bind,source=$fixture_dir/socket,target=/var/run/postgresql" \

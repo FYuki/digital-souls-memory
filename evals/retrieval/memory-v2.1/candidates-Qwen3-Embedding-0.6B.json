@@ -1,0 +1,28 @@
+[
+  {
+    "id": "Qwen3-Embedding-0.6B-pg_bigm",
+    "model_alias": "Qwen3-Embedding-0.6B",
+    "extension": "pg_bigm",
+    "revision": "370f27d7550e0def9b39c1f16d3fbaa13aa67728",
+    "sha256": "06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+    "dimensions": 1024,
+    "pooling": "last",
+    "quantization": "Q8_0",
+    "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+    "passage_prefix": "",
+    "max_context_length": 32768
+  },
+  {
+    "id": "Qwen3-Embedding-0.6B-pgroonga",
+    "model_alias": "Qwen3-Embedding-0.6B",
+    "extension": "pgroonga",
+    "revision": "370f27d7550e0def9b39c1f16d3fbaa13aa67728",
+    "sha256": "06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+    "dimensions": 1024,
+    "pooling": "last",
+    "quantization": "Q8_0",
+    "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+    "passage_prefix": "",
+    "max_context_length": 32768
+  }
+]

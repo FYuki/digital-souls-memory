@@ -1,0 +1,559 @@
+[
+  {
+    "case_id": "synonym-warm-drink-ja",
+    "required_ids": [
+      "tea-preference"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-weekend-ja",
+    "required_ids": [
+      "weekend-cycle"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-herb",
+    "required_ids": [
+      "windowsill-mint"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-observatory",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "negated-coffee-preference",
+    "required_ids": [
+      "coffee-dislike"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "multisource-picnic",
+    "required_ids": [
+      "picnic-items"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "multisource-partial-revocation",
+    "required_ids": [
+      "remaining-food-only"
+    ],
+    "forbidden_ids": [
+      "old-combined"
+    ],
+    "safety_forbidden_ids": [
+      "old-combined"
+    ],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "deleted-source",
+    "required_ids": [
+      "deleted-source-visible"
+    ],
+    "forbidden_ids": [
+      "deleted-source-hidden"
+    ],
+    "safety_forbidden_ids": [
+      "deleted-source-hidden"
+    ],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "deleted-memory",
+    "required_ids": [
+      "current-notebook"
+    ],
+    "forbidden_ids": [
+      "removed-notebook"
+    ],
+    "safety_forbidden_ids": [
+      "removed-notebook"
+    ],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "binding-character",
+    "required_ids": [
+      "binding-character-own"
+    ],
+    "forbidden_ids": [
+      "binding-character-other"
+    ],
+    "safety_forbidden_ids": [
+      "binding-character-other"
+    ],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "long-text-explicit-detail",
+    "required_ids": [
+      "long-note-memory"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-02",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-03",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-04",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-05",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-06",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-07",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-08",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-09",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "synonym-10",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-02",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-03",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-04",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-05",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-06",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-07",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-08",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-09",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "paraphrase-10",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-02",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-03",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-04",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-05",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-06",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-07",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-08",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-09",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "cross-language-10",
+    "required_ids": [
+      "target"
+    ],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-02",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-03",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-04",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-05",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-06",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-07",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-08",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-09",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "unrelated-10",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "updated-morning-drink",
+    "required_ids": [
+      "morning-drink-fact"
+    ],
+    "forbidden_ids": [
+      "morning-drink-fact-superseded"
+    ],
+    "required_source_spans": [
+      {
+        "turn_id": "conversation-morning-update:1:0",
+        "text": "架空のアオは、今は朝にほうじ茶を飲んでいます。"
+      }
+    ],
+    "safety_forbidden_ids": [
+      "morning-drink-fact-superseded"
+    ],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "valid-fact-attachment",
+    "required_ids": [
+      "trip-episode",
+      "destination-fact"
+    ],
+    "forbidden_ids": [],
+    "required_source_spans": [
+      {
+        "turn_id": "episode-source:1:0",
+        "text": "架空のアオから旅の計画を聞きました。旅の計画を共有したいから、という理由も聞きました。"
+      },
+      {
+        "turn_id": "fact-source:1:0",
+        "text": "架空のアオの旅の目的地は架空の星町です。旅は2026年10月10日から12日までの予定です。"
+      }
+    ],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "stale-fact-link",
+    "required_ids": [
+      "destination-fact"
+    ],
+    "forbidden_ids": [
+      "destination-fact-superseded"
+    ],
+    "required_source_spans": [
+      {
+        "turn_id": "updated-fact-source:1:0",
+        "text": "架空のアオは旅の計画を変更し、架空の月町へ行きます。"
+      }
+    ],
+    "safety_forbidden_ids": [
+      "destination-fact-superseded"
+    ],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "revoked-fact-source",
+    "required_ids": [
+      "trip-episode"
+    ],
+    "forbidden_ids": [
+      "destination-fact"
+    ],
+    "required_source_spans": [
+      {
+        "turn_id": "episode-source:1:0",
+        "text": "架空のアオから旅の計画を聞きました。"
+      }
+    ],
+    "safety_forbidden_ids": [
+      "destination-fact"
+    ],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "direct-semantic",
+    "required_ids": [
+      "quiet-preference"
+    ],
+    "forbidden_ids": [],
+    "required_source_spans": [
+      {
+        "turn_id": "direct-source:1:0",
+        "text": "架空のアオは静かな場所で読書するのが好きです。"
+      }
+    ],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "derived-semantic",
+    "required_ids": [
+      "quiet-preference"
+    ],
+    "forbidden_ids": [],
+    "required_source_spans": [
+      {
+        "turn_id": "quiet-source-1:1:0",
+        "text": "架空のアオは静かな図書室で読書を楽しみました。"
+      },
+      {
+        "turn_id": "quiet-source-2:1:0",
+        "text": "架空のアオは静かな書斎で読書を楽しみました。"
+      }
+    ],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "equivalent-band-order",
+    "required_ids": [
+      "tie-a",
+      "tie-b",
+      "tie-c",
+      "tie-d",
+      "tie-null"
+    ],
+    "forbidden_ids": [],
+    "required_order": [
+      "tie-a",
+      "tie-b",
+      "tie-c",
+      "tie-d",
+      "tie-null"
+    ],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  },
+  {
+    "case_id": "below-threshold",
+    "required_ids": [],
+    "forbidden_ids": [],
+    "safety_forbidden_ids": [],
+    "quality_forbidden_ids": []
+  }
+]
