@@ -8,9 +8,11 @@ from psycopg import sql
 from psycopg.rows import DictRow, dict_row
 from psycopg.types.json import Jsonb
 
+from digital_souls_memory.adapters.recall_records import read_material
 from digital_souls_memory.identity.ports import ReviewResult
 from digital_souls_memory.voice.domain import VerbatimAnchor, VoiceExemplar, VoiceValidationError
 from digital_souls_memory.voice.ports import (
+    MaterialText,
     VoiceConflict,
     VoiceNotFound,
     VoiceTransaction,
@@ -22,6 +24,19 @@ class _VoiceTransaction:
     def __init__(self, connection: psycopg.Connection[DictRow], character_id: str) -> None:
         self.connection = connection
         self.character_id = character_id
+
+    def get_text(self, turn_id: str, materials: MaterialText) -> str | None:
+        self.connection.execute("SELECT pg_advisory_xact_lock(hashtextextended('recall-state',0))")
+        material = read_material(self.connection, turn_id)
+        if material is None:
+            return None
+        return materials.resolve(
+            self.character_id,
+            session=material.session,
+            turn=material.turn,
+            actor_is_character=material.actor_is_character,
+            receipts=material.receipt_state,
+        )
 
     def get_initial_check(self) -> ReviewResult | None:
         row = self.connection.execute(

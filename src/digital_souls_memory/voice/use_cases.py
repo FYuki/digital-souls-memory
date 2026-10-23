@@ -67,6 +67,12 @@ class VoiceService:
                 )
                 tx.save_initial_check(result)
             for value in values:
+                if value.turn_id is not None:
+                    text = tx.get_text(value.turn_id, self.materials)
+                    if text is None:
+                        raise VoiceNotFound()
+                    if value.text not in text:
+                        raise VoiceValidationError("Text is not in the available original range")
                 tx.add_exemplar(value)
         return result
 
@@ -75,6 +81,9 @@ class VoiceService:
         if text is None:
             raise VoiceNotFound()
         with self.store.transaction(value.character_id) as tx:
+            text = tx.get_text(value.turn_id, self.materials)
+            if text is None:
+                raise VoiceNotFound()
             tx.add_anchor(value)
         return value, text
 

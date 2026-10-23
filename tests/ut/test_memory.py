@@ -219,3 +219,24 @@ def test_cloud_input_rejects_local_material_type() -> None:
     )
     with pytest.raises(MemoryValidationError):
         CloudInput(character_id="char-b", turns=cast(tuple[PublicTurn, ...], (local,)))
+
+
+@pytest.mark.parametrize("relation_type", ["updates", "contradicts", "extends"])
+def test_temporal_effect_reconstructs_only_the_selected_change(relation_type: str) -> None:
+    from digital_souls_memory.memory.changes import apply_temporal_effect
+
+    old = memory()
+    source = replace(turn("turn-2"), occurred_at=OCCURRED + timedelta(hours=1))
+    candidate = replace(
+        old, id=NEW_ID, source_turn_ids=(source.turn_id,), valid_from=source.occurred_at
+    )
+    result = apply_temporal_effect(
+        old, candidate, relation_type=relation_type, source_turns=(turn(), source), at=RECORDED
+    )
+    assert result.content == old.content
+    assert result.valid_to == (candidate.valid_from if relation_type == "updates" else None)
+    assert result.superseded_at == (RECORDED if relation_type == "contradicts" else None)
+    assert result.last_reinforced_at == (source.occurred_at if relation_type == "extends" else None)
+    assert result.source_turn_ids == (
+        ("turn-1", "turn-2") if relation_type == "extends" else old.source_turn_ids
+    )

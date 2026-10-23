@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from digital_souls_memory.evidence.materials import material_decision
 from digital_souls_memory.governance.domain import DeletionSnapshot, MemoryCopy, MemoryReplacement
 from digital_souls_memory.governance.ports import RecalculationGateway
+from digital_souls_memory.memory.changes import apply_temporal_effect
 from digital_souls_memory.memory.domain import DerivedMemory, MemoryValidationError
 from digital_souls_memory.memory.evidence import independent_evidence_count
 from digital_souls_memory.memory.extraction import CloudInput, make_gateway_input
@@ -35,9 +36,13 @@ class MemoryRecalculator:
             return invalidated
         materials = []
         dependencies = []
+        effect_sources = {i for e in copy.temporal_effects for i in e.candidate.source_turn_ids}
         for material in snapshot.materials:
             turn = material.turn
-            if turn.turn_id not in old.source_turn_ids or turn.turn_id in targets:
+            if (
+                turn.turn_id not in (*old.source_turn_ids, *effect_sources)
+                or turn.turn_id in targets
+            ):
                 continue
             decision = material_decision(
                 character_id=old.character_id,
@@ -62,13 +67,14 @@ class MemoryRecalculator:
                     deadline=decision.deadline,
                 )
             )
-        if not materials:
+        originals = [(t, text) for t, text in materials if t.turn_id in old.source_turn_ids]
+        if not originals:
             return invalidated
         if self.gateway is None:
             raise MemoryUnavailable()
         value = make_gateway_input(
             character_id=old.character_id,
-            materials=tuple(materials),
+            materials=tuple(originals),
             non_sensitive_labels=self.non_sensitive_labels,
         )
         try:
@@ -89,26 +95,41 @@ class MemoryRecalculator:
         sources = {turn.turn_id: turn for turn, _ in materials}
         if (
             (output.id, output.character_id, output.kind) != (old.id, old.character_id, old.kind)
-            or not set(output.source_turn_ids) <= sources.keys()
+            or not set(output.source_turn_ids) <= {t.turn_id for t, _ in originals}
             or output.shared_with != old.shared_with
             or output.epistemics.source_type != old.epistemics.source_type
             or output.epistemics.trust_tier < old.epistemics.trust_tier
             or output.verbatim_turn_id != old.verbatim_turn_id
         ):
             raise MemoryValidationError("Recalculation changed protected attributes")
+        base = copy.temporal_base if copy.temporal_base is not None else old
+        result = replace(
+            output,
+            valid_to=base.valid_to,
+            superseded_at=base.superseded_at,
+            last_reinforced_at=base.last_reinforced_at,
+        )
+        for effect in copy.temporal_effects:
+            candidate = effect.candidate
+            if not set(candidate.source_turn_ids) <= sources.keys():
+                continue
+            result = apply_temporal_effect(
+                result,
+                candidate,
+                relation_type=effect.relation_type,
+                source_turns=tuple(sources.values()),
+                at=effect.applied_at,
+            )
         return MemoryReplacement(
             copy=copy,
             value=replace(
-                output,
-                valid_to=old.valid_to,
-                superseded_at=old.superseded_at,
-                last_reinforced_at=old.last_reinforced_at,
+                result,
                 epistemics=replace(
                     output.epistemics,
                     independent_evidence_count=independent_evidence_count(
-                        [sources[i] for i in output.source_turn_ids]
+                        [sources[i] for i in result.source_turn_ids]
                     ),
                 ),
             ),
-            dependencies=tuple(d for d in dependencies if d.turn_id in output.source_turn_ids),
+            dependencies=tuple(d for d in dependencies if d.turn_id in result.source_turn_ids),
         )

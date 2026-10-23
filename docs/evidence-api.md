@@ -107,6 +107,9 @@ Turn の入力例（合成データ）:
 欠落・null・不正型・非文字列要素・重複・空白のみを拒否します。
 `perceived_by` は Issue #7 の CoreIdentity または Temperament が登録された
 キャラ ID だけを受け付けます。未登録 ID はキャラとして扱わず、見た目で推測しません。
+0011以降、成功したTurn登録またはCoreIdentity・Temperament登録でactor種別を
+永続的に確定します。同じIDのTurn登録と人格の初回登録を直列化し、利用者actorを
+後からキャラへ変更する登録は拒否します。Turnを作者削除しても種別は維持します。
 登録キャラ actor は本人を `perceived_by` に含める必要があります。
 Identity 照会障害は503となり、利用者として処理しません。
 `addressees` は利用者 ID も受け付け、順序を保持します。

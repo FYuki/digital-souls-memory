@@ -60,10 +60,19 @@ class StoredReference:
 
 
 @dataclass(frozen=True, kw_only=True)
+class TemporalEffect:
+    candidate: DerivedMemory
+    relation_type: str
+    applied_at: datetime
+
+
+@dataclass(frozen=True, kw_only=True)
 class MemoryCopy:
     table: str
     memory: DerivedMemory
     origin_turn_id: str | None = None
+    temporal_base: DerivedMemory | None = None
+    temporal_effects: tuple[TemporalEffect, ...] = ()
 
     def __post_init__(self) -> None:
         if self.table not in (

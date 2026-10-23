@@ -46,3 +46,30 @@ def update_fact(
 
 def supersede(value: DerivedMemory, *, at: datetime) -> DerivedMemory:
     return replace(value, superseded_at=at)
+
+
+def apply_temporal_effect(
+    value: DerivedMemory,
+    candidate: DerivedMemory,
+    *,
+    relation_type: str,
+    source_turns: tuple[Turn, ...],
+    at: datetime,
+) -> DerivedMemory:
+    if relation_type == "updates":
+        return update_fact(value, candidate)[0]
+    if relation_type == "contradicts":
+        return supersede(value, at=at)
+    if relation_type != "extends":
+        raise MemoryValidationError("Invalid temporal effect")
+    for identifier in candidate.source_turn_ids:
+        source = next(t for t in source_turns if t.turn_id == identifier)
+        value = reinforce(
+            value,
+            source,
+            source_turns=tuple(
+                t for t in source_turns if t.turn_id in (*value.source_turn_ids, identifier)
+            ),
+            relation_type="extends",
+        )
+    return value

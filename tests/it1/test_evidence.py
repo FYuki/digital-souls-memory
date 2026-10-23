@@ -22,6 +22,39 @@ from tests.it1.evidence_fakes import FakeEvidenceStore, registered_identities
 pytestmark = pytest.mark.it1
 
 
+@pytest.mark.parametrize("number", ["1e309", "1E309", "-1e309", '"1e309"'])
+def test_receipt_rejects_noninteger_exponents_with_json_and_no_write(
+    client: TestClient, store: FakeEvidenceStore, number: str
+) -> None:
+    register_turn(client)
+    before = store.writes
+    raw = json.dumps(receipt_payload("partial", 0)).replace(
+        '"spoken_until": 0', f'"spoken_until": {number}'
+    )
+    with TestClient(client.app, raise_server_exceptions=False) as boundary:
+        response = boundary.post(
+            "/turns/turn-1/receipts", content=raw, headers={"Content-Type": "application/json"}
+        )
+    assert store.writes == before
+    assert response.status_code == 422
+    errors = response.json()["detail"]
+    assert isinstance(errors, list) and errors
+    assert any(error["loc"][-1] == "spoken_until" for error in errors)
+    assert all(isinstance(error["msg"], str) and isinstance(error["type"], str) for error in errors)
+    assert client.get("/turns/turn-1/receipts").json() == []
+
+
+def test_receipt_preserves_exponent_text_in_reporter(client: TestClient) -> None:
+    register_turn(client)
+    response = client.post(
+        "/turns/turn-1/receipts",
+        json=receipt_payload("none", 0) | {"reported_by": "1e309"},
+    )
+    assert response.status_code == 201
+    assert response.json()["reported_by"] == "1e309"
+    assert client.get("/turns/turn-1/receipts").json() == [response.json()]
+
+
 @pytest.fixture
 def store() -> FakeEvidenceStore:
     return FakeEvidenceStore()

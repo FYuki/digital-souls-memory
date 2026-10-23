@@ -136,6 +136,11 @@ class PostgresIdentityStore:
             connection.execute(
                 "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (character_id,)
             )
+            row = connection.execute(
+                "SELECT kind FROM actor_kinds WHERE actor_id=%s", (character_id,)
+            ).fetchone()
+            if row is not None and row["kind"] != "character":
+                raise IdentityConflict()
             yield _IdentityTransaction(connection, character_id, source)
 
     def get_core(self, character_id: str, version: int | None = None) -> CoreIdentity | None:

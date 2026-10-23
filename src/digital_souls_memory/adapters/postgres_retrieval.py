@@ -12,6 +12,7 @@ import psycopg
 from psycopg.rows import DictRow
 from psycopg.types.json import Jsonb
 
+from digital_souls_memory.adapters.embedding_cleanup import collect_embeddings
 from digital_souls_memory.adapters.memory_records import candidate_record, restore_memory
 from digital_souls_memory.adapters.postgres_connections import PostgresConnections
 from digital_souls_memory.adapters.postgres_memory import _MemoryTransaction
@@ -261,6 +262,11 @@ class PostgresRetrievalStore:
             current = self._load(connection, work, now)
             if current != input:
                 return False
+            previous = connection.execute(
+                "SELECT content_digest FROM recall_documents WHERE owner_id=%s AND kind=%s "
+                "AND identifier=%s",
+                _key(work.ref),
+            ).fetchone()
             candidate = input.candidate
             space = work.space
             if candidate.memory is not None:
@@ -312,6 +318,8 @@ class PostgresRetrievalStore:
                     "VALUES(%s,%s,%s,%s)",
                     (*_key(work.ref), stamp.turn_id),
                 )
+            if previous is not None and previous["content_digest"] is not None:
+                collect_embeddings(connection, [previous["content_digest"]])
             return True
 
     def retry(self, work: IndexWork, *, not_before: datetime) -> None:

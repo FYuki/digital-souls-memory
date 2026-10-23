@@ -79,45 +79,49 @@ class EvidenceService:
     ) -> Turn:
         if self._characters is None:
             raise EvidenceUnavailable()
-        actor_is_character = self._characters.is_character(actor)
-        mode = resolve_address_mode(
-            address_mode=address_mode, actor_is_character=actor_is_character, addressees=addressees
-        )
-        value = Turn(
-            turn_id=turn_id,
-            session_id=session_id,
-            surface=surface,
-            actor=actor,
-            kind=kind,
-            text=text,
-            perceived_by=perceived_by,
-            addressees=addressees,
-            address_mode=mode,
-            reply_to_turn_id=reply_to_turn_id,
-            language=language,
-            register=register,
-            sensitivity=sensitivity,
-            classifier_version=classifier_version,
-            occurred_at=occurred_at,
-            recorded_at=self._clock(),
-        )
-        if any(
-            not (
-                actor_is_character
-                if identifier == actor
-                else self._characters.is_character(identifier)
+        with self._store.turn_registration(actor, self._characters) as registration:
+            actor_is_character = registration.is_character(actor)
+            mode = resolve_address_mode(
+                address_mode=address_mode,
+                actor_is_character=actor_is_character,
+                addressees=addressees,
             )
-            for identifier in value.perceived_by
-        ):
-            raise EvidenceValidationError("Perception requires registered characters")
-        if actor_is_character and actor not in value.perceived_by:
-            raise EvidenceValidationError("Character actor must perceive its own turn")
-        if kind == "thought" and not actor_is_character:
-            raise EvidenceValidationError("Thought requires a registered character actor")
-        if reply_to_turn_id is not None and self._store.get_turn(reply_to_turn_id) is None:
-            raise EvidenceValidationError("Reply target does not exist")
-        self.get_session(session_id)
-        self._store.add_turn(value)
+            value = Turn(
+                turn_id=turn_id,
+                session_id=session_id,
+                surface=surface,
+                actor=actor,
+                kind=kind,
+                text=text,
+                perceived_by=perceived_by,
+                addressees=addressees,
+                address_mode=mode,
+                reply_to_turn_id=reply_to_turn_id,
+                language=language,
+                register=register,
+                sensitivity=sensitivity,
+                classifier_version=classifier_version,
+                occurred_at=occurred_at,
+                recorded_at=self._clock(),
+            )
+            if any(
+                not (
+                    actor_is_character
+                    if identifier == actor
+                    else registration.is_character(identifier)
+                )
+                for identifier in value.perceived_by
+            ):
+                raise EvidenceValidationError("Perception requires registered characters")
+            if actor_is_character and actor not in value.perceived_by:
+                raise EvidenceValidationError("Character actor must perceive its own turn")
+            if kind == "thought" and not actor_is_character:
+                raise EvidenceValidationError("Thought requires a registered character actor")
+            if reply_to_turn_id is not None and registration.get_turn(reply_to_turn_id) is None:
+                raise EvidenceValidationError("Reply target does not exist")
+            if registration.get_session(session_id) is None:
+                raise EvidenceNotFound()
+            registration.add_turn(value)
         return value
 
     def get_turn(self, turn_id: str) -> Turn:
