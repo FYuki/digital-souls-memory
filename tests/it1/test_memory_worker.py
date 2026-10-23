@@ -78,6 +78,84 @@ def setup_worker() -> tuple[Harness, FakeMemoryStore, MemoryService, MemoryWorke
     return h, store, service, MemoryWorker(service, h.extractor)
 
 
+@pytest.mark.parametrize("phase", ["start", "complete"])
+@pytest.mark.parametrize("relation", [None, "derives"])
+def test_new_turn_does_not_rewrite_unchanged_memories(
+    monkeypatch: pytest.MonkeyPatch, phase: str, relation: str | None
+) -> None:
+    from digital_souls_memory.memory.domain import MemoryRelation
+    from digital_souls_memory.memory.extraction import LocalOnly
+    from digital_souls_memory.memory.inputs import ResolvedInput
+    from tests.evidence_support import turn
+    from tests.memory_fakes import FakeMemoryTransaction
+    from tests.memory_support import NEW_ID, OLD_ID
+
+    h, store, service, worker = setup_worker()
+    h.evidence.add_turn(turn(actor="user-a"))
+    h.gateway.output = (memory(),)
+    worker.process("char-b", "turn-1")
+    before = store.get_memory("char-b", OLD_ID)
+    assert before is not None
+    h.evidence.add_turn(turn(turn_id="turn-2", actor="user-a"))
+    candidate = replace(memory(), id=NEW_ID, source_turn_ids=("turn-2",), object="tea")
+    h.gateway.output = ExtractionProposal(
+        memories=(candidate,),
+        relations=()
+        if relation is None
+        else (MemoryRelation(from_id=NEW_ID, to_id=OLD_ID, type=relation),),
+    )
+    writes: dict[str, list[str]] = {"start": [], "complete": []}
+    resolved_turns: dict[str, list[str]] = {"start": [], "complete": []}
+    current_phase = "start"
+    replace_projection = FakeMemoryTransaction.replace_projection
+    extract = h.gateway.extract_local
+    resolve = service.inputs.resolve
+
+    def observe_resolve(character: str, identifiers: tuple[str, ...]) -> ResolvedInput:
+        resolved_turns[current_phase].extend(identifiers)
+        return resolve(character, identifiers)
+
+    def observe(tx: FakeMemoryTransaction, value: DerivedMemory) -> None:
+        writes[current_phase].append(value.id)
+        replace_projection(tx, value)
+
+    def extract_and_advance(value: LocalOnly) -> tuple[DerivedMemory, ...] | ExtractionProposal:
+        nonlocal current_phase
+        current_phase = "complete"
+        return extract(value)
+
+    monkeypatch.setattr(FakeMemoryTransaction, "replace_projection", observe)
+    monkeypatch.setattr(h.gateway, "extract_local", extract_and_advance)
+    monkeypatch.setattr(service.inputs, "resolve", observe_resolve)
+    worker.process("char-b", "turn-2")
+    state = store.get_extraction("char-b", "turn-2")
+    assert state is not None and state.status == "done"
+    assert store.get_memory("char-b", NEW_ID) == candidate
+    assert store.get_memory("char-b", OLD_ID) == before
+    assert OLD_ID not in writes[phase], writes
+    assert "turn-1" not in resolved_turns[phase], resolved_turns
+
+
+def test_unrelated_turn_preserves_superseded_history_time() -> None:
+    from tests.evidence_support import turn
+    from tests.memory_support import NEW_ID
+
+    h, store, _, worker = setup_worker()
+    for identifier, memory_id in (("turn-1", memory().id), ("turn-2", NEW_ID)):
+        h.evidence.add_turn(turn(turn_id=identifier, actor="user-a"))
+        h.gateway.output = (replace(memory(), id=memory_id, source_turn_ids=(identifier,)),)
+        worker.process("char-b", identifier)
+    history = store.get_memory("char-b", NEW_ID)
+    assert history is not None and history.superseded_at is not None
+    h.now += timedelta(seconds=1)
+    h.evidence.add_turn(turn(turn_id="turn-3", actor="user-a"))
+    h.gateway.output = (
+        replace(memory(), id="unrelated-memory", source_turn_ids=("turn-3",), object="tea"),
+    )
+    worker.process("char-b", "turn-3")
+    assert store.get_memory("char-b", NEW_ID) == history
+
+
 def test_background_scan_bounds_pages_and_outstanding_surfaces(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

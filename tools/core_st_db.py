@@ -44,7 +44,7 @@ def initialize() -> None:
         assert conn.execute(
             "SELECT pg_has_role('memory_st_app','memory_deletion_executor','MEMBER')"
         ).fetchone() == (False,)
-        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0009",)
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0010",)
 
 
 if __name__ == "__main__":

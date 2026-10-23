@@ -113,6 +113,8 @@ class FakeMemoryStore:
         self.originals: dict[tuple[str, str], DerivedMemory] = {}
         self.proposed: dict[tuple[str, str], tuple[MemoryRelation, ...]] = {}
         self.dependencies: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
+        self.history: dict[tuple[str, str], MemoryContribution] = {}
+        self.withdrawn: set[tuple[str, str]] = set()
 
     @contextmanager
     def transaction(self, character_id: str) -> Iterator[MemoryTransaction]:
@@ -126,6 +128,8 @@ class FakeMemoryStore:
                 dict(self.originals),
                 dict(self.proposed),
                 dict(self.dependencies),
+                dict(self.history),
+                set(self.withdrawn),
             )
             try:
                 yield FakeMemoryTransaction(self, character_id)
@@ -142,6 +146,8 @@ class FakeMemoryStore:
                     self.originals,
                     self.proposed,
                     self.dependencies,
+                    self.history,
+                    self.withdrawn,
                 ) = snapshot
                 raise
 
@@ -208,6 +214,53 @@ class FakeMemoryTransaction:
         self.store = store
         self.character = character
 
+    def contribution_ids(self, turn_id: str) -> frozenset[str]:
+        return frozenset(
+            identifier
+            for (owner, identifier), value in self.store.history.items()
+            if owner == self.character and value.turn_id == turn_id
+        )
+
+    def projection_neighbors(self, identifiers: frozenset[str]) -> frozenset[str]:
+        values = [
+            v.memory for (owner, _), v in self.store.history.items() if owner == self.character
+        ]
+        values.extend(self.baselines())
+        facts = {
+            (v.subject, v.predicate, v.object)
+            for v in values
+            if v.id in identifiers and v.kind == "fact"
+        }
+        neighbors = {
+            v.id for v in values if v.kind == "fact" and (v.subject, v.predicate, v.object) in facts
+        }
+        relations = [r for owner, r in self.store.relations if owner == self.character]
+        relations.extend(
+            r
+            for (owner, _), items in self.store.proposed.items()
+            if owner == self.character
+            for r in items
+        )
+        for relation in relations:
+            if relation.from_id in identifiers and (
+                relation.type != "derives"
+                or (
+                    (self.character, relation.to_id) in self.store.values
+                    and (self.character, relation.to_id) in self.store.withdrawn
+                )
+            ):
+                neighbors.add(relation.to_id)
+            if relation.to_id in identifiers:
+                neighbors.add(relation.from_id)
+        return frozenset(neighbors)
+
+    def withdrawn_ids(self, identifiers: frozenset[str]) -> frozenset[str]:
+        return frozenset(
+            identifier
+            for owner, identifier in self.store.withdrawn
+            if owner == self.character and identifier in identifiers
+        )
+
     def add_memory(self, value: DerivedMemory) -> None:
         self._insert(value)
         self.store.originals[(self.character, value.id)] = value
@@ -223,19 +276,27 @@ class FakeMemoryTransaction:
 
     def replace_projection(self, value: DerivedMemory) -> None:
         self.store.values[(self.character, value.id)] = value
+        self.store.withdrawn.discard((self.character, value.id))
 
     def add_generated(self, value: DerivedMemory) -> None:
         self._insert(value)
 
-    def baselines(self) -> tuple[DerivedMemory, ...]:
-        return tuple(v for (owner, _), v in self.store.originals.items() if owner == self.character)
+    def baselines(self, identifiers: frozenset[str] | None = None) -> tuple[DerivedMemory, ...]:
+        return tuple(
+            v
+            for (owner, identifier), v in self.store.originals.items()
+            if owner == self.character and (identifiers is None or identifier in identifiers)
+        )
 
-    def proposed_relations(self) -> tuple[MemoryRelation, ...]:
+    def proposed_relations(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryRelation, ...]:
         return tuple(
             r
             for (owner, turn), items in self.store.proposed.items()
             if owner == self.character and self.store.states[(owner, turn)].status == "done"
             for r in items
+            if identifiers is None or r.from_id in identifiers
         )
 
     def set_relations(self, turn_id: str, values: tuple[MemoryRelation, ...]) -> None:
@@ -244,22 +305,30 @@ class FakeMemoryTransaction:
     def add_relation(self, value: MemoryRelation) -> None:
         self.store.relations.append((self.character, value))
 
-    def memories(self) -> tuple[DerivedMemory, ...]:
-        return tuple(v for (owner, _), v in self.store.values.items() if owner == self.character)
+    def memories(self, identifiers: frozenset[str] | None = None) -> tuple[DerivedMemory, ...]:
+        return tuple(
+            v
+            for (owner, identifier), v in self.store.values.items()
+            if owner == self.character and (identifiers is None or identifier in identifiers)
+        )
 
-    def candidates(self) -> tuple[MemoryContribution, ...]:
+    def candidates(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryContribution, ...]:
         values = [
             MemoryContribution(turn, v)
             for (owner, turn), items in self.store.proposals.items()
             if owner == self.character and self.store.states[(owner, turn)].status == "done"
             for v in items
+            if identifiers is None or v.id in identifiers
         ]
         return tuple(
             sorted(values, key=lambda v: (v.memory.valid_from, v.memory.recorded_at, v.memory.id))
         )
 
-    def generated_ids(self) -> frozenset[str]:
-        return frozenset(self.store.generated.get(self.character, set()))
+    def generated_ids(self, identifiers: frozenset[str] | None = None) -> frozenset[str]:
+        values = frozenset(self.store.generated.get(self.character, set()))
+        return values if identifiers is None else values & identifiers
 
     def set_candidates(
         self,
@@ -271,13 +340,20 @@ class FakeMemoryTransaction:
         self.store.dependencies[(self.character, turn_id)] = dependencies
         self.store.proposals[(self.character, turn_id)] = values
         self.store.generated.setdefault(self.character, set()).update(v.id for v in values)
+        for value in values:
+            self.store.history[(self.character, value.id)] = MemoryContribution(turn_id, value)
 
-    def clear_projection_relations(self) -> None:
+    def sync_projection_relations(
+        self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
+    ) -> None:
         self.store.relations = [
             (owner, r)
             for owner, r in self.store.relations
-            if owner != self.character or r.from_id not in self.generated_ids()
+            if owner != self.character or r.from_id not in identifiers or r in values
         ]
+        for value in values:
+            if (self.character, value) not in self.store.relations:
+                self.add_relation(value)
 
     def get_extraction(self, turn_id: str) -> ExtractionState | None:
         return self.store.states.get((self.character, turn_id))
