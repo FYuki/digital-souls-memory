@@ -13,6 +13,7 @@ from digital_souls_memory.evidence.materials import ReceiptState, material_decis
 from digital_souls_memory.evidence.provision import (
     CandidateRef,
     CandidateScore,
+    ProvidedReference,
     ProvisionRecord,
     ResidentCandidateRef,
     ResidentCandidateScore,
@@ -56,8 +57,7 @@ def read_materials(
         return {}
     rows = connection.execute(
         "SELECT t.*,row_to_json(s) AS session, "
-        "(EXISTS(SELECT 1 FROM core_identities c WHERE c.character_id=t.actor) OR "
-        "EXISTS(SELECT 1 FROM temperaments c WHERE c.character_id=t.actor)) AS registered, "
+        "evidence_is_character(t.actor) AS registered, "
         "r.count,r.spoken_until FROM turns t JOIN sessions s USING(session_id) "
         "CROSS JOIN LATERAL (SELECT count(*) AS count, "
         "(SELECT spoken_until FROM delivery_receipts WHERE turn_id=t.turn_id "
@@ -150,6 +150,7 @@ def restore_provision(payload: DictRow) -> ProvisionRecord:
             payload
             | {
                 "scores": scores,
+                "provided_refs": tuple(ProvidedReference(**v) for v in payload["provided_refs"]),
                 "source_spans": tuple(SourceSpan(**v) for v in payload["source_spans"]),
                 "memory_ids": tuple(payload["memory_ids"]),
                 "verbatim_anchor_ids": tuple(payload["verbatim_anchor_ids"]),

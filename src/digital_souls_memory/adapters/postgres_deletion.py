@@ -4,7 +4,7 @@ import hashlib
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime, timedelta
 from uuid import uuid4
 
@@ -13,6 +13,7 @@ from psycopg import sql
 from psycopg.rows import DictRow, dict_row
 from psycopg.types.json import Jsonb
 
+from digital_souls_memory.adapters.embedding_cleanup import collect_embeddings
 from digital_souls_memory.adapters.memory_records import restore_memory
 from digital_souls_memory.adapters.postgres_memory import (
     COPY_SOURCE_TABLES,
@@ -33,7 +34,9 @@ from digital_souls_memory.governance.domain import (
     MemoryRef,
     MemoryReplacement,
     StoredReference,
+    TemporalEffect,
 )
+from digital_souls_memory.memory.domain import MemoryValidationError
 from digital_souls_memory.memory.ports import MemoryConflict, MemoryUnavailable
 
 
@@ -195,8 +198,79 @@ class PostgresDeletionStore:
                         origin_turn_id=row["turn_id"] if table != "memory_baselines" else None,
                     )
                 )
+        prepared = []
+        for copy in copies:
+            if copy.table != "derived_memories":
+                prepared.append(copy)
+                continue
+            owner, identifier = copy.memory.character_id, copy.memory.id
+            baseline = connection.execute(
+                "SELECT payload,temporal_origin FROM memory_baselines "
+                "WHERE character_id=%s AND memory_id=%s",
+                (owner, identifier),
+            ).fetchone()
+            if baseline is not None:
+                base = restore_memory(
+                    baseline["payload"] | baseline["temporal_origin"],
+                    copy_sources(connection, "memory_baselines", owner, identifier),
+                )
+            else:
+                raw = connection.execute(
+                    "SELECT g.payload,EXISTS(SELECT 1 FROM memory_relations r "
+                    "WHERE r.character_id=g.character_id AND r.from_id=g.memory_id "
+                    "AND r.type='extends') AS reinforcement_history "
+                    "FROM memory_generated g WHERE g.character_id=%s AND g.memory_id=%s",
+                    (owner, identifier),
+                ).fetchone()
+                if raw is None:
+                    raise MemoryValidationError("Missing temporal baseline")
+                base = restore_memory(
+                    raw["payload"], copy_sources(connection, "memory_generated", owner, identifier)
+                )
+                if raw["reinforcement_history"]:
+                    base = replace(base, superseded_at=copy.memory.superseded_at)
+            effects = []
+            for row in connection.execute(
+                "SELECT c.memory_id,c.payload,r.type FROM memory_candidates c "
+                "JOIN memory_relations r ON r.character_id=c.character_id "
+                "AND r.from_id=c.memory_id WHERE r.character_id=%s AND r.to_id=%s "
+                "AND r.type IN ('updates','contradicts','extends') "
+                "AND NOT c.turn_id=ANY(%s) AND NOT EXISTS(SELECT 1 "
+                "FROM memory_input_dependencies d WHERE d.character_id=c.character_id "
+                "AND d.extraction_turn_id=c.turn_id AND d.turn_id=ANY(%s)) "
+                "ORDER BY c.payload->>'valid_from', c.memory_id",
+                (owner, identifier, list(targets), list(targets)),
+            ).fetchall():
+                candidate = restore_memory(
+                    row["payload"],
+                    copy_sources(connection, "memory_candidates", owner, row["memory_id"]),
+                )
+                if set(candidate.source_turn_ids).intersection(targets):
+                    continue
+                applied_at = copy.memory.superseded_at if row["type"] == "contradicts" else now
+                if applied_at is None:
+                    raise MemoryValidationError("Missing contradiction application time")
+                effects.append(
+                    TemporalEffect(
+                        candidate=candidate,
+                        relation_type=row["type"],
+                        applied_at=applied_at,
+                    )
+                )
+            prepared.append(replace(copy, temporal_base=base, temporal_effects=tuple(effects)))
+        copies = prepared
         copies.sort(key=lambda c: (c.table, c.memory.character_id, c.memory.id))
-        identifiers = sorted({i for c in copies for i in c.memory.source_turn_ids} - set(targets))
+        identifiers = sorted(
+            {
+                i
+                for c in copies
+                for i in (
+                    *c.memory.source_turn_ids,
+                    *(i for e in c.temporal_effects for i in e.candidate.source_turn_ids),
+                )
+            }
+            - set(targets)
+        )
         materials = tuple(m for i in identifiers if (m := read_material(connection, i)) is not None)
         # Include all durable inputs to the direct cascade; only their digest leaves this read.
         digest = hashlib.sha256()
@@ -287,7 +361,9 @@ class PostgresDeletionStore:
                 or attempt.snapshot.target_turn_ids != attempt.request.target_turn_ids
             ):
                 raise MemoryConflict()
-            snapshot = self._snapshot(connection, attempt.request.target_turn_ids, now)
+            snapshot = self._snapshot(
+                connection, attempt.request.target_turn_ids, attempt.snapshot.observed_at
+            )
             if snapshot.fingerprint != attempt.snapshot.fingerprint:
                 raise MemoryConflict()
             if tuple(r.copy for r in replacements) != snapshot.copies:
@@ -313,6 +389,22 @@ class PostgresDeletionStore:
                     continue
                 if table == "derived_memories":
                     _MemoryTransaction(connection, old.character_id).replace_memory(value)
+                    base = replacement.copy.temporal_base
+                    if base is not None:
+                        origin = copy_payload(base)
+                        connection.execute(
+                            "UPDATE memory_baselines SET temporal_origin=%s "
+                            "WHERE character_id=%s AND memory_id=%s",
+                            (
+                                Jsonb(
+                                    {
+                                        k: origin[k]
+                                        for k in ("valid_to", "superseded_at", "last_reinforced_at")
+                                    }
+                                ),
+                                *key,
+                            ),
+                        )
                     recalculated.add(key)
                     connection.execute(
                         "DELETE FROM memory_baseline_dependencies "
@@ -446,19 +538,18 @@ class PostgresDeletionStore:
             "SELECT character_id,exemplar_id FROM voice_exemplars WHERE turn_id=ANY(%s)",
             (identifiers,),
         ).fetchall()
-        anchor_ids = {r["anchor_id"] for r in anchors}
-        voice_ids = {r["exemplar_id"] for r in voices}
+        anchor_ids = {(r["character_id"], r["anchor_id"]) for r in anchors}
+        voice_ids = {(r["character_id"], r["exemplar_id"]) for r in voices}
         for anchor in anchors:
             key = (anchor["character_id"], "anchor", anchor["anchor_id"])
-            connection.execute(
-                "DELETE FROM recall_embeddings WHERE content_digest IN "
-                "(SELECT content_digest FROM recall_documents WHERE owner_id=%s "
-                "AND kind=%s AND identifier=%s)",
+            documents = connection.execute(
+                "DELETE FROM recall_documents WHERE owner_id=%s AND kind=%s AND identifier=%s "
+                "RETURNING content_digest",
                 key,
-            )
-            connection.execute(
-                "DELETE FROM recall_documents WHERE owner_id=%s AND kind=%s AND identifier=%s",
-                key,
+            ).fetchall()
+            collect_embeddings(
+                connection,
+                [d["content_digest"] for d in documents if d["content_digest"] is not None],
             )
             removed.append(
                 StoredReference(
@@ -469,16 +560,23 @@ class PostgresDeletionStore:
             StoredReference(table="voice_exemplars", key=(v["character_id"], v["exemplar_id"]))
             for v in voices
         )
-        memory_ids = {m for _, m in affected}
         provision_ids = []
         for row in connection.execute("SELECT * FROM provision_records").fetchall():
             p = row["payload"]
             if (
                 p["turn_id"] in targets
                 or any(s["turn_id"] in targets for s in p["source_spans"])
-                or memory_ids.intersection(p["memory_ids"])
-                or anchor_ids.intersection(p["verbatim_anchor_ids"])
-                or voice_ids.intersection(p["voice_exemplar_ids"])
+                or any(
+                    (r["owner_id"], r["identifier"])
+                    in (
+                        affected
+                        if r["kind"] == "memory"
+                        else anchor_ids
+                        if r["kind"] == "anchor"
+                        else voice_ids
+                    )
+                    for r in p["provided_refs"]
+                )
             ):
                 connection.execute(
                     "DELETE FROM provision_records WHERE provision_id=%s", (row["provision_id"],)
@@ -571,13 +669,13 @@ class PostgresDeletionStore:
                 ).fetchall()
             )
         for row in rows:
-            connection.execute(
-                "DELETE FROM recall_embeddings WHERE content_digest=%s", (row["content_digest"],)
-            )
             key = (row["owner_id"], row["kind"], row["identifier"])
             connection.execute(
                 "DELETE FROM recall_documents WHERE owner_id=%s AND kind=%s AND identifier=%s", key
             )
+        collect_embeddings(
+            connection, [r["content_digest"] for r in rows if r["content_digest"] is not None]
+        )
         for character, identifier in affected:
             connection.execute(
                 "INSERT INTO recall_documents(owner_id,kind,identifier) "

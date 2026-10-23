@@ -15,12 +15,12 @@ from psycopg import sql
 from psycopg.types.json import Jsonb
 
 from digital_souls_memory.adapters.memory_records import candidate_record, memory_record
-from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.api import create_app
 from tests.deletion_support import RecordingRecalculationGateway
 from tests.evidence_support import RECORDED, TEXT, session, turn
 from tests.memory_support import memory
+from tests.postgres.migration_evidence import seed_evidence_before_actor_registry
 
 pytestmark = pytest.mark.postgres
 
@@ -75,21 +75,15 @@ def test_upgrade_restores_payloads_from_direct_sources_and_preserves_literal_con
     with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
         try:
             command.upgrade(config, "0008")
-            with TestClient(create_app()) as client:
-                for character in ("char-b", "char-c"):
-                    assert client.post(
-                        f"/characters/{character}/core-identities",
-                        json={"values": ["合成価値"], "prohibitions": []},
-                    ).is_success
-            evidence = PostgresEvidenceStore(url)
-            evidence.add_session(session(reports_delivery=False))
-            for identifier in ("turn-1", "turn-2"):
-                evidence.add_turn(
-                    turn(
-                        turn_id=identifier,
-                        text="削除する合成原文" if identifier == "turn-1" else TEXT,
-                    )
-                )
+            seed_evidence_before_actor_registry(
+                url,
+                characters=("char-b", "char-c"),
+                session=session(reports_delivery=False),
+                turns=tuple(
+                    turn(turn_id=i, text="削除する合成原文" if i == "turn-1" else TEXT)
+                    for i in ("turn-1", "turn-2")
+                ),
+            )
             record = memory_record(value)
             for key in ("epistemics", "identity_links"):
                 record[key] = Jsonb(record[key])
@@ -181,7 +175,7 @@ def test_upgrade_restores_payloads_from_direct_sources_and_preserves_literal_con
                 assert conn.execute("SELECT used_text FROM memory_extractions").fetchone() == (
                     TEXT,
                 )
-            command.upgrade(config, "0009")
+            command.upgrade(config, "0011")
             monkeypatch.setenv("MEMORY_AUTHOR_ID", "synthetic-author")
             monkeypatch.setenv("MEMORY_AUTHOR_TOKEN", "synthetic-test-credential")
             monkeypatch.setenv("MEMORY_DELETION_DATABASE_URL", url)

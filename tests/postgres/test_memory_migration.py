@@ -7,9 +7,9 @@ from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
 
-from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.api import create_app
 from tests.evidence_support import session, turn
+from tests.postgres.migration_evidence import seed_evidence_before_actor_registry
 
 pytestmark = pytest.mark.postgres
 
@@ -33,14 +33,12 @@ def test_memory_revision_repeat_downgrade_reapply_preserves_previous_data(
             before: dict[str, list[tuple[object, ...]]] = {}
             if previous_head:
                 command.upgrade(config, "0005")
-                with TestClient(create_app()) as client:
-                    assert client.post(
-                        "/characters/char-c/core-identities",
-                        json={"values": ["合成価値"], "prohibitions": []},
-                    ).is_success
-                evidence = PostgresEvidenceStore(url)
-                evidence.add_session(session(reports_delivery=False))
-                evidence.add_turn(turn(kind="observation", perceived_by=("char-c",)))
+                seed_evidence_before_actor_registry(
+                    url,
+                    characters=("char-c",),
+                    session=session(reports_delivery=False),
+                    turns=(turn(kind="observation", perceived_by=("char-c",)),),
+                )
                 before = {
                     table: conn.execute(f"SELECT * FROM {table}").fetchall()
                     for table in ("sessions", "turns", "core_identities")

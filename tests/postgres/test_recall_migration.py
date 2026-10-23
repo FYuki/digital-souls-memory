@@ -13,12 +13,11 @@ from psycopg import sql
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
-from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
-from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.api import create_app
 from tests.evidence_support import session, turn
 from tests.memory_support import OLD_ID, memory
+from tests.postgres.migration_evidence import seed_evidence_before_actor_registry
 
 pytestmark = pytest.mark.postgres
 
@@ -93,15 +92,12 @@ def test_recall_revision_preserves_evidence_and_memory_through_repeat_and_reappl
             before: dict[str, list[tuple[object, ...]]] = {}
             if previous_head:
                 command.upgrade(config, "0006")
-                with TestClient(create_app(identity_store=PostgresIdentityStore(url))) as client:
-                    for identifier in ("char-b", "char-c"):
-                        assert client.post(
-                            f"/characters/{identifier}/core-identities",
-                            json={"values": ["合成価値"], "prohibitions": []},
-                        ).is_success
-                evidence = PostgresEvidenceStore(url)
-                evidence.add_session(session(reports_delivery=False))
-                evidence.add_turn(turn())
+                seed_evidence_before_actor_registry(
+                    url,
+                    characters=("char-b", "char-c"),
+                    session=session(reports_delivery=False),
+                    turns=(turn(),),
+                )
                 old_row = seed_memory_at_0006(url)
                 before = {
                     table: conn.execute(f"SELECT * FROM {table}").fetchall()

@@ -6,7 +6,12 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from digital_souls_memory.evidence.domain import DeliveryReceipt, Session, Turn, can_perceive
-from digital_souls_memory.evidence.ports import EvidenceConflict, EvidenceNotFound
+from digital_souls_memory.evidence.ports import (
+    CharacterRegistry,
+    EvidenceConflict,
+    EvidenceNotFound,
+    TurnRegistration,
+)
 from tests.it1.identity_fakes import FakeIdentityStore
 
 if TYPE_CHECKING:
@@ -22,6 +27,12 @@ class FakeEvidenceStore:
         self.receipts: list[DeliveryReceipt] = []
         self.writes = 0
         self.endings: dict[str, SessionEnding] = {}
+
+    @contextmanager
+    def turn_registration(
+        self, actor: str, characters: CharacterRegistry
+    ) -> Iterator[TurnRegistration]:
+        yield _FakeTurnRegistration(self, characters)
 
     def add_session(self, value: Session) -> None:
         if value.session_id in self.sessions:
@@ -90,3 +101,21 @@ def registered_identities() -> "FakeIdentityStore":
     for identifier in ("char-a", "char-b", "char-c", "char-z", "char_a", "char_b"):
         store.cores[(identifier, 1)] = CoreIdentity(identifier, ("誠実",), (), 1, RECORDED)
     return store
+
+
+class _FakeTurnRegistration:
+    def __init__(self, store: FakeEvidenceStore, characters: CharacterRegistry) -> None:
+        self.store = store
+        self.characters = characters
+
+    def is_character(self, identifier: str) -> bool:
+        return self.characters.is_character(identifier)
+
+    def add_turn(self, value: Turn) -> None:
+        self.store.add_turn(value)
+
+    def get_turn(self, turn_id: str) -> Turn | None:
+        return self.store.get_turn(turn_id)
+
+    def get_session(self, session_id: str) -> Session | None:
+        return self.store.get_session(session_id)

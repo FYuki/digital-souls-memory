@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 
 from digital_souls_memory.evidence.domain import Turn
 from digital_souls_memory.evidence.use_cases import Clock
-from digital_souls_memory.memory.changes import reinforce, supersede, update_fact
+from digital_souls_memory.memory.changes import apply_temporal_effect, supersede, update_fact
 from digital_souls_memory.memory.domain import (
     DerivedMemory,
     ExtractionState,
@@ -57,6 +57,7 @@ class ProjectionInput:
     generated: frozenset[str]
     references: tuple[DerivedMemory, ...]
     withdrawn_references: frozenset[str]
+    applied: tuple[MemoryRelation, ...]
 
 
 class MemoryService:
@@ -111,6 +112,7 @@ class MemoryService:
             tx.generated_ids(identifiers),
             references,
             withdrawn,
+            tx.applied_relations(identifiers),
         )
 
     def _source_turns(self, identifiers: tuple[str, ...]) -> tuple[Turn, ...]:
@@ -179,7 +181,12 @@ class MemoryService:
             candidate = self._recount(candidate)
             explicit = [r for r in proposed if r.from_id == candidate.id]
             if any(
-                r.to_id not in result or result[r.to_id].superseded_at is not None for r in explicit
+                r.to_id not in result
+                or (
+                    result[r.to_id].superseded_at is not None
+                    and not (r.type == "contradicts" and r in snapshot.applied)
+                )
+                for r in explicit
             ):
                 continue
             changes = [r for r in explicit if r.type in ("updates", "extends")]
@@ -188,7 +195,14 @@ class MemoryService:
             targeted = next(iter(changes), None)
             if targeted is not None:
                 old = result[targeted.to_id]
-                if old.superseded_at is not None or old.valid_to is not None:
+                if old.superseded_at is not None or (
+                    old.valid_to is not None
+                    and not (
+                        targeted.type == "updates"
+                        and targeted in snapshot.applied
+                        and old.valid_to == candidate.valid_from
+                    )
+                ):
                     raise MemoryValidationError("Cannot change inactive memory")
             else:
                 old = None
@@ -206,19 +220,15 @@ class MemoryService:
                     None,
                 )
             if old is not None and (targeted is None or targeted.type == "extends"):
-                value = old
-                for source_id in candidate.source_turn_ids:
-                    source = self.evidence.get_turn(source_id)
-                    if source is None:
-                        raise MemoryValidationError("Missing original")
-                    value = reinforce(
-                        value,
-                        source,
-                        source_turns=self._source_turns(
-                            tuple(dict.fromkeys((*value.source_turn_ids, source_id)))
-                        ),
-                        relation_type="same_fact",
-                    )
+                value = apply_temporal_effect(
+                    old,
+                    candidate,
+                    relation_type="extends",
+                    source_turns=self._source_turns(
+                        tuple(dict.fromkeys((*old.source_turn_ids, *candidate.source_turn_ids)))
+                    ),
+                    at=self.clock(),
+                )
                 result[old.id] = value
                 # Keep the candidate as history, without publishing a duplicate fact.
                 result[candidate.id] = supersede(candidate, at=self.clock())
@@ -234,7 +244,13 @@ class MemoryService:
                 if relation.type in ("derives", "contradicts"):
                     relations.append(relation)
                 if relation.type == "contradicts":
-                    result[relation.to_id] = supersede(result[relation.to_id], at=self.clock())
+                    result[relation.to_id] = apply_temporal_effect(
+                        result[relation.to_id],
+                        candidate,
+                        relation_type="contradicts",
+                        source_turns=(),
+                        at=self.clock(),
+                    )
         for identifier, value in existing.items():
             if identifier in generated and identifier not in result:
                 result[identifier] = supersede(value, at=self.clock())

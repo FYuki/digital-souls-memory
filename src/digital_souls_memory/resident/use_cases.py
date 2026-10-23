@@ -7,6 +7,7 @@ from datetime import timedelta
 from digital_souls_memory.evidence.materials import EvidenceMaterials
 from digital_souls_memory.evidence.ports import CharacterRegistry, EvidenceNotFound, EvidenceStore
 from digital_souls_memory.evidence.provision import (
+    ProvidedReference,
     ProvisionRecord,
     ProvisionUnavailable,
     ResidentCandidateRef,
@@ -177,6 +178,15 @@ class ResidentService:
             ),
             duration_ms=(self.monotonic() - start) * 1000,
             provided_at=self.clock(),
+            provided_refs=tuple(
+                ProvidedReference(kind="memory", owner_id=v.owner_id, identifier=v.memory_id)
+                for v in profile.entries
+                if v.owner_id is not None and v.memory_id is not None
+            )
+            + tuple(
+                ProvidedReference(kind="voice", owner_id=v.character_id, identifier=v.exemplar_id)
+                for v in exemplars
+            ),
         )
         self.provisions.save(record, snapshot=snapshot)
         return ResidentContext(

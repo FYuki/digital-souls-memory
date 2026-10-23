@@ -97,6 +97,25 @@ class EvidenceMaterials:
         self.clock = clock
         self.delivery_timeout = delivery_timeout
 
+    def resolve(
+        self,
+        character_id: str,
+        *,
+        session: Session,
+        turn: Turn,
+        actor_is_character: bool,
+        receipts: ReceiptState,
+    ) -> str | None:
+        return material_decision(
+            character_id=character_id,
+            session=session,
+            turn=turn,
+            actor_is_character=actor_is_character,
+            receipts=receipts,
+            now=self.clock(),
+            delivery_timeout=self.delivery_timeout,
+        ).text
+
     def get_text(self, character_id: str, turn_id: str) -> str | None:
         decision = self.get_decision(character_id, turn_id)
         return decision.text if decision is not None else None

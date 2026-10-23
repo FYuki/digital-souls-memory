@@ -386,6 +386,56 @@ def test_profile_uses_saved_candidates_without_embedding_reranking_or_reinforcem
         assert h.retriever.calls == []
 
 
+def test_resident_records_shared_profile_memory_owner_and_omits_withdrawn_sharing(
+    configured: Configured,
+) -> None:
+    h, profiles, candidates, _, make_client = configured
+    source = turn(perceived_by=("char-b", "char-c"))
+    h.evidence.turns[source.turn_id] = source
+    shared = replace(memory(), character_id="char-c", shared_with=("char-b",))
+    candidate = candidate_for(shared, sources=(source,))
+    candidates.values[candidate.ref] = candidate
+    with make_client() as client:
+        configured_profile = client.put(
+            PROFILE,
+            json={
+                "token_limit": 7,
+                "entries": [
+                    {
+                        "entry_id": "shared-memory",
+                        "kind": "memory",
+                        "owner_id": shared.character_id,
+                        "memory_id": shared.id,
+                    }
+                ],
+            },
+        )
+        assert configured_profile.status_code == 200
+        response = client.post(RESIDENT, json=REQUEST)
+        assert response.status_code == 200
+        entries = response.json()["character_profile"]["entries"]
+        assert entries == configured_profile.json()["entries"]
+        assert [(v["kind"], v["owner_id"], v["memory_id"]) for v in entries] == [
+            ("memory", "char-c", shared.id)
+        ]
+        record = h.provisions.get(response.json()["provision_id"])
+        assert record is not None and record.character_id == "char-b"
+        assert [(v.kind, v.owner_id, v.identifier) for v in record.provided_refs] == [
+            (v["kind"], v["owner_id"], v["memory_id"]) for v in entries
+        ]
+        saved_config = profiles.values.copy()
+        candidates.values[candidate.ref] = candidate_for(
+            replace(shared, shared_with=()), sources=(source,)
+        )
+        following = client.post(RESIDENT, json=REQUEST)
+        assert following.status_code == 200
+        assert following.json()["character_profile"]["entries"] == []
+        withdrawn = h.provisions.get(following.json()["provision_id"])
+        assert withdrawn is not None
+        assert withdrawn.memory_ids == () and withdrawn.provided_refs == ()
+        assert profiles.values == saved_config
+
+
 @pytest.mark.parametrize("unavailable", ["missing", "private"])
 def test_profile_rejects_missing_or_private_saved_memory_without_replacing_configuration(
     configured: Configured, unavailable: str

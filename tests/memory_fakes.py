@@ -343,6 +343,15 @@ class FakeMemoryTransaction:
         for value in values:
             self.store.history[(self.character, value.id)] = MemoryContribution(turn_id, value)
 
+    def applied_relations(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryRelation, ...]:
+        return tuple(
+            r
+            for owner, r in self.store.relations
+            if owner == self.character and (identifiers is None or r.from_id in identifiers)
+        )
+
     def sync_projection_relations(
         self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
     ) -> None:

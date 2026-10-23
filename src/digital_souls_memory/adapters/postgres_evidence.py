@@ -16,9 +16,11 @@ from digital_souls_memory.evidence.domain import (
     Turn,
 )
 from digital_souls_memory.evidence.ports import (
+    CharacterRegistry,
     EvidenceConflict,
     EvidenceNotFound,
     EvidenceUnavailable,
+    TurnRegistration,
 )
 
 
@@ -65,13 +67,7 @@ class PostgresEvidenceStore:
 
     def get_session(self, session_id: str) -> Session | None:
         with self._connection() as connection:
-            row = connection.execute(
-                "SELECT s.session_id,s.started_at,coalesce(e.ended_at,s.ended_at) AS ended_at,"
-                "s.surface,s.reports_delivery FROM sessions s LEFT JOIN session_endings e "
-                "ON e.session_id=s.session_id WHERE s.session_id = %s",
-                (session_id,),
-            ).fetchone()
-        return Session(**row) if row is not None else None
+            return _TurnRegistration(connection).get_session(session_id)
 
     def add_ending(self, value: SessionEnding) -> tuple[SessionEnding, bool]:
         with self._connection() as connection:
@@ -105,40 +101,21 @@ class PostgresEvidenceStore:
             ).fetchall()
         return tuple(SessionEnding(**row) for row in rows)
 
+    @contextmanager
+    def turn_registration(
+        self, actor: str, characters: CharacterRegistry
+    ) -> Iterator[TurnRegistration]:
+        with self._connection() as connection:
+            connection.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (actor,))
+            yield _TurnRegistration(connection)
+
     def add_turn(self, value: Turn) -> None:
         with self._connection() as connection:
-            connection.execute(
-                "INSERT INTO turns (turn_id, session_id, surface, actor, kind, text, perceived_by, "
-                "addressees, address_mode, reply_to_turn_id, "
-                "language, register, sensitivity, classifier_version, occurred_at, recorded_at) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (
-                    value.turn_id,
-                    value.session_id,
-                    value.surface,
-                    value.actor,
-                    value.kind,
-                    value.text,
-                    list(value.perceived_by),
-                    list(value.addressees),
-                    value.address_mode,
-                    value.reply_to_turn_id,
-                    value.language,
-                    Jsonb(dict(value.register)),
-                    value.sensitivity,
-                    value.classifier_version,
-                    value.occurred_at,
-                    value.recorded_at,
-                ),
-            )
+            _TurnRegistration(connection).add_turn(value)
 
     def get_turn(self, turn_id: str) -> Turn | None:
         with self._connection() as connection:
-            row = connection.execute(
-                "SELECT * FROM turns WHERE turn_id = %s",
-                (turn_id,),
-            ).fetchone()
-        return Turn(**row) if row is not None else None
+            return _TurnRegistration(connection).get_turn(turn_id)
 
     def add_receipt(self, value: DeliveryReceipt) -> None:
         with self._connection() as connection:
@@ -178,3 +155,57 @@ class PostgresEvidenceStore:
                     (character_id,),
                 )
                 yield (Turn(**row) for row in cursor)
+
+
+class _TurnRegistration:
+    def __init__(self, connection: psycopg.Connection[DictRow]) -> None:
+        self.connection = connection
+
+    def is_character(self, identifier: str) -> bool:
+        row = self.connection.execute(
+            "SELECT evidence_is_character(%s) AS registered", (identifier,)
+        ).fetchone()
+        assert row is not None
+        return bool(row["registered"])
+
+    def add_turn(self, value: Turn) -> None:
+        self.connection.execute(
+            "INSERT INTO turns (turn_id, session_id, surface, actor, kind, text, perceived_by, "
+            "addressees, address_mode, reply_to_turn_id, "
+            "language, register, sensitivity, classifier_version, occurred_at, recorded_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (
+                value.turn_id,
+                value.session_id,
+                value.surface,
+                value.actor,
+                value.kind,
+                value.text,
+                list(value.perceived_by),
+                list(value.addressees),
+                value.address_mode,
+                value.reply_to_turn_id,
+                value.language,
+                Jsonb(dict(value.register)),
+                value.sensitivity,
+                value.classifier_version,
+                value.occurred_at,
+                value.recorded_at,
+            ),
+        )
+
+    def get_session(self, session_id: str) -> Session | None:
+        row = self.connection.execute(
+            "SELECT s.session_id,s.started_at,coalesce(e.ended_at,s.ended_at) AS ended_at,"
+            "s.surface,s.reports_delivery FROM sessions s LEFT JOIN session_endings e "
+            "ON e.session_id=s.session_id WHERE s.session_id = %s",
+            (session_id,),
+        ).fetchone()
+        return Session(**row) if row is not None else None
+
+    def get_turn(self, turn_id: str) -> Turn | None:
+        row = self.connection.execute(
+            "SELECT * FROM turns WHERE turn_id = %s",
+            (turn_id,),
+        ).fetchone()
+        return Turn(**row) if row is not None else None

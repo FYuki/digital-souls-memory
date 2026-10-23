@@ -198,9 +198,21 @@ class _MemoryTransaction:
 
     def _baseline(self, value: DerivedMemory) -> None:
         self.connection.execute(
-            "INSERT INTO memory_baselines(character_id,memory_id,payload) VALUES(%s,%s,%s) "
-            "ON CONFLICT(character_id,memory_id) DO UPDATE SET payload=EXCLUDED.payload",
-            (self.character_id, value.id, Jsonb(copy_payload(value))),
+            "INSERT INTO memory_baselines(character_id,memory_id,payload,temporal_origin) "
+            "VALUES(%s,%s,%s,%s) "
+            "ON CONFLICT(character_id,memory_id) DO UPDATE SET payload=EXCLUDED.payload, "
+            "temporal_origin=EXCLUDED.temporal_origin",
+            (
+                self.character_id,
+                value.id,
+                Jsonb(copy_payload(value)),
+                Jsonb(
+                    {
+                        k: copy_payload(value)[k]
+                        for k in ("valid_to", "superseded_at", "last_reinforced_at")
+                    }
+                ),
+            ),
         )
         save_copy_sources(self.connection, "memory_baselines", value)
 
@@ -268,15 +280,21 @@ class _MemoryTransaction:
             (self.character_id, value.from_id, value.to_id, value.type),
         )
 
+    def applied_relations(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[MemoryRelation, ...]:
+        selected = None if identifiers is None else list(identifiers)
+        rows = self.connection.execute(
+            "SELECT from_id,to_id,type FROM memory_relations "
+            "WHERE character_id=%s AND (%s::text[] IS NULL OR from_id=ANY(%s))",
+            (self.character_id, selected, selected),
+        ).fetchall()
+        return tuple(MemoryRelation(**r) for r in rows)
+
     def sync_projection_relations(
         self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
     ) -> None:
-        rows = self.connection.execute(
-            "SELECT from_id,to_id,type FROM memory_relations "
-            "WHERE character_id=%s AND from_id=ANY(%s)",
-            (self.character_id, list(identifiers)),
-        ).fetchall()
-        existing = tuple(MemoryRelation(**r) for r in rows)
+        existing = self.applied_relations(identifiers)
         for relation in existing:
             if relation not in values:
                 self.connection.execute(

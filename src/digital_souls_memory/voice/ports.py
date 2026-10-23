@@ -4,6 +4,8 @@ from collections.abc import Iterator
 from contextlib import AbstractContextManager
 from typing import Protocol
 
+from digital_souls_memory.evidence.domain import Session, Turn
+from digital_souls_memory.evidence.materials import ReceiptState
 from digital_souls_memory.identity.ports import ReviewResult
 from digital_souls_memory.voice.domain import VerbatimAnchor, VoiceExemplar
 
@@ -21,6 +23,16 @@ class VoiceUnavailable(Exception):
 
 
 class MaterialText(Protocol):
+    def resolve(
+        self,
+        character_id: str,
+        *,
+        session: Session,
+        turn: Turn,
+        actor_is_character: bool,
+        receipts: ReceiptState,
+    ) -> str | None: ...
+
     def get_text(self, character_id: str, turn_id: str) -> str | None:
         """Return permitted verbatim text, or None when inaccessible or pending.
 
@@ -31,6 +43,7 @@ class MaterialText(Protocol):
 
 
 class VoiceTransaction(Protocol):
+    def get_text(self, turn_id: str, materials: MaterialText) -> str | None: ...
     def get_initial_check(self) -> ReviewResult | None: ...
     def save_initial_check(self, result: ReviewResult) -> None: ...
     def add_exemplar(self, value: VoiceExemplar) -> None: ...

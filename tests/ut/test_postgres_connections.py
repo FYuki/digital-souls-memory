@@ -70,3 +70,27 @@ def test_connect_failure_has_the_recall_failure_contract(monkeypatch: pytest.Mon
     with pytest.raises(ProvisionUnavailable), supply.request():
         pytest.fail("A failed connection must not enter the request")
     assert supply.bound is None
+
+
+def test_turn_registration_keeps_actor_lock_through_reads_and_insert() -> None:
+    from dataclasses import asdict
+
+    from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
+    from tests.evidence_support import session, turn
+
+    connection = MagicMock()
+    supply = PostgresConnections("postgresql://synthetic")
+    supply.bound = connection
+    store = PostgresEvidenceStore("postgresql://synthetic", connections=supply)
+    registry = MagicMock()
+    with store.turn_registration("user-a", registry) as registration:
+        connection.execute.return_value.fetchone.return_value = {"registered": False}
+        assert not registration.is_character("user-a")
+        connection.execute.return_value.fetchone.return_value = asdict(session())
+        assert registration.get_session("session-1") == session()
+        connection.execute.return_value.fetchone.return_value = None
+        assert registration.get_turn("missing") is None
+        registration.add_turn(turn(actor="user-a"))
+        connection.commit.assert_not_called()
+    connection.commit.assert_called_once()
+    registry.is_character.assert_not_called()

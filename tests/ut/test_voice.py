@@ -167,3 +167,60 @@ def test_service_missing_model_port_leaves_no_completed_registration(
         service.register_exemplars("char-a", [exemplar()])
     assert service.list_exemplars("char-a") == []
     assert identity.get_current("char-a", REGISTERED) == before
+
+
+def test_transaction_material_policy_uses_given_receipts_and_current_clock() -> None:
+    from digital_souls_memory.evidence.materials import ReceiptState
+    from tests.evidence_support import RECORDED
+    from tests.it1.evidence_fakes import registered_identities
+
+    now = [RECORDED]
+    identities = registered_identities()
+    policy = EvidenceMaterials(
+        FakeEvidenceStore(),
+        IdentityCharacters(lambda: identities),
+        lambda: now[0],
+        timedelta(minutes=10),
+    )
+    source = turn(actor="char-a", perceived_by=("char-a", "char-b"))
+    assert (
+        policy.resolve(
+            "char-b",
+            session=session(),
+            turn=source,
+            actor_is_character=True,
+            receipts=ReceiptState(None, 0),
+        )
+        is None
+    )
+    now[0] += timedelta(minutes=10)
+    assert (
+        policy.resolve(
+            "char-b",
+            session=session(),
+            turn=source,
+            actor_is_character=True,
+            receipts=ReceiptState(None, 0),
+        )
+        == source.text
+    )
+    assert (
+        policy.resolve(
+            "char-b",
+            session=session(),
+            turn=source,
+            actor_is_character=True,
+            receipts=ReceiptState(0, 1),
+        )
+        == ""
+    )
+    assert (
+        policy.resolve(
+            "char-a",
+            session=session(),
+            turn=source,
+            actor_is_character=True,
+            receipts=ReceiptState(0, 1),
+        )
+        == source.text
+    )

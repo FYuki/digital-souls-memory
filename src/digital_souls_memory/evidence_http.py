@@ -13,6 +13,7 @@ from typing import Annotated, Literal
 
 import anyio
 from fastapi import APIRouter, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.routing import APIRoute
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr
@@ -54,6 +55,16 @@ class EvidenceRoute(APIRoute):
         async def handle(request: Request) -> Response:
             try:
                 return await handler(request)
+            except RequestValidationError as error:
+                return JSONResponse(
+                    status_code=422,
+                    content={
+                        "detail": [
+                            {key: item[key] for key in ("loc", "type", "msg")}
+                            for item in error.errors()
+                        ]
+                    },
+                )
             except (
                 EvidenceValidationError,
                 EvidenceConflict,

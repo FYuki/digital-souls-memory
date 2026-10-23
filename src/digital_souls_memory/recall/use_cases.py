@@ -4,11 +4,13 @@ from collections.abc import Callable
 from dataclasses import replace
 from datetime import datetime, timedelta
 from math import isfinite
+from typing import cast
 
 from digital_souls_memory.evidence.materials import aggregate_receipts, material_decision
 from digital_souls_memory.evidence.ports import CharacterRegistry, EvidenceStore
 from digital_souls_memory.evidence.provision import (
     CandidateScore,
+    ProvidedReference,
     ProvisionRecord,
     ProvisionUnavailable,
 )
@@ -341,6 +343,16 @@ class RecallService:
                 scores=tuple(scores),
                 duration_ms=(self.monotonic() - started) * 1000,
                 provided_at=now,
+                provided_refs=tuple(
+                    ProvidedReference(
+                        kind="memory" if v.candidate.ref.memory_id is not None else "anchor",
+                        owner_id=v.candidate.ref.owner_id,
+                        identifier=cast(
+                            str, v.candidate.ref.memory_id or v.candidate.ref.anchor_id
+                        ),
+                    )
+                    for v in accepted
+                ),
             ),
             snapshot=snapshot,
         )

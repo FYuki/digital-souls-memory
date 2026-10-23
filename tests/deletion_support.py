@@ -181,14 +181,16 @@ class SharedDeletionStore:
                 originals.pop(key, None)
             else:
                 originals[key] = replacement.value
-        affected_ids = {identifier for _, identifier in recalculated | invalidated}
         provision_ids = tuple(
             sorted(
                 identifier
                 for identifier, record in self.provisions.records.items()
                 if record.turn_id in targets
                 or any(span.turn_id in targets for span in record.source_spans)
-                or bool(set(record.memory_ids) & affected_ids)
+                or any(
+                    r.kind == "memory" and (r.owner_id, r.identifier) in recalculated | invalidated
+                    for r in record.provided_refs
+                )
             )
         )
         result = replace(

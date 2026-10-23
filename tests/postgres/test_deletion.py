@@ -275,6 +275,7 @@ def test_existing_turn_and_resident_provisions_cannot_restore_deleted_source(
                 scores=(),
                 duration_ms=0,
                 provided_at=RECORDED,
+                provided_refs=(),
             )
         )
     with psycopg.connect(database_url, autocommit=True, connect_timeout=5) as conn:

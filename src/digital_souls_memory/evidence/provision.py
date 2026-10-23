@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Literal
 
 
 class ProvisionConflict(Exception):
@@ -77,6 +78,19 @@ class ResidentCandidateScore:
 
 
 @dataclass(frozen=True, kw_only=True)
+class ProvidedReference:
+    kind: Literal["memory", "anchor", "voice"]
+    owner_id: str
+    identifier: str
+
+    def __post_init__(self) -> None:
+        if self.kind not in ("memory", "anchor", "voice"):
+            raise ValueError("Invalid provided reference kind")
+        if not self.owner_id.strip() or not self.identifier.strip():
+            raise ValueError("Provided reference requires owner and identifier")
+
+
+@dataclass(frozen=True, kw_only=True)
 class ProvisionRecord:
     provision_id: str
     kind: str
@@ -95,5 +109,6 @@ class ProvisionRecord:
     scores: tuple[CandidateScore | ResidentCandidateScore, ...]
     duration_ms: float
     provided_at: datetime
+    provided_refs: tuple[ProvidedReference, ...]
     profile_entry_ids: tuple[str, ...] = ()
     core_identity_version: int | None = None

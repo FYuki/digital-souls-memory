@@ -231,7 +231,10 @@ def test_evidence_count_and_confidence_follow_remaining_opportunities(
 
 
 @pytest.mark.parametrize("closed", ["valid_to", "superseded_at"])
-def test_recalculation_does_not_reactivate_closed_copies_or_reinforce_them(closed: str) -> None:
+def test_recalculation_preserves_closed_baseline_temporal_attributes(closed: str) -> None:
+    from digital_souls_memory.governance.domain import MemoryCopy
+    from digital_souls_memory.governance.recalculation import MemoryRecalculator
+
     original = replace(
         memory("summary"),
         source_turn_ids=("turn-1", "turn-2"),
@@ -250,7 +253,12 @@ def test_recalculation_does_not_reactivate_closed_copies_or_reinforce_them(close
         superseded_at=None,
         last_reinforced_at=RECORDED,
     )
-    result = recalculate(original, RecordingRecalculationGateway(output), (material(),))
+    copy = MemoryCopy(table="memory_baselines", memory=original)
+    result = MemoryRecalculator(
+        RecordingRecalculationGateway(output),
+        delivery_timeout=TIMEOUT,
+        non_sensitive_labels=frozenset({"public"}),
+    ).recalculate(copy, snapshot=snapshot(copy, (material(),)), now=RECORDED)
     assert result.value is not None
     assert result.value.content == output.content
     assert result.value.source_turn_ids == ("turn-2",)
@@ -368,3 +376,61 @@ def test_surviving_commitment_original_cannot_be_reassigned(
     output = replace(original, source_turn_ids=("turn-2", "turn-3"), verbatim_turn_id="turn-3")
     with rejected():
         recalculate(original, RecordingRecalculationGateway(output), (first, second))
+
+
+@pytest.mark.parametrize("relation_type", ["updates", "contradicts", "extends"])
+@pytest.mark.parametrize("survives", [False, True])
+def test_temporal_effects_are_reconstructed_from_baseline_and_surviving_sources(
+    relation_type: str, survives: bool
+) -> None:
+    from digital_souls_memory.governance.domain import MemoryCopy, TemporalEffect
+    from digital_souls_memory.governance.recalculation import MemoryRecalculator
+    from digital_souls_memory.memory.changes import apply_temporal_effect
+
+    original = replace(memory(), source_turn_ids=("turn-1", "turn-2"))
+    remaining = material()
+    supporting = replace(
+        remaining,
+        turn=replace(remaining.turn, turn_id="turn-3", occurred_at=RECORDED + timedelta(hours=1)),
+    )
+    candidate = replace(
+        original, id=NEW_ID, source_turn_ids=("turn-3",), valid_from=supporting.turn.occurred_at
+    )
+    old = apply_temporal_effect(
+        original,
+        candidate,
+        relation_type=relation_type,
+        source_turns=(turn(), remaining.turn, supporting.turn),
+        at=RECORDED,
+    )
+    copy = MemoryCopy(
+        table="derived_memories",
+        memory=old,
+        temporal_base=original,
+        temporal_effects=(
+            TemporalEffect(candidate=candidate, relation_type=relation_type, applied_at=RECORDED),
+        )
+        if survives
+        else (),
+    )
+    output = replace(original, source_turn_ids=("turn-2",), content="残存原文の本文")
+    gateway = RecordingRecalculationGateway(output)
+    result = MemoryRecalculator(
+        gateway, delivery_timeout=TIMEOUT, non_sensitive_labels=frozenset()
+    ).recalculate(
+        copy,
+        snapshot=snapshot(copy, (remaining, supporting) if survives else (remaining,)),
+        now=RECORDED,
+    )
+    assert result.value is not None
+    expected = old if survives else original
+    assert (result.value.valid_to, result.value.superseded_at, result.value.last_reinforced_at) == (
+        expected.valid_to,
+        expected.superseded_at,
+        expected.last_reinforced_at,
+    )
+    assert result.value.content == output.content
+    assert set(result.value.source_turn_ids) == (
+        {"turn-2", "turn-3"} if survives and relation_type == "extends" else {"turn-2"}
+    )
+    assert {d.turn_id for d in result.dependencies} == set(result.value.source_turn_ids)

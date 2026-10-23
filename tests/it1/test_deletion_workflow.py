@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from digital_souls_memory.api import create_app
-from digital_souls_memory.evidence.provision import ProvisionRecord, SourceSpan
+from digital_souls_memory.evidence.provision import ProvidedReference, ProvisionRecord, SourceSpan
 from tests.deletion_support import RecordingRecalculationGateway, SharedDeletionStore
 from tests.evidence_support import RECORDED, session, turn
 from tests.it1.evidence_fakes import FakeEvidenceStore, registered_identities
@@ -84,6 +84,9 @@ def test_http_deletes_selected_sources_recalculates_and_invalidates_saved_provis
             scores=(),
             duration_ms=0,
             provided_at=RECORDED,
+            provided_refs=(
+                ProvidedReference(kind="memory", owner_id="char-b", identifier=original.id),
+            ),
         )
         provisions.records[record.provision_id] = record
     deletion = SharedDeletionStore(evidence, memories, provisions)
