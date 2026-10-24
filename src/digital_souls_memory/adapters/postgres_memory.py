@@ -165,8 +165,16 @@ class _MemoryTransaction:
                 "SELECT matched.memory_id FROM seeds seed CROSS JOIN LATERAL "
                 "({}) matched UNION SELECT current.memory_id FROM memory_generated seed "
                 "JOIN memory_candidates current USING(character_id,turn_id) "
-                "WHERE seed.character_id=%s AND seed.memory_id=ANY(%s)"
-            ).format(fact_matches),
+                "WHERE seed.character_id=%s AND seed.memory_id=ANY(%s) UNION "
+                "SELECT seed.memory_id FROM relations r CROSS JOIN LATERAL ("
+                "SELECT memory_id,payload FROM memory_generated WHERE character_id=%s "
+                "AND memory_id=r.to_id AND payload->>'kind'='fact' UNION ALL "
+                "SELECT memory_id,payload FROM memory_baselines WHERE character_id=%s "
+                "AND memory_id=r.to_id AND payload->>'kind'='fact') seed "
+                "WHERE r.from_id=ANY(%s) AND r.type='derives' "
+                "AND EXISTS (SELECT 1 FROM ({}) matched "
+                "WHERE matched.memory_id<>seed.memory_id)"
+            ).format(fact_matches, fact_matches),
             (
                 self.character_id,
                 list(identifiers),
@@ -181,6 +189,11 @@ class _MemoryTransaction:
                 self.character_id,
                 self.character_id,
                 list(identifiers),
+                self.character_id,
+                self.character_id,
+                list(identifiers),
+                self.character_id,
+                self.character_id,
             ),
         ).fetchall()
         return frozenset(r["memory_id"] for r in rows)
