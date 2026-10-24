@@ -85,9 +85,12 @@ def save_copy_sources(
 
 
 class _MemoryTransaction:
-    def __init__(self, connection: psycopg.Connection[DictRow], character_id: str) -> None:
+    def __init__(
+        self, connection: psycopg.Connection[DictRow], character_id: str, *, read_only: bool = False
+    ) -> None:
         self.connection = connection
         self.character_id = character_id
+        self.read_only = read_only
 
     def contribution_ids(self, turn_id: str) -> frozenset[str]:
         rows = self.connection.execute(
@@ -469,6 +472,25 @@ class _MemoryTransaction:
                 (self.character_id, turn_id, value.id, Jsonb(copy_payload(value))),
             )
             save_copy_sources(self.connection, "memory_candidates", value)
+
+    def extraction_states(self, turn_ids: frozenset[str]) -> dict[str, ExtractionState | None]:
+        rows = self.connection.execute(
+            "SELECT * FROM memory_extractions WHERE character_id=%s AND turn_id=ANY(%s)",
+            (self.character_id, list(turn_ids)),
+        ).fetchall()
+        states = {row["turn_id"]: _state(row) for row in rows}
+        return {identifier: states.get(identifier) for identifier in turn_ids}
+
+    def notification_versions(self, turn_ids: frozenset[str]) -> dict[str, int]:
+        rows = self.connection.execute(
+            "SELECT turn_id,version FROM memory_notifications WHERE turn_id=ANY(%s)"
+            + ("" if self.read_only else " FOR UPDATE"),
+            (list(turn_ids),),
+        ).fetchall()
+        versions = {row["turn_id"]: row["version"] for row in rows}
+        if versions.keys() != turn_ids:
+            raise MemoryValidationError("Notification absent")
+        return versions
 
     def get_extraction(self, turn_id: str) -> ExtractionState | None:
         return _state(
