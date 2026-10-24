@@ -80,6 +80,8 @@ memory-core-st-1792644139-2を明示して手動downで全て除去した。
 PR #54統合後の[最終測定（100件・1000件）](2026-10-24-core-st-performance-final.md)と[要約JSON](2026-10-24-core-st-performance-final-summary.json)を参照。
 PR #58 / #59統合後の[runner無変更での再測定](2026-10-24-core-st-performance-unmodified.md)と[要約JSON](2026-10-24-core-st-performance-unmodified-summary.json)を参照。100件・1000件とも標準runnerが終了0で完走し、必達PASS。
 PR #63 / #64統合後の[再測定](2026-10-24-core-st-performance-after-r5.md)と[要約JSON](2026-10-24-core-st-performance-after-r5-summary.json)を参照。標準runnerは終了0、100件・1000件とも必達PASS。1000件p95は242.906ms、p50目標は未達。
+
+PR #67統合後の[最終確認](2026-10-24-core-st-performance-after-r6.md)と[要約JSON](2026-10-24-core-st-performance-after-r6-summary.json)を参照。runner無変更・終了0、100件/1000件とも必達PASS。1000件p95は245.452ms、p50目標は未達。一覧0.258秒、累積準備183.751秒。前回比で一覧と準備の代替指標に増加あり。
 以下の過去時点のNOT RUN記録は、その時点の履歴として保持する。
 
 ## reimplement の補完結果
