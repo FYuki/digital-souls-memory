@@ -413,7 +413,12 @@ def test_temporal_effects_are_reconstructed_from_baseline_and_surviving_sources(
         if survives
         else (),
     )
-    output = replace(original, source_turn_ids=("turn-2",), content="残存原文の本文")
+    output = replace(
+        original,
+        source_turn_ids=("turn-2",),
+        content="残存原文の本文",
+        epistemics=replace(original.epistemics, trust_tier="E"),
+    )
     gateway = RecordingRecalculationGateway(output)
     result = MemoryRecalculator(
         gateway, delivery_timeout=TIMEOUT, non_sensitive_labels=frozenset()
@@ -430,6 +435,7 @@ def test_temporal_effects_are_reconstructed_from_baseline_and_surviving_sources(
         expected.last_reinforced_at,
     )
     assert result.value.content == output.content
+    assert result.value.epistemics.trust_tier == "E"
     assert set(result.value.source_turn_ids) == (
         {"turn-2", "turn-3"} if survives and relation_type == "extends" else {"turn-2"}
     )

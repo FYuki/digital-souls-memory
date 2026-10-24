@@ -1,6 +1,7 @@
 """Rebuild temporal projections from currently valid extraction contributions."""
 
 from dataclasses import dataclass, replace
+from datetime import datetime
 
 from digital_souls_memory.evidence.domain import Turn
 from digital_souls_memory.evidence.use_cases import Clock
@@ -8,12 +9,15 @@ from digital_souls_memory.memory.changes import apply_temporal_effect, supersede
 from digital_souls_memory.memory.domain import (
     DerivedMemory,
     ExtractionState,
+    InputDependency,
     MemoryRelation,
     MemoryValidationError,
+    memory_valid_at,
 )
 from digital_souls_memory.memory.evidence import independent_evidence_count
 from digital_souls_memory.memory.inputs import MemoryInputs
 from digital_souls_memory.memory.ports import MemoryContribution, MemoryStore, MemoryTransaction
+from digital_souls_memory.memory.relations import resolve_relations
 
 
 def _dependency_order(
@@ -58,6 +62,7 @@ class ProjectionInput:
     references: tuple[DerivedMemory, ...]
     withdrawn_references: frozenset[str]
     applied: tuple[MemoryRelation, ...]
+    baseline_dependencies: dict[str, tuple[InputDependency, ...]]
 
 
 class MemoryService:
@@ -74,10 +79,11 @@ class MemoryService:
         self.clock = clock
 
     def active(self, character_id: str) -> tuple[DerivedMemory, ...]:
+        now = self.clock()
         with self.store.transaction(character_id) as tx:
             snapshot = self._snapshot(tx)
-        result, _ = self._project(snapshot, character_id)
-        return tuple(v for v in result.values() if v.superseded_at is None and v.valid_to is None)
+        result, _ = self._project(snapshot, character_id, now)
+        return tuple(v for v in result.values() if memory_valid_at(v, now))
 
     def affected(self, tx: MemoryTransaction, turn_id: str) -> frozenset[str]:
         identifiers = tx.contribution_ids(turn_id)
@@ -95,6 +101,11 @@ class MemoryService:
         contributions = tx.candidates(identifiers)
         origins = {v.turn_id for v in contributions}
         proposed = tx.proposed_relations(identifiers)
+        applied = tx.applied_relations(identifiers)
+        history = tx.history(frozenset(r.to_id for r in (*proposed, *applied)))
+        current = tx.candidates_for_turns(frozenset(v.turn_id for v in history))
+        proposed = resolve_relations(proposed, history, current)
+        applied = resolve_relations(applied, history, current)
         reference_ids = (
             frozenset(r.to_id for r in proposed) - identifiers
             if identifiers is not None
@@ -102,9 +113,10 @@ class MemoryService:
         )
         references = tx.memories(reference_ids) if reference_ids else ()
         withdrawn = tx.withdrawn_ids(reference_ids) if reference_ids else frozenset()
+        baselines = tx.baselines(identifiers)
         return ProjectionInput(
             tx.memories(identifiers),
-            tx.baselines(identifiers),
+            baselines,
             contributions,
             {identifier: tx.get_extraction(identifier) for identifier in origins},
             {identifier: tx.notification_version(identifier) for identifier in origins},
@@ -112,7 +124,8 @@ class MemoryService:
             tx.generated_ids(identifiers),
             references,
             withdrawn,
-            tx.applied_relations(identifiers),
+            applied,
+            tx.baseline_dependencies(frozenset(v.id for v in (*baselines, *references))),
         )
 
     def _source_turns(self, identifiers: tuple[str, ...]) -> tuple[Turn, ...]:
@@ -133,19 +146,30 @@ class MemoryService:
         )
 
     def _project(
-        self, snapshot: ProjectionInput, character_id: str
+        self, snapshot: ProjectionInput, character_id: str, now: datetime
     ) -> tuple[dict[str, DerivedMemory], list[MemoryRelation]]:
         existing = {v.id: v for v in snapshot.existing}
         generated = snapshot.generated
+        invalid_baselines = {
+            identifier
+            for identifier, dependencies in snapshot.baseline_dependencies.items()
+            if any(
+                (text := self.materials.get_text(character_id, dependency.turn_id)) is None
+                or dependency.used_end > len(text)
+                for dependency in dependencies
+            )
+        }
         result = {
             v.id: self._recount(v)
             for v in snapshot.baselines
-            if all(self.materials.get_text(character_id, i) for i in v.source_turn_ids)
+            if v.id not in invalid_baselines
+            and all(self.materials.get_text(character_id, i) for i in v.source_turn_ids)
         }
         result.update(
             (v.id, v)
             for v in snapshot.references
             if v.id not in snapshot.withdrawn_references
+            and v.id not in invalid_baselines
             and all(self.materials.get_text(character_id, i) for i in v.source_turn_ids)
         )
         candidates = tuple(v.memory for v in snapshot.contributions)
@@ -227,14 +251,20 @@ class MemoryService:
                     source_turns=self._source_turns(
                         tuple(dict.fromkeys((*old.source_turn_ids, *candidate.source_turn_ids)))
                     ),
-                    at=self.clock(),
+                    at=now,
                 )
                 result[old.id] = value
                 # Keep the candidate as history, without publishing a duplicate fact.
-                result[candidate.id] = supersede(candidate, at=self.clock())
+                result[candidate.id] = supersede(candidate, at=now)
                 relations.append(MemoryRelation(from_id=candidate.id, to_id=old.id, type="extends"))
             elif old is not None:
-                closed, added = update_fact(old, candidate)
+                if targeted in snapshot.applied:
+                    closed = apply_temporal_effect(
+                        old, candidate, relation_type="updates", source_turns=(), at=now
+                    )
+                    added = candidate
+                else:
+                    closed, added = update_fact(old, candidate)
                 result[old.id] = closed
                 result[added.id] = added
                 relations.append(MemoryRelation(from_id=added.id, to_id=old.id, type="updates"))
@@ -249,15 +279,19 @@ class MemoryService:
                         candidate,
                         relation_type="contradicts",
                         source_turns=(),
-                        at=self.clock(),
+                        at=now,
                     )
         for identifier, value in existing.items():
-            if identifier in generated and identifier not in result:
-                result[identifier] = supersede(value, at=self.clock())
+            if (
+                identifier in generated or identifier in invalid_baselines
+            ) and identifier not in result:
+                result[identifier] = supersede(value, at=now)
         for identifier, value in tuple(result.items()):
             previous = existing.get(identifier)
             if previous is not None and previous.superseded_at is not None and value.superseded_at:
-                result[identifier] = replace(value, superseded_at=previous.superseded_at)
+                result[identifier] = replace(
+                    value, superseded_at=min(previous.superseded_at, value.superseded_at)
+                )
         for reference in snapshot.references:
             result.pop(reference.id, None)
         return result, relations
@@ -272,7 +306,7 @@ class MemoryService:
         if not owners:
             return
         (character_id,) = owners
-        result, relations = self._project(snapshot, character_id)
+        result, relations = self._project(snapshot, character_id, self.clock())
         existing = {v.id: v for v in snapshot.existing}
         withdrawn = tx.withdrawn_ids(frozenset(result))
         for identifier, value in result.items():

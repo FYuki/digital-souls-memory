@@ -84,5 +84,6 @@ def resolve_window(
             dependencies=tuple(dependencies),
             session_ended_at=session.ended_at,
             next_due_at=min(deadlines) if deadlines else None,
+            delivery_timeout=delivery_timeout,
         ),
     )

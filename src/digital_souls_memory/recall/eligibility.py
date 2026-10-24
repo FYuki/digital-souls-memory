@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from digital_souls_memory.evidence.materials import material_decision
 from digital_souls_memory.evidence.provision import SourceSpan
-from digital_souls_memory.memory.domain import DerivedMemory
+from digital_souls_memory.memory.domain import DerivedMemory, memory_valid_at
 from digital_souls_memory.recall.domain import (
     CandidateMaterial,
     ProvisionSnapshot,
@@ -15,14 +15,9 @@ from digital_souls_memory.recall.domain import (
 
 
 def memory_allowed(value: DerivedMemory, *, character_id: str, now: datetime) -> bool:
-    return (
-        value.valid_from <= now
-        and (value.valid_to is None or now < value.valid_to)
-        and (value.superseded_at is None or now < value.superseded_at)
-        and (
-            value.character_id == character_id
-            or (value.kind in ("fact", "preference") and character_id in value.shared_with)
-        )
+    return memory_valid_at(value, now) and (
+        value.character_id == character_id
+        or (value.kind in ("fact", "preference") and character_id in value.shared_with)
     )
 
 

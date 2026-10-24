@@ -51,6 +51,17 @@ def _params(key: ContextKey) -> tuple[str, str, str]:
     return key.character_id, key.session_id, key.surface
 
 
+_WORK_DUE = """
+    (w.lease_until IS NULL OR w.lease_until<=%(now)s) AND (
+        w.operation IS NULL OR w.evaluated_version IS DISTINCT FROM coalesce(n.version,0)
+        OR w.delivery_timeout IS DISTINCT FROM %(timeout)s
+        OR w.next_due_at<=%(now)s
+        OR w.status='pending' OR w.status='running'
+        OR (w.status='retry' AND (w.retry_at IS NULL OR w.retry_at<=%(now)s))
+    )
+"""
+
+
 def check_profile_snapshot(
     connection: psycopg.Connection[DictRow], snapshot: ProfileSnapshot, timeout: timedelta
 ) -> None:
@@ -229,10 +240,15 @@ class PostgresContextStore:
             )
             rows = connection.execute(
                 "SELECT n.*,o.operation FROM context_notifications n CROSS JOIN "
-                "(VALUES ('episodes'),('state')) AS o(operation) WHERE "
-                "(n.surface,n.session_id,n.character_id,o.operation)>(%s,%s,%s,%s) "
-                "ORDER BY n.surface,n.session_id,n.character_id,o.operation LIMIT %s",
-                (*cursor, limit + 1),
+                "(VALUES ('episodes'),('state')) AS o(operation) LEFT JOIN context_work w "
+                "ON (w.character_id,w.session_id,w.surface,w.operation)="
+                "(n.character_id,n.session_id,n.surface,o.operation) WHERE "
+                "(n.surface,n.session_id,n.character_id,o.operation)>"
+                "(%(surface)s,%(session)s,%(character)s,%(operation)s) AND "
+                + _WORK_DUE
+                + " ORDER BY n.surface,n.session_id,n.character_id,o.operation LIMIT %(limit)s",
+                dict(zip(("surface", "session", "character", "operation"), cursor, strict=True))
+                | {"now": now, "timeout": self.timeout, "limit": limit + 1},
             ).fetchall()
         selected = rows[:limit]
         last = selected[-1] if selected else None
@@ -261,22 +277,24 @@ class PostgresContextStore:
     def claim(self, *, operation: Operation, key: ContextKey, now: datetime) -> ContextClaim | None:
         with self._connection() as connection:
             _lock(connection)
-            snapshot = self._load(connection, key, now).snapshot
-            previous = connection.execute(
-                "SELECT * FROM context_work WHERE operation=%s AND character_id=%s AND "
-                "session_id=%s AND surface=%s FOR UPDATE",
-                (operation, *_params(key)),
+            metadata = self._metadata(connection, key)
+            selected = connection.execute(
+                "SELECT 1 FROM (SELECT %(version)s::bigint AS version) n "
+                "LEFT JOIN context_work w ON w.operation=%(operation)s "
+                "AND w.character_id=%(character)s AND w.session_id=%(session)s "
+                "AND w.surface=%(surface)s WHERE " + _WORK_DUE,
+                {
+                    "version": metadata["version"],
+                    "operation": operation,
+                    "character": key.character_id,
+                    "session": key.session_id,
+                    "surface": key.surface,
+                    "now": now,
+                    "timeout": self.timeout,
+                },
             ).fetchone()
-            if previous is not None:
-                if previous["lease_until"] is not None and previous["lease_until"] > now:
-                    return None
-                if previous["signature"] == snapshot.signature:
-                    if previous["status"] in ("done", "failed") and (
-                        previous["next_due_at"] is None or previous["next_due_at"] > now
-                    ):
-                        return None
-                    if previous["retry_at"] is not None and previous["retry_at"] > now:
-                        return None
+            if selected is None:
+                return None
             claim = ContextClaim(
                 operation=operation,
                 key=key,
@@ -285,14 +303,36 @@ class PostgresContextStore:
             )
             connection.execute(
                 "INSERT INTO "
-                "context_work(operation,character_id,session_id,surface,status,token,lease_until)"
+                "context_work(operation,character_id,session_id,surface,status,token,lease_until,"
+                "evaluated_version,delivery_timeout)"
                 " "
-                "VALUES(%s,%s,%s,%s,'running',%s,%s) ON "
+                "VALUES(%s,%s,%s,%s,'running',%s,%s,%s,%s) ON "
                 "CONFLICT(operation,character_id,session_id,surface) DO UPDATE SET "
-                "status='running',token=EXCLUDED.token,lease_until=EXCLUDED.lease_until,retry_at=NULL,error=NULL",
-                (operation, *_params(key), claim.token, claim.lease_until),
+                "status='running',token=EXCLUDED.token,lease_until=EXCLUDED.lease_until,"
+                "evaluated_version=EXCLUDED.evaluated_version,"
+                "delivery_timeout=EXCLUDED.delivery_timeout,next_due_at=NULL,retry_at=NULL,error=NULL",
+                (
+                    operation,
+                    *_params(key),
+                    claim.token,
+                    claim.lease_until,
+                    metadata["version"],
+                    self.timeout,
+                ),
             )
             return claim
+
+    def _metadata(self, connection: psycopg.Connection[DictRow], key: ContextKey) -> DictRow:
+        row = connection.execute(
+            "SELECT coalesce(n.version,0) AS version,coalesce(e.ended_at,s.ended_at) AS ended_at "
+            "FROM sessions s LEFT JOIN session_endings e USING(session_id) "
+            "LEFT JOIN context_notifications n ON n.session_id=s.session_id "
+            "AND n.character_id=%s AND n.surface=%s WHERE s.session_id=%s",
+            (key.character_id, key.surface, key.session_id),
+        ).fetchone()
+        if row is None:
+            raise EvidenceNotFound()
+        return row
 
     def _owns(
         self,
@@ -303,14 +343,21 @@ class PostgresContextStore:
     ) -> bool:
         _lock(connection)
         row = connection.execute(
-            "SELECT token FROM context_work WHERE operation=%s AND character_id=%s AND "
+            "SELECT token,lease_until FROM context_work WHERE operation=%s AND character_id=%s AND "
             "session_id=%s AND surface=%s FOR UPDATE",
             (claim.operation, *_params(claim.key)),
         ).fetchone()
+        metadata = self._metadata(connection, claim.key)
         return (
             row is not None
             and row["token"] == claim.token
-            and self._load(connection, claim.key, now).snapshot == snapshot
+            and row["lease_until"] is not None
+            and now < row["lease_until"]
+            and snapshot.key == claim.key
+            and metadata["version"] == snapshot.notification_version
+            and metadata["ended_at"] == snapshot.session_ended_at
+            and snapshot.delivery_timeout == self.timeout
+            and (snapshot.next_due_at is None or now < snapshot.next_due_at)
         )
 
     def begin(self, claim: ContextClaim, *, snapshot: ContextSnapshot, now: datetime) -> bool:
@@ -318,9 +365,18 @@ class PostgresContextStore:
             if not self._owns(connection, claim, snapshot, now):
                 return False
             connection.execute(
-                "UPDATE context_work SET signature=%s WHERE operation=%s AND "
+                "UPDATE context_work SET signature=%s,evaluated_version=%s,delivery_timeout=%s,"
+                "next_due_at=%s WHERE operation=%s AND "
                 "character_id=%s AND session_id=%s AND surface=%s AND token=%s",
-                (snapshot.signature, claim.operation, *_params(claim.key), claim.token),
+                (
+                    snapshot.signature,
+                    snapshot.notification_version,
+                    snapshot.delivery_timeout,
+                    snapshot.next_due_at,
+                    claim.operation,
+                    *_params(claim.key),
+                    claim.token,
+                ),
             )
             return True
 
@@ -417,7 +473,8 @@ class PostgresContextStore:
         with self._connection() as connection:
             row = connection.execute(
                 "SELECT "
-                "status,signature,completed_signature,token,lease_until,retry_at,next_due_at,error"
+                "status,signature,completed_signature,token,lease_until,retry_at,next_due_at,error,"
+                "evaluated_version,delivery_timeout"
                 " "
                 "FROM context_work WHERE operation=%s AND character_id=%s AND session_id=%s"
                 " AND surface=%s",

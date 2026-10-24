@@ -71,6 +71,9 @@ Receipt 変更で取り下げません。thought は本人に限定します。R
 有効な候補と元の保存値から再計算し、生成本文だけでなく再強化・出典追加・旧 Fact の
 valid_to・relation の寄与も補正します。再抽出失敗でも不適合な結果を再公開しません。
 取得 API でも現在の使用本文と抽出時の本文を比較し、worker の補正前の旧結果を除外します。
+作者削除の再計算で残った baseline も、保存した全生成入力の使用範囲を現在の配達範囲と
+照合します。範囲が不足すれば取得から除外し、worker の限定再構築で失効を保存します。
+Receipt の版だけが変わり、使用範囲が引き続き利用可能なら保持します。
 
 ## 採否と時間更新
 
@@ -91,6 +94,11 @@ M5 の開始値は、retrieval・source・temporal・corroboration・(1−contra
 同一 subject・predicate・object の Fact の再表明、または明示の extends は出典を追加して
 occurred_at の最大値で再強化します。出自・Trust Tier は既存値を維持します。
 明示の updates は旧 Fact の valid_to を閉じ、別 ID の新版を追加します。
+更新候補の Trust Tier が旧 Fact より高ければ拒否します。source_type の変更によっても
+昇格を許可しません。同等以下の Tier の通常更新は受理します。
+再抽出で ID が変わった場合、同じ所有者・抽出元に属する同等の現在候補が一意にあるときだけ
+履歴 ID への relation を解決し直します。別内容・別抽出元・曖昧な候補へは接続しません。
+取得は一度の評価時刻で valid_from を含み、valid_to と superseded_at を含まない期間を使います。
 relation のない別 object の Fact は両立し、明示の derives は元 Fact を終了・再強化しません。
 明示の contradicts は原文に反する派生側を superseded にします。Commitment と Voice の
 VerbatimAnchor は再強化しません。衝突した ID の別内容を上書きしません。

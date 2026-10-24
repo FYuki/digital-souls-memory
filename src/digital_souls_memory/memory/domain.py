@@ -240,3 +240,11 @@ class InputDependency:
     available_end: int
     used_end: int
     deadline: datetime
+
+
+def memory_valid_at(value: DerivedMemory, now: datetime) -> bool:
+    return (
+        value.valid_from <= now
+        and (value.valid_to is None or now < value.valid_to)
+        and (value.superseded_at is None or now < value.superseded_at)
+    )

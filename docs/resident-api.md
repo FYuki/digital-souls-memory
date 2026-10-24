@@ -55,7 +55,7 @@ Episode は State の期限・終了後破棄を適用せず、turn_span と原�
 追加 Turn だけを理由に利用可能な既存 Episode を無効化しません。
 両取得は現在の出典範囲を再検査し、訂正後の範囲外本文を含む旧成果物を返しません。
 
-DB 設定時は0008を事前適用します。起動時 DDL は行いません。
+DB 設定時は0012まで事前適用します。起動時 DDL は行いません。
 create_app に ContextGateway と ContextStore を解決すると lifespan が worker を起動します。
 Gateway なしでも保存済み成果物を取得できます。暗黙の fake 保存へ切り替えません。
 Turn・Receipt・終了記録の永続通知から裏処理を発見し、登録 HTTP はモデル完了を待ちません。
@@ -66,6 +66,10 @@ Turn・Receipt・終了記録の永続通知から裏処理を発見し、登録
 本人・thought・observation は共通の配達判定に従います。
 
 state と episodes は独立した claim・lease・処理状態を持ちます。
+走査と直接処理は、本文取得前に通知版・評価済み版・配達期限設定・次の期限・retry・lease を
+照合します。入力が変わらない done／failed は再生成せず、State の TTL 満了でも再実行しません。
+本文取得は共通ロックの外で行い、開始時と保存時は通知版・終了・期限・設定・token を
+メタデータから再検証します。0011 の既存仕事は評価済み版を推測せず、一度再評価します。
 モデル呼出し中に DB transaction を保持せず、保存時に入力・終了・通知版・所有tokenを再検査します。
 不正出力・ID衝突は failed / invalid_output、依存失敗は retry / dependency_unavailable、
 入力変更は retry / input_changed とします。新バッチは全体を検証し、衝突時は旧バッチを保持します。

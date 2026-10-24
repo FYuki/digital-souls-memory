@@ -113,6 +113,7 @@ class FakeMemoryStore:
         self.originals: dict[tuple[str, str], DerivedMemory] = {}
         self.proposed: dict[tuple[str, str], tuple[MemoryRelation, ...]] = {}
         self.dependencies: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
+        self.baseline_inputs: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
         self.history: dict[tuple[str, str], MemoryContribution] = {}
         self.withdrawn: set[tuple[str, str]] = set()
 
@@ -219,7 +220,30 @@ class FakeMemoryTransaction:
             identifier
             for (owner, identifier), value in self.store.history.items()
             if owner == self.character and value.turn_id == turn_id
+        ) | frozenset(
+            identifier
+            for (owner, identifier), dependencies in self.store.baseline_inputs.items()
+            if owner == self.character and any(d.turn_id == turn_id for d in dependencies)
         )
+
+    def baseline_dependencies(
+        self, identifiers: frozenset[str]
+    ) -> dict[str, tuple[InputDependency, ...]]:
+        return {
+            identifier: dependencies
+            for (owner, identifier), dependencies in self.store.baseline_inputs.items()
+            if owner == self.character and identifier in identifiers
+        }
+
+    def history(self, identifiers: frozenset[str]) -> tuple[MemoryContribution, ...]:
+        return tuple(
+            value
+            for (owner, identifier), value in self.store.history.items()
+            if owner == self.character and identifier in identifiers
+        )
+
+    def candidates_for_turns(self, turn_ids: frozenset[str]) -> tuple[MemoryContribution, ...]:
+        return tuple(value for value in self.candidates() if value.turn_id in turn_ids)
 
     def projection_neighbors(self, identifiers: frozenset[str]) -> frozenset[str]:
         values = [
@@ -234,6 +258,13 @@ class FakeMemoryTransaction:
         neighbors = {
             v.id for v in values if v.kind == "fact" and (v.subject, v.predicate, v.object) in facts
         }
+        origins = {v.turn_id for v in self.history(identifiers)}
+        neighbors.update(
+            v.id
+            for (owner, origin), items in self.store.proposals.items()
+            if owner == self.character and origin in origins
+            for v in items
+        )
         relations = [r for owner, r in self.store.relations if owner == self.character]
         relations.extend(
             r

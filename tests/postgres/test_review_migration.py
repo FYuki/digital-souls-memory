@@ -148,6 +148,7 @@ def test_review_migration_preserves_sources_and_upgrades_actor_and_provision_sem
                 == rows
             )
     if existing:
+        command.upgrade(config, "head")
         provisions = PostgresProvisionStore(database_url)
         saved = provisions.get("old-provision")
         assert saved is not None and saved.verbatim_anchor_ids == ("anchor-1",)
@@ -358,6 +359,7 @@ def test_review_migration_restores_resident_owners_and_deletes_only_matching_own
     # No direct turn_id or source_spans can hide errors in the owned-reference match.
     assert restored is not None and restored.turn_id is None and restored.source_spans == ()
     other_source, actual_source = ("turn-2", "turn-1") if kind == "memory" else ("turn-1", "turn-2")
+    command.upgrade(config, "head")
     with TestClient(create_app(clock=lambda: RECORDED)) as client:
         for source, expected in ((other_source, False), (actual_source, True)):
             response = client.post(
