@@ -248,3 +248,43 @@ def test_multiple_sources_share_one_memory_budget(source_case: dict[str, object]
     assert all(s["truncated"] is True and "青い駅" in str(s["text"]) for s in spans)
     assert all(s["text"] == text[int(str(s["start"])) : int(str(s["end"]))] for s in spans)
     assert number(evidence["token_count"]) <= 1500
+
+
+@pytest.mark.parametrize(
+    "answer,query",
+    [
+        ("blue station: November 3.", "BLUE STATION?"),
+        ("Straße station: November 3.", "STRASSE STATION?"),
+    ],
+)
+def test_evaluation_budget_preserves_casefolded_partial_match(
+    source_case: dict[str, object], answer: str, query: str
+) -> None:
+    from digital_souls_memory.evaluation.context import bounded_results, context_payload
+
+    text = "雑記。" * 3000 + answer + "雑記。" * 3000
+    source_case["query"] = query
+    hits: list[dict[str, object]] = [
+        {
+            "memory_id": "m1",
+            "source_spans": [
+                {
+                    "turn_id": "t1",
+                    "start": 7,
+                    "end": 7 + len(text),
+                    "text": text,
+                    "actor": "user",
+                    "language": "de",
+                }
+            ],
+        }
+    ]
+    selected, evidence = bounded_results(
+        hits, case=source_case, limit=5, budget=1500, token_counter=CharacterCounter()
+    )
+    assert len(selected) == 1
+    (span,) = rows(selected[0]["source_spans"])
+    assert answer in str(span["text"])
+    assert span["text"] == text[int(str(span["start"])) - 7 : int(str(span["end"])) - 7]
+    assert (span["original_start"], span["original_end"]) == (7, 7 + len(text))
+    assert number(evidence["token_count"]) == len(context_payload(selected)) <= 1500

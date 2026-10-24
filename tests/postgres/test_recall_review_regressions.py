@@ -29,6 +29,103 @@ pytest_plugins = ["pytester"]
 pytestmark = pytest.mark.postgres
 
 
+def test_exact_refill_scans_once_for_ten_thousand_vectors_with_ninety_nine_percent_denied(
+    app_database_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
+    register_characters()
+    evidence = PostgresEvidenceStore(app_database_url)
+    evidence.add_session(session(reports_delivery=False))
+    evidence.add_turn(turn(perceived_by=("char-c",)))
+    evidence.add_turn(turn(turn_id="control"))
+    with PostgresMemoryStore(app_database_url).transaction("char-c") as tx:
+        for identifier, source in (("denied-template", "turn-1"), ("allowed-template", "control")):
+            tx.add_memory(
+                replace(
+                    memory(),
+                    id=identifier,
+                    character_id="char-c",
+                    shared_with=("char-b",),
+                    source_turn_ids=(source,),
+                )
+            )
+    index = PostgresRetrievalStore(app_database_url)
+    publish(index, now=RECORDED)
+    with psycopg.connect(app_database_url) as conn:
+        conn.execute(
+            "INSERT INTO derived_memories SELECT (jsonb_populate_record(NULL::derived_memories, "
+            "to_jsonb(m)||jsonb_build_object('id','vector-'||i))).* "
+            "FROM generate_series(0,9999) i JOIN derived_memories m "
+            "ON m.id=CASE WHEN i<9900 THEN 'denied-template' ELSE 'allowed-template' END"
+        )
+        conn.execute(
+            "INSERT INTO memory_sources SELECT 'char-c','vector-'||i, "
+            "CASE WHEN i<9900 THEN 'turn-1' ELSE 'control' END,0 FROM generate_series(0,9999) i"
+        )
+        conn.execute(
+            "UPDATE recall_documents d SET ready=TRUE,pending=FALSE,search_text=t.search_text, "
+            "content_digest=t.content_digest,model=t.model,revision=t.revision,digest=t.digest, "
+            "dimensions=t.dimensions,embedding=('['||(0.99-i/20000.0)::text||','||"
+            "sqrt(1-power(0.99-i/20000.0,2))::text||%s||']')::vector, "
+            "payload=t.payload||jsonb_build_object('id',d.identifier), "
+            "dependencies=t.dependencies,labels=t.labels "
+            "FROM generate_series(0,9999) i JOIN recall_documents t "
+            "ON t.identifier=CASE WHEN i<9900 THEN 'denied-template' ELSE 'allowed-template' END "
+            "WHERE d.identifier='vector-'||i",
+            (",0" * 1022,),
+        )
+        conn.execute(
+            "INSERT INTO recall_document_sources SELECT 'char-c','memory','vector-'||i, "
+            "CASE WHEN i<9900 THEN 'turn-1' ELSE 'control' END FROM generate_series(0,9999) i"
+        )
+        conn.execute("UPDATE recall_documents SET ready=FALSE WHERE identifier LIKE '%%-template'")
+        assert conn.execute(
+            "SELECT count(*),count(DISTINCT embedding::text) FROM recall_documents WHERE ready"
+        ).fetchone() == (10000, 10000)
+        conn.execute("ANALYZE recall_documents")
+        conn.execute("ANALYZE derived_memories")
+
+    scans: list[str] = []
+    fetched: list[int] = []
+
+    class ObservedCursor(psycopg.ServerCursor[DictRow]):
+        def execute(
+            self,
+            query: Query,
+            params: Params | None = None,
+            *,
+            binary: bool | None = None,
+            **kwargs: object,
+        ) -> Self:
+            scans.append(str(query))
+            fetched.append(0)
+            return super().execute(query, params, binary=binary, **kwargs)
+
+        def fetchmany(self, size: int = 0) -> list[DictRow]:
+            values = super().fetchmany(size)
+            fetched[-1] += len(values)
+            return values
+
+    connection_factory = index._connection
+
+    @contextmanager
+    def observed_connection() -> Iterator[psycopg.Connection[DictRow]]:
+        with connection_factory() as conn:
+            conn.execute("SET enable_seqscan=off")
+            conn.execute("SET enable_sort=off")
+            conn.commit()
+            conn.server_cursor_factory = ObservedCursor
+            yield conn
+
+    monkeypatch.setattr(index, "_connection", observed_connection)
+    found = search(index, "%_\\", reader="char-b", now=RECORDED, limit=100)
+    assert {value.ref.memory_id for value in found} == {f"vector-{i}" for i in range(9900, 10000)}
+    assert len(found) == 100
+    exact_scans = [i for i, query in enumerate(scans) if "+ 0" in query]
+    assert len(exact_scans) == 1, {"scans": len(exact_scans), "fetched": fetched}
+    assert fetched[exact_scans[0]] == 10000
+
+
 @pytest.mark.parametrize("denied_count,max_scan", [(0, 20000), (80, 20000), (80, 1)])
 def test_semantic_hnsw_returns_two_hundred_distinct_eligible_candidates(
     app_database_url: str, monkeypatch: pytest.MonkeyPatch, denied_count: int, max_scan: int

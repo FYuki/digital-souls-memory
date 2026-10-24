@@ -299,7 +299,7 @@ class RecallService:
                     accepted = trial
                     continue
                 width = max((len(s.text) for v in group for s in v.spans), default=0) // 2
-                while width >= max(1, len(search_text)):
+                while width > 0:
                     smaller = tuple(
                         replace(
                             v,
