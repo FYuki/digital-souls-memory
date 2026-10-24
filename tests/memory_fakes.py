@@ -279,6 +279,15 @@ class FakeMemoryTransaction:
                     (self.character, relation.to_id) in self.store.values
                     and (self.character, relation.to_id) in self.store.withdrawn
                 )
+                or any(
+                    target.id == relation.to_id
+                    and target.kind == other.kind == "fact"
+                    and target.id != other.id
+                    and (target.subject, target.predicate, target.object)
+                    == (other.subject, other.predicate, other.object)
+                    for target in values
+                    for other in values
+                )
             ):
                 neighbors.add(relation.to_id)
             if relation.to_id in identifiers:

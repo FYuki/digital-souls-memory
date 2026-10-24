@@ -14,6 +14,7 @@ from digital_souls_memory.memory.domain import (
     MemoryRelation,
 )
 from digital_souls_memory.memory.inputs import MemoryInputs
+from digital_souls_memory.memory.projection import collect_evidence, projection_input
 from digital_souls_memory.memory.use_cases import MemoryService
 from digital_souls_memory.memory.worker import MemoryWorker
 from tests.evidence_support import RECORDED, TEXT, receipt, session, turn
@@ -333,3 +334,98 @@ def test_update_of_absorbed_repetition_targets_the_representative() -> None:
         [(updated.id, "tea")],
         (MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),),
     )
+
+
+@pytest.mark.parametrize(
+    "case,expected_active",
+    [
+        ("explicit-chain", {"a", "d"}),
+        ("implicit-repetition", {"a", "d"}),
+        ("updates", {"d"}),
+        ("contradicts-then-derives", {"d"}),
+        ("different-spo-extends", {"a"}),
+        ("ordinary-derives", {"a", "d"}),
+    ],
+)
+def test_scoped_projection_matches_full_values_and_relations_after_absorption(
+    case: str, expected_active: set[str]
+) -> None:
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    original = replace(memory(), id="a")
+    proposals = [ExtractionProposal(memories=(original,), relations=())]
+    if case != "ordinary-derives":
+        for identifier, target, source in (("b", "a", "turn-2"), ("c", "b", "turn-3")):
+            candidate = replace(
+                original,
+                id=identifier,
+                object="water"
+                if case == "different-spo-extends" and identifier == "c"
+                else "coffee",
+                source_turn_ids=(source,),
+            )
+            proposals.append(
+                ExtractionProposal(
+                    memories=(candidate,),
+                    relations=()
+                    if case == "implicit-repetition"
+                    else (MemoryRelation(from_id=identifier, to_id=target, type="extends"),),
+                )
+            )
+    relation_type = (
+        "updates"
+        if case == "updates"
+        else "contradicts"
+        if case == "contradicts-then-derives"
+        else "derives"
+    )
+    derived = replace(
+        original,
+        id="d",
+        object="tea",
+        content="紅茶",
+        valid_from=RECORDED,
+        source_turn_ids=(f"turn-{len(proposals) + 1}",),
+    )
+    proposals.append(
+        ExtractionProposal(
+            memories=(derived,),
+            relations=(
+                MemoryRelation(
+                    from_id="d",
+                    to_id="a" if case == "ordinary-derives" else "c",
+                    type=relation_type,
+                ),
+            ),
+        )
+    )
+    if case == "contradicts-then-derives":
+        proposals.append(
+            ExtractionProposal(
+                memories=(replace(derived, id="e", object="juice", source_turn_ids=("turn-5",)),),
+                relations=(MemoryRelation(from_id="e", to_id="c", type="derives"),),
+            )
+        )
+    for number, proposal in enumerate(proposals, 1):
+        source = f"turn-{number}"
+        h.evidence.add_turn(replace(turn(source, actor="user-a"), occurred_at=RECORDED))
+        h.gateway.output = proposal
+        worker.process("char-b", source)
+        state = store.get_extraction("char-b", source)
+        assert state is not None and state.status == "done"
+
+    # Full projection is a read-only oracle; rebuilding globally would hide missing writes.
+    with store.transaction("char-b") as tx:
+        snapshot = projection_input(tx)
+        full_values, full_relations = collect_evidence(snapshot, "char-b", service.inputs).project(
+            snapshot, h.now
+        )
+        saved_values = {v.id: v for v in tx.memories()}
+        saved_relations = tx.applied_relations()
+    assert {v.id for v in service.active("char-b")} == expected_active
+    if case not in ("different-spo-extends",):
+        assert MemoryRelation(from_id="d", to_id="a", type=relation_type) in full_relations
+    assert saved_values == full_values
+    assert set(saved_relations) == set(full_relations)
