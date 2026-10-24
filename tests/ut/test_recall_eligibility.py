@@ -354,6 +354,48 @@ def test_window_keeps_match_after_characters_with_expanding_case_folds() -> None
     assert result.text == text[result.start : result.end]
 
 
+@pytest.mark.parametrize(
+    "answer,query,width,match",
+    [
+        ("blue station: November 3.", "BLUE STATION?", 100, "blue station: November 3."),
+        ("Straße station: November 3.", "STRASSE STATION?", 100, "Straße station: November 3."),
+        ("ß.", "SS?", 1, "ß"),
+        ("ßa.", "SA?", 1, "ßa"),
+    ],
+)
+def test_partial_casefold_match_returns_original_codepoint_boundaries(
+    answer: str, query: str, width: int, match: str
+) -> None:
+    from digital_souls_memory.evidence.provision import SourceSpan
+
+    text = "雑記。" * 30 + answer + "雑記。" * 30
+    span = SourceSpan(
+        turn_id="unicode",
+        start=7,
+        end=7 + len(text),
+        text=text,
+        actor="char-c",
+        language="de",
+        truncated=False,
+        original_start=7,
+        original_end=7 + len(text),
+    )
+    result = window_span(span, query=query, width=width)
+    assert match in result.text
+    assert result.text == text[result.start - 7 : result.end - 7]
+    assert result.end - result.start <= max(width, len(match))
+    assert (result.original_start, result.original_end) == (7, 7 + len(text))
+    assert (result.turn_id, result.actor, result.language) == ("unicode", "char-c", "de")
+
+
+def test_window_preserves_an_entire_full_match_even_below_its_width() -> None:
+    from digital_souls_memory.recall.windowing import window_bounds
+
+    text = "前置き。" * 10 + "Straße station" + "後置き。" * 10
+    start, end = window_bounds(text, "STRASSE STATION", 1)
+    assert text[start:end] == "Straße station"
+
+
 @pytest.mark.parametrize("kind", ["fact", "commitment"])
 def test_resolving_and_assembling_instruction_text_does_not_reinforce_or_promote(kind: str) -> None:
     source = turn(text=INSTRUCTION)

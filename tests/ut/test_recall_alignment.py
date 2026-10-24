@@ -69,8 +69,18 @@ def recall_calls(*inputs: str | float) -> Iterator[set[CodeType]]:
             "BLUE station",
         ),
         ("無関係。" * 100, "xyz", "無関係。"),
+        (
+            "雑記。" * 3000 + "blue station: November 3." + "雑記。" * 3000,
+            "BLUE STATION?",
+            "blue station: November 3.",
+        ),
+        (
+            "雑記。" * 3000 + "Straße station: November 3." + "雑記。" * 3000,
+            "STRASSE STATION?",
+            "Straße station: November 3.",
+        ),
     ],
-    ids=["question-terms", "unicode-casefold", "no-match"],
+    ids=["question-terms", "unicode-casefold", "no-match", "partial-casefold", "partial-expansion"],
 )
 def test_product_and_evaluation_use_one_window_selector(text: str, query: str, match: str) -> None:
     span = SourceSpan(
@@ -98,6 +108,53 @@ def test_product_and_evaluation_use_one_window_selector(text: str, query: str, m
     )
     assert product.text == text[product.start - 7 : product.end - 7]
     assert product_calls & evaluation_calls, "Both paths must call the same recall function"
+
+
+def test_service_shrinks_a_partial_match_below_the_full_question_length() -> None:
+    from digital_souls_memory.recall.context import serialize_response
+    from digital_souls_memory.recall.inputs import InputLabel, LocalOnly
+
+    h = RecallHarness()
+    original = "日常の記録。" * 1200 + "約束は11月3日。" + "日常の記録。" * 1200
+    h.seed(turn(text=original), product_memory())
+    service = RecallService(
+        evidence=h.evidence,
+        characters=IdentityCharacters(lambda: h.identity),
+        retriever=h.retriever,
+        embedding=h.embedding,
+        reranker=h.reranker,
+        counter=h.counter,
+        provisions=h.provisions,
+        selections=h.selections,
+        clock=lambda: h.now,
+        monotonic=StepClock(),
+        id_factory=h.new_provision_id,
+        delivery_timeout=timedelta(minutes=10),
+        non_sensitive_labels=frozenset(),
+        settings=RecallSettings(),
+    )
+    response = service.recall(
+        character_id="char-b",
+        session_id="session-1",
+        format="materials",
+        query="約束の日付はいつ？" + "補足" * 4000,
+        turn_id=None,
+        sensitivity="sensitive",
+        classifier_version="synthetic-v1",
+    )
+    assert len(response.memories) == 1
+    assert any("約束は11月3日。" in s.text for s in response.source_spans)
+    for span in response.source_spans:
+        assert span.text == original[span.start : span.end]
+    assert (
+        h.counter.count(
+            LocalOnly(
+                texts=(serialize_response(response),),
+                labels=(InputLabel("sensitive", "synthetic-v1"),),
+            )
+        )
+        <= 1500
+    )
 
 
 @pytest.mark.parametrize(

@@ -235,6 +235,67 @@ def test_question_terms_keep_the_answer_in_the_long_original_and_provision(
     h.assert_record_matches(body)
 
 
+@pytest.mark.parametrize("form", ["materials", "assembled"])
+@pytest.mark.parametrize(
+    "original,query,answer",
+    [
+        (
+            "日常の記録。" * 1200 + "約束は11月3日。" + "日常の記録。" * 1200,
+            "約束の日付はいつ？" + "補足" * 4000,
+            "約束は11月3日。",
+        ),
+        (
+            "雑記。" * 3000 + "blue station: November 3." + "雑記。" * 3000,
+            "BLUE STATION?",
+            "blue station: November 3.",
+        ),
+        (
+            "雑記。" * 3000 + "Straße station: November 3." + "雑記。" * 3000,
+            "STRASSE STATION?",
+            "Straße station: November 3.",
+        ),
+    ],
+    ids=["long-question", "partial-casefold", "partial-expansion"],
+)
+def test_partial_match_survives_budgeting_in_http_and_provision(
+    harness: "RecallHarness", form: str, original: str, query: str, answer: str
+) -> None:
+    h = harness
+    h.seed(turn(text=original), memory())
+    response = h.client.post(
+        "/characters/char-b/recall", json=request(form=form) | {"query": query}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert [m["id"] for m in body["memories"]] == [memory().id]
+    assert any(answer in s["text"] for s in body["source_spans"])
+    for span in body["source_spans"]:
+        assert span["text"] == original[span["start"] : span["end"]]
+        assert span["truncated"] is True
+        assert (span["original_start"], span["original_end"]) == (0, len(original))
+    assert body["context"] == (
+        "\n".join(s["text"] for s in body["source_spans"]) if form == "assembled" else None
+    )
+    assert (len(counted_response(h, body)) + 3) // 4 <= 1500
+    h.assert_record_matches(body)
+
+
+@pytest.mark.parametrize("form", ["materials", "assembled"])
+def test_full_match_that_exceeds_budget_is_not_cut_to_return_a_memory(
+    harness: "RecallHarness", form: str
+) -> None:
+    h = harness
+    query = "検索全文" * 2000
+    h.seed(turn(text="前置き。" + query + "後置き。"), memory())
+    response = h.client.post(
+        "/characters/char-b/recall", json=request(form=form) | {"query": query}
+    )
+    assert response.status_code == 200
+    assert response.json()["memories"] == []
+    assert response.json()["source_spans"] == []
+    h.assert_record_matches(response.json())
+
+
 def test_negative_cosine_is_clamped_before_top_twenty_and_score_recording(
     harness: "RecallHarness", monkeypatch: pytest.MonkeyPatch
 ) -> None:
