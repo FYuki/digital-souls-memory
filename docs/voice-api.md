@@ -7,7 +7,7 @@ Core 専用の登録・取得 API です。作者が承認した逐語の代表�
 ## 起動と保存
 
 通常の `digital_souls_memory.api:create_app --factory` で router が有効になります。
-`MEMORY_DATABASE_URL` を指定し、明示的に `alembic upgrade head`（0005）を実行してください。
+`MEMORY_DATABASE_URL` を指定し、明示的に `alembic upgrade head` を実行してください。
 起動時の自動 DDL はありません。資料と初期整合チェックは PostgreSQL に保存します。
 `create_app(voice_store=..., store=..., identity_store=..., llm_gateway=..., reviewer=..., clock=...)`
 で各ポートを注入できます。実モデル接続は提供していません。

@@ -7,7 +7,7 @@ UT / IT1 の socket 禁止は保持し、Compose runner だけ明示解除する
 この ST は合成データ専用。DB 名 memory_core_st、管理者 memory_st_admin、
 通常接続 memory_st_app、削除接続 memory_st_delete を分離する。
 synthetic-only / synthetic-st-credential は公開合成値であり、実 credential・秘密ではない。
-新しい Compose project と tmpfs を毎回作り、管理接続で空 DB を確認して既存0009まで適用。
+新しい Compose project と tmpfs を毎回作り、管理接続で空 DB を確認して Alembic スクリプトの head まで適用する。
 通常ロールには memory_deletion_executor を付けない。
 管理接続の利用は初期化と読取監査だけで、会話・人格・声・Profile は HTTP で投入する。
 
