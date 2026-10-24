@@ -37,11 +37,12 @@ def search_rows(
         if lexical and not terms:
             continue
         width = limit
+        exact = lexical
         while True:
             accepted: dict[tuple[str, str, str], DictRow] = {}
             scanned = 0
             with _candidates(
-                connection, terms, vector, space, width, lexical, character_id, now
+                connection, terms, vector, space, width, lexical, character_id, now, exact
             ) as cursor:
                 while len(accepted) < limit:
                     rows = cursor.fetchmany(batch_size)
@@ -85,9 +86,11 @@ def search_rows(
                                 break
                     # Release the preceding batch before fetching its replacement.
                     del rows, batch_materials
-            if len(accepted) == limit or scanned < width:
+            if len(accepted) == limit or (exact and scanned < width):
                 found.update(accepted)
                 break
+            # An approximate scan can stop at its exploration cap before the true tail.
+            exact = True
             width *= 2
     return tuple(found.values())
 
@@ -102,6 +105,7 @@ def _candidates(
     lexical: bool,
     character_id: str,
     now: datetime,
+    exact: bool,
 ) -> Iterator[psycopg.ServerCursor[DictRow]]:
     matches = ["search_text LIKE likequery(%s)" for _ in terms]
     predicate = " AND (" + " OR ".join(matches) + ")" if lexical else ""
@@ -110,6 +114,9 @@ def _candidates(
         if lexical
         else "embedding <=> %s::vector"
     )
+    if not lexical and exact:
+        # The expression forces a full distance sort instead of a capped HNSW scan.
+        order = "(embedding <=> %s::vector) + 0"
     permission = (
         "((d.kind='anchor' AND d.owner_id=%s) OR (d.kind='memory' AND EXISTS("
         "SELECT 1 FROM derived_memories m WHERE m.character_id=d.owner_id AND m.id=d.identifier "
@@ -130,6 +137,8 @@ def _candidates(
         limit,
     )
     previous = None
+    if not lexical and not exact:
+        connection.execute("SET LOCAL hnsw.iterative_scan = strict_order")
     if lexical:
         setting = connection.execute("SHOW enable_seqscan").fetchone()
         assert setting is not None

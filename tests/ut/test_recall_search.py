@@ -41,6 +41,8 @@ class SearchConnection:
     def execute(self, query: str, params: tuple[object, ...] = ()) -> Rows:
         if query.startswith("SET TRANSACTION"):
             return Rows([])
+        if query == "SET LOCAL hnsw.iterative_scan = strict_order":
+            return Rows([])
         if query == "SHOW enable_seqscan":
             return Rows([{"enable_seqscan": self.setting}])
         if query.startswith("SELECT set_config"):
@@ -130,7 +132,7 @@ def test_search_computes_term_ratio_for_semantic_candidates(
     assert found["lexical"] == pytest.approx(expected)
     assert found["semantic"] == pytest.approx(0.9)
     if query == "%_\\":
-        assert connection.closed == 1
+        assert connection.closed == len(connection.limits)
 
 
 @pytest.mark.parametrize("denied_count", [64, 512])
@@ -461,3 +463,73 @@ def test_search_closes_cursor_and_propagates_failure(
     assert connection.closed == len(connection.limits)
     if stage != "declare":
         assert connection.setting == "on"
+
+
+@pytest.mark.parametrize("allowed_count", [0, 2, 3])
+def test_short_approximate_scan_is_not_treated_as_exhausted(
+    monkeypatch: pytest.MonkeyPatch, allowed_count: int
+) -> None:
+    source = turn()
+    dependency = asdict(source_stamp(source, character_id="char-b"))
+    documents = [
+        {
+            "allowed": True,
+            "owner_id": "char-b",
+            "kind": "memory",
+            "identifier": f"candidate-{i}",
+            "search_text": "合成文書",
+            "payload": {"source_turn_ids": [source.turn_id]},
+            "dependencies": {
+                "values": [dependency | {"turn_id": "missing"}] if i < 5 else [dependency]
+            },
+        }
+        for i in range(5 + allowed_count)
+    ]
+
+    class ShortCursor(SearchCursor):
+        def fetchmany(self, size: int) -> list[DictRow]:
+            if len(self.connection.limits) == 1:
+                self.width = min(self.width, 2)
+            return super().fetchmany(size)
+
+    class ShortConnection(SearchConnection):
+        def cursor(self, name: str, *, scrollable: bool, withhold: bool) -> SearchCursor:
+            return ShortCursor(self)
+
+        def execute(self, query: str, params: tuple[object, ...] = ()) -> Rows:
+            if "hnsw." in query:
+                return Rows([{"hnsw.iterative_scan": "off"}])
+            return super().execute(query, params)
+
+    def materials(connection: object, ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return (
+            {
+                source.turn_id: CandidateMaterial(
+                    turn=source,
+                    session=session(reports_delivery=False),
+                    actor_is_character=True,
+                    receipt_state=ReceiptState(None, 0),
+                )
+            }
+            if source.turn_id in ids
+            else {}
+        )
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", materials)
+    connection = ShortConnection(documents)
+    found = search_rows(
+        cast(psycopg.Connection[DictRow], connection),
+        character_id="char-b",
+        text="%_\\",
+        vector="[1,0]",
+        space=SPACE,
+        now=RECORDED,
+        timeout=timedelta(minutes=10),
+        limit=3,
+    )
+
+    assert {row["identifier"] for row in found} == {
+        f"candidate-{i}" for i in range(5, 5 + allowed_count)
+    }
+    assert connection.closed == len(connection.limits)
+    assert max(connection.fetch_sizes) <= 3

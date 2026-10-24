@@ -1,8 +1,9 @@
 """Verbatim context windows and whole-payload token accounting."""
 
 import json
-import re
 from copy import deepcopy
+
+from digital_souls_memory.recall.windowing import window_bounds
 
 from .models import rows, string
 from .ports import TokenCounter
@@ -25,20 +26,6 @@ def token_count(hits: list[dict[str, object]], counter: TokenCounter) -> int:
     return count
 
 
-def _query_anchor(text: str, query: str) -> tuple[int, int]:
-    if query in text:
-        return text.index(query), len(query)
-    terms = {query[i : i + 2] for i in range(len(query) - 1)}
-    sentences = list(re.finditer(r"[^。.!?\n]+[。.!?\n]?", text))
-    if not sentences:
-        return 0, 1
-    sentence = max(sentences, key=lambda s: sum(term in s.group() for term in terms))
-    positions = sorted(sentence.group().find(term) for term in terms if term in sentence.group())
-    if not positions:
-        return 0, 1
-    return sentence.start() + positions[len(positions) // 2], 2
-
-
 def _window(hit: dict[str, object], query: str, width: int) -> dict[str, object]:
     spans = rows(hit["source_spans"])
     total = sum(len(string(s["text"])) for s in spans)
@@ -46,11 +33,7 @@ def _window(hit: dict[str, object], query: str, width: int) -> dict[str, object]
     for span in spans:
         text = string(span["text"])
         size = min(len(text), max(1, width * len(text) // total))
-        position, length = _query_anchor(text, query)
-        # Keep the complete query match when it fits; no gold enters window selection.
-        size = max(size, length)
-        left = max(0, min(position - (size - length) // 2, len(text) - size))
-        right = min(len(text), left + size)
+        left, right = window_bounds(text, query, size)
         start, end = int(str(span["start"])), int(str(span["end"]))
         windows.append(
             {

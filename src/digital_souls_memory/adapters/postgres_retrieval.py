@@ -383,7 +383,7 @@ class PostgresRetrievalStore:
         connections = (
             self._connections
             if self._connections.bound is not None
-            else PostgresConnections(self.url)
+            else PostgresConnections(self.url, configure=self._connections.configure)
         )
         reader = PostgresRetrievalStore(
             self.url, delivery_timeout=self.timeout, connections=connections
