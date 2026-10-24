@@ -225,3 +225,111 @@ def test_scoped_rebuild_restores_only_the_affected_withdrawn_projection() -> Non
         service.rebuild(tx, frozenset({affected.id}))
     assert store.get_memory("char-b", affected.id) == affected
     assert store.withdrawn == {("char-b", unrelated.id)}
+
+
+@pytest.mark.parametrize(
+    "replacement_id,recorded_delay",
+    [("z-reextracted", 0), ("a-reextracted", 1)],
+    ids=["id-only", "later-recorded-at"],
+)
+def test_reextraction_after_repetition_keeps_update_and_saved_relation(
+    replacement_id: str, recorded_delay: int
+) -> None:
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    original = replace(memory(), id="a-original")
+    repetition = replace(original, id="b-repetition", source_turn_ids=("turn-2",))
+    updated = replace(
+        original,
+        id="c-update",
+        object="tea",
+        content="紅茶",
+        source_turn_ids=("turn-3",),
+        valid_from=RECORDED,
+    )
+    for identifier in ("turn-1", "turn-2", "turn-3"):
+        h.evidence.add_turn(
+            replace(
+                turn(identifier, actor="user-a"),
+                occurred_at=RECORDED if identifier == "turn-3" else original.valid_from,
+            )
+        )
+    h.gateway.output = (original,)
+    worker.process("char-b", "turn-1")
+    assert service.active("char-b") == (original,)
+    h.gateway.output = (repetition,)
+    worker.process("char-b", "turn-2")
+    assert [(v.id, v.object, v.source_turn_ids) for v in service.active("char-b")] == [
+        (original.id, "coffee", ("turn-1", "turn-2"))
+    ]
+    with store.list_relations("char-b", repetition.id) as relations:
+        assert tuple(relations) == (
+            MemoryRelation(from_id=repetition.id, to_id=original.id, type="extends"),
+        )
+    h.gateway.output = ExtractionProposal(
+        memories=(updated,),
+        relations=(MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),),
+    )
+    worker.process("char-b", "turn-3")
+    assert service.active("char-b") == (updated,)
+    with store.list_relations("char-b", updated.id) as relations:
+        assert tuple(relations) == (
+            MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),
+        )
+
+    h.gateway.output = (
+        replace(
+            original,
+            id=replacement_id,
+            recorded_at=original.recorded_at + timedelta(seconds=recorded_delay),
+        ),
+    )
+    store.requeue("turn-1")
+    worker.process("char-b", "turn-1")
+    for identifier in ("turn-1", "turn-2", "turn-3"):
+        state = store.get_extraction("char-b", identifier)
+        assert state is not None and state.status == "done"
+    with store.list_relations("char-b", updated.id) as relations:
+        saved_relations = tuple(relations)
+    assert ([(v.id, v.object) for v in service.active("char-b")], saved_relations) == (
+        [(updated.id, "tea")],
+        (MemoryRelation(from_id=updated.id, to_id=replacement_id, type="updates"),),
+    )
+
+
+def test_update_of_absorbed_repetition_targets_the_representative() -> None:
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    original = replace(memory(), id="a-original")
+    repetition = replace(original, id="b-repetition", source_turn_ids=("turn-2",))
+    for identifier, candidate in (("turn-1", original), ("turn-2", repetition)):
+        h.evidence.add_turn(turn(identifier, actor="user-a"))
+        h.gateway.output = (candidate,)
+        worker.process("char-b", identifier)
+    assert [(v.id, v.object) for v in service.active("char-b")] == [(original.id, "coffee")]
+    updated = replace(
+        original,
+        id="c-update",
+        object="tea",
+        content="紅茶",
+        valid_from=RECORDED,
+        source_turn_ids=("turn-3",),
+    )
+    h.evidence.add_turn(replace(turn("turn-3", actor="user-a"), occurred_at=RECORDED))
+    h.gateway.output = ExtractionProposal(
+        memories=(updated,),
+        relations=(MemoryRelation(from_id=updated.id, to_id=repetition.id, type="updates"),),
+    )
+    worker.process("char-b", "turn-3")
+    state = store.get_extraction("char-b", "turn-3")
+    assert state is not None and state.status == "done"
+    with store.list_relations("char-b", updated.id) as relations:
+        saved_relations = tuple(relations)
+    assert ([(v.id, v.object) for v in service.active("char-b")], saved_relations) == (
+        [(updated.id, "tea")],
+        (MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),),
+    )

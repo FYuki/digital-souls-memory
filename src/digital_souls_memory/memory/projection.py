@@ -18,6 +18,12 @@ from digital_souls_memory.memory.ports import MemoryContribution, MemoryTransact
 from digital_souls_memory.memory.relations import resolve_relations
 
 
+def _resolve_absorbed_relations(
+    relations: tuple[MemoryRelation, ...], representatives: dict[str, str]
+) -> tuple[MemoryRelation, ...]:
+    return tuple(replace(r, to_id=representatives.get(r.to_id, r.to_id)) for r in relations)
+
+
 def _dependency_order(
     candidates: tuple[DerivedMemory, ...], proposed: tuple[MemoryRelation, ...]
 ) -> tuple[DerivedMemory, ...]:
@@ -186,7 +192,18 @@ class ProjectionEvidence:
             and v.id not in invalid_baselines
             and all(self.texts.get(i) for i in v.source_turn_ids)
         )
-        candidates = tuple(v.memory for v in snapshot.contributions)
+        candidates = tuple(
+            v.memory
+            for v in sorted(
+                (c for c in snapshot.contributions if c.turn_id in self.turns),
+                key=lambda c: (
+                    c.memory.valid_from,
+                    self.turns[c.turn_id].occurred_at,
+                    self.turns[c.turn_id].recorded_at,
+                    c.turn_id,
+                ),
+            )
+        )
         current_ids: set[str] = set()
         for contribution in snapshot.contributions:
             state = snapshot.states[contribution.turn_id]
@@ -200,7 +217,7 @@ class ProjectionEvidence:
         proposed = snapshot.proposed
         known = (
             set(result)
-            | {v.id for v in candidates}
+            | {v.memory.id for v in snapshot.contributions}
             | generated
             | {v.id for v in snapshot.baselines}
             | {v.id for v in snapshot.references}
@@ -208,18 +225,22 @@ class ProjectionEvidence:
         if any(r.to_id not in known for r in proposed):
             raise MemoryValidationError("Relation target is absent or outside active evidence")
         relations: list[MemoryRelation] = []
+        representatives: dict[str, str] = {}
         for candidate in _dependency_order(candidates, proposed):
             if candidate.id not in current_ids:
                 continue
             if any(not self.texts.get(i) for i in candidate.source_turn_ids):
                 continue
             candidate = self._recount(candidate)
-            explicit = [r for r in proposed if r.from_id == candidate.id]
+            explicit = _resolve_absorbed_relations(
+                tuple(r for r in proposed if r.from_id == candidate.id), representatives
+            )
+            applied = _resolve_absorbed_relations(snapshot.applied, representatives)
             if any(
                 r.to_id not in result
                 or (
                     result[r.to_id].superseded_at is not None
-                    and not (r.type == "contradicts" and r in snapshot.applied)
+                    and not (r.type == "contradicts" and r in applied)
                 )
                 for r in explicit
             ):
@@ -234,7 +255,7 @@ class ProjectionEvidence:
                     old.valid_to is not None
                     and not (
                         targeted.type == "updates"
-                        and targeted in snapshot.applied
+                        and targeted in applied
                         and old.valid_to == candidate.valid_from
                     )
                 ):
@@ -267,9 +288,15 @@ class ProjectionEvidence:
                 result[old.id] = value
                 # Keep the candidate as history, without publishing a duplicate fact.
                 result[candidate.id] = supersede(candidate, at=now)
+                if old.kind == candidate.kind == "fact" and (
+                    old.subject,
+                    old.predicate,
+                    old.object,
+                ) == (candidate.subject, candidate.predicate, candidate.object):
+                    representatives[candidate.id] = old.id
                 relations.append(MemoryRelation(from_id=candidate.id, to_id=old.id, type="extends"))
             elif old is not None:
-                if targeted in snapshot.applied:
+                if targeted in applied:
                     closed = apply_temporal_effect(
                         old, candidate, relation_type="updates", source_turns=(), at=now
                     )
