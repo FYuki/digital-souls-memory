@@ -343,3 +343,70 @@ def test_fixed_change_does_not_read_all_unrelated_memories_under_recall_lock(
         count: value.rows for count, value in measurements.items()
     }
     assert measurements[300].queries <= measurements[20].queries
+
+
+def test_derives_from_stable_representative_does_not_expand_to_existing_referrers(
+    app_database_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+    record_property: Callable[[str, object], None],
+) -> None:
+    monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
+    register_characters()
+    evidence = PostgresEvidenceStore(app_database_url)
+    evidence.add_session(session(reports_delivery=False))
+    store, gateway = PostgresMemoryStore(app_database_url), RecordingGateway()
+    worker = extraction_worker(app_database_url)
+    worker.extractor.gateway = gateway
+    for number, identifier in enumerate(("a", "b"), 1):
+        source = f"turn-{number}"
+        evidence.add_turn(turn(source, actor="user-a"))
+        gateway.output = (replace(memory(), id=identifier, source_turn_ids=(source,)),)
+        worker.process("char-b", source)
+        state = store.get_extraction("char-b", source)
+        assert state is not None and state.status == "done"
+    measurements: dict[int, LockMeasurements] = {}
+    closures: dict[int, frozenset[str]] = {}
+    seeded = 0
+    for count in (1, 100):
+        with store.transaction("char-b") as tx:
+            for number in range(seeded, count):
+                identifier = f"referrer-{number}"
+                tx.add_memory(replace(memory(), id=identifier, object=identifier))
+                tx.add_relation(MemoryRelation(from_id=identifier, to_id="a", type="derives"))
+        seeded = count
+        before_values = {
+            f"referrer-{n}": store.get_memory("char-b", f"referrer-{n}") for n in range(count)
+        }
+        before_index = document_states(app_database_url)
+        source = f"new-source-{count}"
+        identifier = f"new-derived-{count}"
+        evidence.add_turn(turn(source, actor="user-a"))
+        gateway.output = ExtractionProposal(
+            memories=(
+                replace(memory(), id=identifier, object=identifier, source_turn_ids=(source,)),
+            ),
+            relations=(MemoryRelation(from_id=identifier, to_id="a", type="derives"),),
+        )
+        with monkeypatch.context() as patch:
+            measured = LockMeasurements(patch)
+            worker.process("char-b", source)
+        state = store.get_extraction("char-b", source)
+        assert state is not None and state.status == "done"
+        measurements[count] = measured
+        with store.transaction("char-b") as tx:
+            closures[count] = worker.service.affected(tx, source)
+        record_property(
+            str(count),
+            {
+                "closure": sorted(closures[count]),
+                "queries": measured.queries,
+                "rows": measured.rows,
+                "lock_seconds": measured.hold_seconds,
+            },
+        )
+        assert {key: store.get_memory("char-b", key) for key in before_values} == before_values
+        after_index = document_states(app_database_url)
+        assert {key: after_index[key] for key in before_index} == before_index
+    assert closures == {1: frozenset({"new-derived-1"}), 100: frozenset({"new-derived-100"})}
+    assert measurements[100].queries <= measurements[1].queries
+    assert measurements[100].rows <= measurements[1].rows

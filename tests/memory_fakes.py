@@ -116,6 +116,7 @@ class FakeMemoryStore:
         self.baseline_inputs: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
         self.history: dict[tuple[str, str], MemoryContribution] = {}
         self.withdrawn: set[tuple[str, str]] = set()
+        self.representatives: dict[tuple[str, str], str] = {}
 
     @contextmanager
     def transaction(self, character_id: str) -> Iterator[MemoryTransaction]:
@@ -131,6 +132,7 @@ class FakeMemoryStore:
                 dict(self.dependencies),
                 dict(self.history),
                 set(self.withdrawn),
+                dict(self.representatives),
             )
             try:
                 yield FakeMemoryTransaction(self, character_id)
@@ -149,6 +151,7 @@ class FakeMemoryStore:
                     self.dependencies,
                     self.history,
                     self.withdrawn,
+                    self.representatives,
                 ) = snapshot
                 raise
 
@@ -215,6 +218,32 @@ class FakeMemoryTransaction:
         self.store = store
         self.character = character
 
+    def temporal_origins(
+        self, identifiers: frozenset[str]
+    ) -> dict[str, dict[str, datetime | None]]:
+        return {
+            value.id: {
+                "valid_to": value.valid_to,
+                "superseded_at": value.superseded_at,
+                "last_reinforced_at": value.last_reinforced_at,
+            }
+            for value in self.baselines(identifiers)
+        }
+
+    def representatives(self, identifiers: frozenset[str] | None = None) -> dict[str, str]:
+        return {
+            identifier: target
+            for (owner, identifier), target in self.store.representatives.items()
+            if owner == self.character and (identifiers is None or identifier in identifiers)
+        }
+
+    def sync_representatives(self, identifiers: frozenset[str], values: dict[str, str]) -> None:
+        self.store.representatives = {
+            (owner, identifier): target
+            for (owner, identifier), target in self.store.representatives.items()
+            if owner != self.character or identifier not in identifiers
+        } | {(self.character, identifier): target for identifier, target in values.items()}
+
     def contribution_ids(self, turn_id: str) -> frozenset[str]:
         return frozenset(
             identifier
@@ -278,15 +307,6 @@ class FakeMemoryTransaction:
                 or (
                     (self.character, relation.to_id) in self.store.values
                     and (self.character, relation.to_id) in self.store.withdrawn
-                )
-                or any(
-                    target.id == relation.to_id
-                    and target.kind == other.kind == "fact"
-                    and target.id != other.id
-                    and (target.subject, target.predicate, target.object)
-                    == (other.subject, other.predicate, other.object)
-                    for target in values
-                    for other in values
                 )
             ):
                 neighbors.add(relation.to_id)

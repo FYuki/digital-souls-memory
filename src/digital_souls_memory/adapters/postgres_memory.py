@@ -92,6 +92,32 @@ class _MemoryTransaction:
         self.character_id = character_id
         self.read_only = read_only
 
+    def representatives(self, identifiers: frozenset[str] | None = None) -> dict[str, str]:
+        selected = None if identifiers is None else list(identifiers)
+        rows = self.connection.execute(
+            "SELECT absorbed_id,representative_id FROM memory_representatives "
+            "WHERE character_id=%s AND (%s::text[] IS NULL OR absorbed_id=ANY(%s))",
+            (self.character_id, selected, selected),
+        ).fetchall()
+        return {r["absorbed_id"]: r["representative_id"] for r in rows}
+
+    def sync_representatives(self, identifiers: frozenset[str], values: dict[str, str]) -> None:
+        existing = self.representatives(identifiers)
+        for identifier, target in existing.items():
+            if values.get(identifier) != target:
+                self.connection.execute(
+                    "DELETE FROM memory_representatives WHERE character_id=%s AND absorbed_id=%s",
+                    (self.character_id, identifier),
+                )
+        for identifier, target in values.items():
+            if existing.get(identifier) != target:
+                self.connection.execute(
+                    "INSERT INTO memory_representatives VALUES(%s,%s,%s) "
+                    "ON CONFLICT(character_id,absorbed_id) DO UPDATE "
+                    "SET representative_id=EXCLUDED.representative_id",
+                    (self.character_id, identifier, target),
+                )
+
     def contribution_ids(self, turn_id: str) -> frozenset[str]:
         rows = self.connection.execute(
             "SELECT memory_id FROM memory_generated WHERE character_id=%s AND turn_id=%s "
@@ -165,16 +191,8 @@ class _MemoryTransaction:
                 "SELECT matched.memory_id FROM seeds seed CROSS JOIN LATERAL "
                 "({}) matched UNION SELECT current.memory_id FROM memory_generated seed "
                 "JOIN memory_candidates current USING(character_id,turn_id) "
-                "WHERE seed.character_id=%s AND seed.memory_id=ANY(%s) UNION "
-                "SELECT seed.memory_id FROM relations r CROSS JOIN LATERAL ("
-                "SELECT memory_id,payload FROM memory_generated WHERE character_id=%s "
-                "AND memory_id=r.to_id AND payload->>'kind'='fact' UNION ALL "
-                "SELECT memory_id,payload FROM memory_baselines WHERE character_id=%s "
-                "AND memory_id=r.to_id AND payload->>'kind'='fact') seed "
-                "WHERE r.from_id=ANY(%s) AND r.type='derives' "
-                "AND EXISTS (SELECT 1 FROM ({}) matched "
-                "WHERE matched.memory_id<>seed.memory_id)"
-            ).format(fact_matches, fact_matches),
+                "WHERE seed.character_id=%s AND seed.memory_id=ANY(%s)"
+            ).format(fact_matches),
             (
                 self.character_id,
                 list(identifiers),
@@ -189,11 +207,6 @@ class _MemoryTransaction:
                 self.character_id,
                 self.character_id,
                 list(identifiers),
-                self.character_id,
-                self.character_id,
-                list(identifiers),
-                self.character_id,
-                self.character_id,
             ),
         ).fetchall()
         return frozenset(r["memory_id"] for r in rows)
@@ -280,6 +293,23 @@ class _MemoryTransaction:
         ).fetchall()
         sources = self._source_map("memory_baseline_sources", [r["memory_id"] for r in rows])
         return tuple(restore_memory(r["payload"], sources[r["memory_id"]]) for r in rows)
+
+    def temporal_origins(
+        self, identifiers: frozenset[str]
+    ) -> dict[str, dict[str, datetime | None]]:
+        rows = self.connection.execute(
+            "SELECT memory_id,payload,temporal_origin FROM memory_baselines "
+            "WHERE character_id=%s AND memory_id=ANY(%s)",
+            (self.character_id, list(identifiers)),
+        ).fetchall()
+        return {
+            row["memory_id"]: {
+                field: None if value is None else datetime.fromisoformat(value)
+                for field in ("valid_to", "superseded_at", "last_reinforced_at")
+                for value in [(row["payload"] | row["temporal_origin"])[field]]
+            }
+            for row in rows
+        }
 
     def replace_projection(self, value: DerivedMemory) -> None:
         record = self._record(value)

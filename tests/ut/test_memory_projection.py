@@ -11,6 +11,7 @@ from digital_souls_memory.memory.domain import (
     DerivedMemory,
     ExtractionProposal,
     ExtractionState,
+    InputDependency,
     MemoryRelation,
 )
 from digital_souls_memory.memory.inputs import MemoryInputs
@@ -24,6 +25,102 @@ from tests.memory_fakes import FakeMemoryStore
 from tests.memory_support import memory
 
 pytestmark = pytest.mark.ut
+
+
+@pytest.mark.parametrize("baseline", [False, True])
+def test_retry_keeps_only_surviving_baseline_representative(baseline: bool) -> None:
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    for source, identifier in (("turn-1", "a"), ("turn-2", "b")):
+        h.evidence.add_turn(turn(source, actor="user-a"))
+        h.gateway.output = (replace(memory(), id=identifier, source_turn_ids=(source,)),)
+        worker.process("char-b", source)
+    with store.transaction("char-b") as tx:
+        assert tx.representatives() == {"b": "a"}
+        if baseline:
+            value = store.get_memory("char-b", "b")
+            assert value is not None
+            tx.replace_memory(value)
+        state = tx.get_extraction("turn-2")
+        assert state is not None
+        tx.save_extraction(replace(state, status="retry"))
+        service.rebuild(tx, frozenset({"a", "b"}))
+        assert tx.representatives() == ({"b": "a"} if baseline else {})
+
+
+@pytest.mark.parametrize("available_end", [2, 1])
+def test_baseline_mapping_requires_current_dependency_range(available_end: int) -> None:
+    h = Harness()
+    h.evidence.add_turn(turn(text="OK", address_mode="direct", addressees=("user-a",)))
+    h.evidence.add_receipt(receipt("full", 2))
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    with store.transaction("char-b") as tx:
+        tx.add_memory(replace(memory(), id="a"))
+    h.gateway.output = (replace(memory(), id="b"),)
+    MemoryWorker(service, h.extractor).process("char-b", "turn-1")
+    with store.transaction("char-b") as tx:
+        absorbed = store.get_memory("char-b", "b")
+        assert absorbed is not None and absorbed.superseded_at == RECORDED
+        tx.replace_memory(absorbed)
+        store.baseline_inputs[("char-b", "b")] = (
+            InputDependency(
+                turn_id="turn-1",
+                basis="receipt_confirmed",
+                receipt_version=1,
+                available_end=2,
+                used_end=2,
+                deadline=RECORDED,
+            ),
+        )
+    if available_end == 1:
+        h.evidence.add_receipt(receipt("partial", 1))
+    with store.transaction("char-b") as tx:
+        snapshot = projection_input(tx, frozenset({"b"}))
+        projected = collect_evidence(snapshot, "char-b", service.inputs).project(
+            snapshot, RECORDED, select_representatives=True
+        )
+        assert projected.representatives == ({"b": "a"} if available_end == 2 else {})
+
+
+def test_representative_update_rolls_back_with_projection_transaction() -> None:
+    from digital_souls_memory.memory.ports import MemoryUnavailable
+
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    with store.transaction("char-b") as tx:
+        tx.sync_representatives(frozenset({"b"}), {"b": "a"})
+    store.fail_commit = True
+    with pytest.raises(MemoryUnavailable), store.transaction("char-b") as tx:
+        tx.sync_representatives(frozenset({"b"}), {"b": "c"})
+    with store.transaction("char-b") as tx:
+        assert tx.representatives() == {"b": "a"}
+    with store.transaction("char-other") as tx:
+        assert tx.representatives() == {}
+
+
+def test_recalculated_baseline_owns_value_when_original_candidate_has_the_same_id() -> None:
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    for source in ("turn-1", "turn-2"):
+        h.evidence.add_turn(turn(source, actor="user-a"))
+    original = memory()
+    h.gateway.output = (original,)
+    worker.process("char-b", "turn-1")
+    assert service.active("char-b") == (original,)
+    revised = replace(original, content="残存原文で再計算した内容", source_turn_ids=("turn-2",))
+    with store.transaction("char-b") as tx:
+        tx.replace_memory(revised)
+    assert service.active("char-b") == (revised,)
+    with store.transaction("char-b") as tx:
+        service.rebuild(tx, frozenset({original.id}))
+    assert store.get_memory("char-b", original.id) == revised
+    with store.list_relations("char-b", original.id) as relations:
+        assert tuple(relations) == ()
 
 
 def test_active_excludes_invalid_baseline_and_its_dependent_without_missing_target_error() -> None:
@@ -419,13 +516,11 @@ def test_scoped_projection_matches_full_values_and_relations_after_absorption(
     # Full projection is a read-only oracle; rebuilding globally would hide missing writes.
     with store.transaction("char-b") as tx:
         snapshot = projection_input(tx)
-        full_values, full_relations = collect_evidence(snapshot, "char-b", service.inputs).project(
-            snapshot, h.now
-        )
+        full = collect_evidence(snapshot, "char-b", service.inputs).project(snapshot, h.now)
         saved_values = {v.id: v for v in tx.memories()}
         saved_relations = tx.applied_relations()
     assert {v.id for v in service.active("char-b")} == expected_active
     if case not in ("different-spo-extends",):
-        assert MemoryRelation(from_id="d", to_id="a", type=relation_type) in full_relations
-    assert saved_values == full_values
-    assert set(saved_relations) == set(full_relations)
+        assert MemoryRelation(from_id="d", to_id="a", type=relation_type) in full.relations
+    assert saved_values == full.memories
+    assert set(saved_relations) == set(full.relations)
