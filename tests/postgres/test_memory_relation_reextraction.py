@@ -1,9 +1,11 @@
 from dataclasses import replace
 
 import pytest
+from fastapi.testclient import TestClient
 
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
+from digital_souls_memory.api import create_app
 from digital_souls_memory.memory.domain import ExtractionProposal, MemoryRelation
 from tests.evidence_support import RECORDED, session, turn
 from tests.it1.test_memory_extraction import RecordingGateway
@@ -121,3 +123,79 @@ def test_persisted_update_resolves_only_equivalent_reextraction(
             assert state is not None and state.status == "failed"
         else:
             assert NEW_ID not in {v.id for v in reader.active("char-b")}
+
+
+def test_http_list_and_persisted_update_survive_reextraction_after_repetition(
+    app_database_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
+    register_characters()
+    evidence = PostgresEvidenceStore(app_database_url)
+    evidence.add_session(session(reports_delivery=False))
+    original = replace(memory(), id="a-original")
+    repetition = replace(original, id="b-repetition", source_turn_ids=("turn-2",))
+    updated = replace(
+        original,
+        id="c-update",
+        object="tea",
+        content="紅茶",
+        valid_from=RECORDED,
+        source_turn_ids=("turn-3",),
+    )
+    for identifier in ("turn-1", "turn-2", "turn-3"):
+        evidence.add_turn(
+            replace(
+                turn(identifier, actor="user-a"),
+                occurred_at=RECORDED if identifier == "turn-3" else original.valid_from,
+            )
+        )
+    store, gateway = PostgresMemoryStore(app_database_url), RecordingGateway()
+    worker = make_worker(app_database_url, store, gateway)
+    client = TestClient(
+        create_app(clock=lambda: RECORDED, conversation_surfaces=frozenset({"synthetic-chat"}))
+    )
+    gateway.output = (original,)
+    worker.process("char-b", "turn-1")
+    first = client.get("/characters/char-b/memories")
+    assert first.status_code == 200
+    assert [(v["id"], v["object"]) for v in first.json()] == [(original.id, "coffee")]
+    gateway.output = (repetition,)
+    worker.process("char-b", "turn-2")
+    repeated = client.get("/characters/char-b/memories")
+    assert repeated.status_code == 200
+    assert [(v["id"], v["source_turn_ids"]) for v in repeated.json()] == [
+        (original.id, ["turn-1", "turn-2"])
+    ]
+    with store.list_relations("char-b", repetition.id) as relations:
+        assert tuple(relations) == (
+            MemoryRelation(from_id=repetition.id, to_id=original.id, type="extends"),
+        )
+    gateway.output = ExtractionProposal(
+        memories=(updated,),
+        relations=(MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),),
+    )
+    worker.process("char-b", "turn-3")
+    before = client.get("/characters/char-b/memories")
+    assert before.status_code == 200
+    assert [(v["id"], v["object"]) for v in before.json()] == [(updated.id, "tea")]
+    with store.list_relations("char-b", updated.id) as relations:
+        assert tuple(relations) == (
+            MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),
+        )
+
+    gateway.output = (replace(original, id="z-reextracted"),)
+    requested = client.post("/turns/turn-1/extractions")
+    assert requested.status_code == 202
+    worker.process("char-b", "turn-1")
+    restored = PostgresMemoryStore(app_database_url)
+    for identifier in ("turn-1", "turn-2", "turn-3"):
+        state = restored.get_extraction("char-b", identifier)
+        assert state is not None and state.status == "done"
+    after = client.get("/characters/char-b/memories")
+    assert after.status_code == 200
+    with restored.list_relations("char-b", updated.id) as relations:
+        saved_relations = tuple(relations)
+    assert ([(v["id"], v["object"]) for v in after.json()], saved_relations) == (
+        [(updated.id, "tea")],
+        (MemoryRelation(from_id=updated.id, to_id="z-reextracted", type="updates"),),
+    )
