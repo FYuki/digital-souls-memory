@@ -175,7 +175,7 @@ def test_upgrade_restores_payloads_from_direct_sources_and_preserves_literal_con
                 assert conn.execute("SELECT used_text FROM memory_extractions").fetchone() == (
                     TEXT,
                 )
-            command.upgrade(config, "0011")
+            command.upgrade(config, "head")
             monkeypatch.setenv("MEMORY_AUTHOR_ID", "synthetic-author")
             monkeypatch.setenv("MEMORY_AUTHOR_TOKEN", "synthetic-test-credential")
             monkeypatch.setenv("MEMORY_DELETION_DATABASE_URL", url)

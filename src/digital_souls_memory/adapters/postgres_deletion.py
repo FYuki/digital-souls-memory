@@ -643,7 +643,7 @@ class PostgresDeletionStore:
             )
             connection.execute(
                 "UPDATE context_work SET status='retry',token=NULL,signature=NULL,"
-                "completed_signature=NULL,lease_until=NULL "
+                "completed_signature=NULL,lease_until=NULL,evaluated_version=NULL "
                 "WHERE character_id=%s AND session_id=%s AND surface=%s",
                 key,
             )

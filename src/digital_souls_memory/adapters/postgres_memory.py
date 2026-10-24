@@ -91,10 +91,45 @@ class _MemoryTransaction:
 
     def contribution_ids(self, turn_id: str) -> frozenset[str]:
         rows = self.connection.execute(
-            "SELECT memory_id FROM memory_generated WHERE character_id=%s AND turn_id=%s",
-            (self.character_id, turn_id),
+            "SELECT memory_id FROM memory_generated WHERE character_id=%s AND turn_id=%s "
+            "UNION SELECT memory_id FROM memory_baseline_dependencies "
+            "WHERE character_id=%s AND turn_id=%s",
+            (self.character_id, turn_id, self.character_id, turn_id),
         ).fetchall()
         return frozenset(r["memory_id"] for r in rows)
+
+    def baseline_dependencies(
+        self, identifiers: frozenset[str]
+    ) -> dict[str, tuple[InputDependency, ...]]:
+        rows = self.connection.execute(
+            "SELECT memory_id,turn_id,basis,receipt_version,available_end,used_end,deadline "
+            "FROM memory_baseline_dependencies WHERE character_id=%s AND memory_id=ANY(%s)",
+            (self.character_id, list(identifiers)),
+        ).fetchall()
+        result: dict[str, tuple[InputDependency, ...]] = {}
+        for row in rows:
+            identifier = row.pop("memory_id")
+            result[identifier] = (*result.get(identifier, ()), InputDependency(**row))
+        return result
+
+    def history(self, identifiers: frozenset[str]) -> tuple[MemoryContribution, ...]:
+        rows = self.connection.execute(
+            "SELECT turn_id,memory_id,payload FROM memory_generated "
+            "WHERE character_id=%s AND memory_id=ANY(%s)",
+            (self.character_id, list(identifiers)),
+        ).fetchall()
+        sources = self._source_map("memory_generated_sources", [r["memory_id"] for r in rows])
+        return tuple(
+            MemoryContribution(r["turn_id"], restore_memory(r["payload"], sources[r["memory_id"]]))
+            for r in rows
+        )
+
+    def candidates_for_turns(self, turn_ids: frozenset[str]) -> tuple[MemoryContribution, ...]:
+        rows = self.connection.execute(
+            "SELECT memory_id FROM memory_candidates WHERE character_id=%s AND turn_id=ANY(%s)",
+            (self.character_id, list(turn_ids)),
+        ).fetchall()
+        return self.candidates(frozenset(r["memory_id"] for r in rows))
 
     def projection_neighbors(self, identifiers: frozenset[str]) -> frozenset[str]:
         fact_matches = sql.SQL(" UNION ALL ").join(
@@ -125,7 +160,9 @@ class _MemoryTransaction:
                 "WHERE m.character_id=%s AND m.id=to_id AND NOT m.search_eligible)) UNION "
                 "SELECT from_id FROM relations WHERE to_id=ANY(%s) UNION "
                 "SELECT matched.memory_id FROM seeds seed CROSS JOIN LATERAL "
-                "({}) matched"
+                "({}) matched UNION SELECT current.memory_id FROM memory_generated seed "
+                "JOIN memory_candidates current USING(character_id,turn_id) "
+                "WHERE seed.character_id=%s AND seed.memory_id=ANY(%s)"
             ).format(fact_matches),
             (
                 self.character_id,
@@ -139,6 +176,8 @@ class _MemoryTransaction:
                 list(identifiers),
                 self.character_id,
                 self.character_id,
+                self.character_id,
+                list(identifiers),
             ),
         ).fetchall()
         return frozenset(r["memory_id"] for r in rows)

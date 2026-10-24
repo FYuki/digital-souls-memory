@@ -1,7 +1,7 @@
 """Immutable context snapshots and worker ownership values."""
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Literal
 
 from digital_souls_memory.evidence.domain import Session, _aware, _nonblank
@@ -31,6 +31,7 @@ class ContextSnapshot:
     dependencies: tuple[SourceStamp, ...]
     session_ended_at: datetime | None
     next_due_at: datetime | None
+    delivery_timeout: timedelta
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -98,6 +99,8 @@ class ContextWorkState:
     retry_at: datetime | None
     next_due_at: datetime | None
     error: str | None
+    evaluated_version: int | None
+    delivery_timeout: timedelta | None
 
 
 @dataclass(frozen=True, kw_only=True)

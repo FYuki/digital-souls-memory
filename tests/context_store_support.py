@@ -130,6 +130,8 @@ class FakeContextStore:
             retry_at=None,
             next_due_at=None,
             error=None,
+            evaluated_version=None,
+            delivery_timeout=None,
         )
         return claim
 
@@ -141,7 +143,12 @@ class FakeContextStore:
         if not self._owns(claim) or snapshot != self.window.snapshot:
             return False
         current = self.work[(claim.operation, claim.key)]
-        self.work[(claim.operation, claim.key)] = replace(current, signature=snapshot.signature)
+        self.work[(claim.operation, claim.key)] = replace(
+            current,
+            signature=snapshot.signature,
+            evaluated_version=snapshot.notification_version,
+            delivery_timeout=snapshot.delivery_timeout,
+        )
         return True
 
     def _complete(self, claim: "ContextClaim", snapshot: "ContextSnapshot") -> bool:

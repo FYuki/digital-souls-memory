@@ -16,7 +16,10 @@ pytestmark = pytest.mark.postgres
 def test_review_fixes_revision_is_the_single_successor_of_fact_lookup() -> None:
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
     scripts = ScriptDirectory.from_config(config)
-    assert scripts.get_heads() == ["0011"]
+    assert scripts.get_heads() == ["0012"]
+    derived_memory_review = scripts.get_revision("0012")
+    assert derived_memory_review is not None
+    assert derived_memory_review.down_revision == "0011"
     review_fixes = scripts.get_revision("0011")
     assert review_fixes is not None
     assert review_fixes.down_revision == "0010"
