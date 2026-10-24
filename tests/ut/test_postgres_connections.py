@@ -6,9 +6,39 @@ import psycopg
 import pytest
 
 from digital_souls_memory.adapters.postgres_connections import PostgresConnections
+from digital_souls_memory.adapters.postgres_retrieval import PostgresRetrievalStore
 from digital_souls_memory.evidence.provision import ProvisionUnavailable
 
 pytestmark = pytest.mark.ut
+
+
+@pytest.mark.parametrize("bound", [False, True])
+def test_connection_configuration_reaches_snapshot_and_preserves_owner(
+    monkeypatch: pytest.MonkeyPatch, bound: bool
+) -> None:
+    connection = MagicMock()
+    connection.__enter__.return_value = connection
+    connect = MagicMock(return_value=connection)
+    monkeypatch.setattr(psycopg, "connect", connect)
+    configure = MagicMock()
+    supply = PostgresConnections("postgresql://synthetic", configure=configure)
+    store = PostgresRetrievalStore(supply.url, connections=supply)
+    if bound:
+        with supply.request():
+            with store.reading() as reader, reader._connection() as actual:
+                assert actual is connection
+                assert supply.bound is connection and supply.reading
+            assert supply.bound is connection and not supply.reading
+    else:
+        with store.reading() as reader, reader._connection() as actual:
+            assert actual is connection
+            assert supply.bound is None and not supply.reading
+            assert reader._connections.reading
+        assert reader._connections.bound is None and not reader._connections.reading
+        with supply.connection() as actual:
+            assert actual is connection
+    assert configure.call_args_list == [((connection,),)] * (1 if bound else 2)
+    assert supply.bound is None and not supply.reading
 
 
 @pytest.mark.parametrize("fail", [False, True])

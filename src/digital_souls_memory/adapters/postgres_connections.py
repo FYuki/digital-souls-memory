@@ -1,6 +1,6 @@
 """Connection supply with independent operation and read-snapshot lifetimes."""
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 
 import psycopg
@@ -10,8 +10,14 @@ from digital_souls_memory.evidence.provision import ProvisionUnavailable
 
 
 class PostgresConnections:
-    def __init__(self, url: str) -> None:
+    def __init__(
+        self,
+        url: str,
+        *,
+        configure: Callable[[psycopg.Connection[DictRow]], None] | None = None,
+    ) -> None:
         self.url = url.replace("postgresql+psycopg://", "postgresql://", 1)
+        self.configure = configure
         self.bound: psycopg.Connection[DictRow] | None = None
         self.reading = False
 
@@ -19,6 +25,8 @@ class PostgresConnections:
     def request(self) -> Iterator[None]:
         try:
             with psycopg.connect(self.url, row_factory=dict_row, connect_timeout=5) as connection:
+                if self.configure is not None:
+                    self.configure(connection)
                 self.bound = connection
                 try:
                     yield
@@ -31,6 +39,8 @@ class PostgresConnections:
     def connection(self) -> Iterator[psycopg.Connection[DictRow]]:
         if self.bound is None:
             with psycopg.connect(self.url, row_factory=dict_row, connect_timeout=5) as connection:
+                if self.configure is not None:
+                    self.configure(connection)
                 yield connection
         elif self.reading:
             yield self.bound

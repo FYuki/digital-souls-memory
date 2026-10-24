@@ -2,6 +2,7 @@
 
 from digital_souls_memory.recall.lexical import lexical_terms as lexical_terms
 from digital_souls_memory.recall.lexical import normalized_key as normalized_key
+from digital_souls_memory.recall.scoring import semantic_score
 
 from .context import context_payload
 from .models import (
@@ -92,7 +93,7 @@ def score_components(
     )
     days = max(0.0, (timestamp(case["as_of"]) - origin).total_seconds() / 86400)
     return {
-        "semantic": max(0.0, min(1.0, 1 - number(semantic_distance))),
+        "semantic": semantic_score(1 - number(semantic_distance)),
         "lexical": unit(lexical),
         "recency": 1.0 if memory["kind"] in ("Commitment", "VerbatimAnchor") else 2 ** (-days / 30),
         **{key: unit(memory[key]) for key in ("importance", "self_relevance", "trust")},
@@ -135,9 +136,7 @@ def validate_observations(
             value = number(cosine)
             if (
                 not -1.000001 <= value <= 1.000001
-                or abs(
-                    unit(record(observation["components"])["semantic"]) - max(0.0, min(1.0, value))
-                )
+                or abs(unit(record(observation["components"])["semantic"]) - semantic_score(value))
                 > 1e-12
             ):
                 raise ValueError("Cosine and semantic component mismatch")

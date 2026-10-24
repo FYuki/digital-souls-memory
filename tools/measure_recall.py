@@ -2,7 +2,6 @@
 
 import json
 import os
-from contextlib import contextmanager
 from dataclasses import replace
 from math import ceil
 from pathlib import Path
@@ -14,6 +13,7 @@ from alembic.config import Config
 from fastapi.testclient import TestClient
 from psycopg.rows import dict_row
 
+from digital_souls_memory.adapters.postgres_connections import PostgresConnections
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
@@ -46,8 +46,6 @@ def main() -> None:
     evidence.add_session(session(reports_delivery=False))
     evidence.add_turn(turn(text="日本語の合成原文"))
     store = PostgresMemoryStore(url)
-    index = PostgresRetrievalStore(url)
-    connection_factory = index._connection
     plans = []
     explained = set()
     capturing = False
@@ -81,14 +79,13 @@ def main() -> None:
                     explained.add((query, str(params)))
             return super().execute(query, params, **kwargs)
 
-    @contextmanager
-    def measured_connection():
-        with connection_factory() as connection:
-            connection.cursor_factory = PlanCursor
-            connection.server_cursor_factory = PlanServerCursor
-            yield connection
+    def configure_connection(connection):
+        connection.cursor_factory = PlanCursor
+        connection.server_cursor_factory = PlanServerCursor
 
-    index._connection = measured_connection
+    index = PostgresRetrievalStore(
+        url, connections=PostgresConnections(url, configure=configure_connection)
+    )
     embedding = RecordingEmbedding()
     worker = IndexWorker(index, embedding, space=SPACE, clock=lambda: RECORDED)
     previous = 0
