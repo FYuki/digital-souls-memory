@@ -395,6 +395,12 @@ class FakeMemoryTransaction:
             if (self.character, value) not in self.store.relations:
                 self.add_relation(value)
 
+    def extraction_states(self, turn_ids: frozenset[str]) -> dict[str, ExtractionState | None]:
+        return {identifier: self.get_extraction(identifier) for identifier in turn_ids}
+
+    def notification_versions(self, turn_ids: frozenset[str]) -> dict[str, int]:
+        return {identifier: self.notification_version(identifier) for identifier in turn_ids}
+
     def get_extraction(self, turn_id: str) -> ExtractionState | None:
         return self.store.states.get((self.character, turn_id))
 

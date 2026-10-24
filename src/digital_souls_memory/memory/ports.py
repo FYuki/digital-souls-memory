@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from digital_souls_memory.memory.domain import (
     DerivedMemory,
@@ -12,6 +12,15 @@ from digital_souls_memory.memory.domain import (
     InputDependency,
     MemoryRelation,
 )
+
+if TYPE_CHECKING:
+    from digital_souls_memory.memory.projection import ProjectionEvidence, ProjectionInput
+
+
+class MemoryListing(Protocol):
+    def read(
+        self, character_id: str, now: datetime
+    ) -> tuple["ProjectionInput", "ProjectionEvidence"]: ...
 
 
 class MemoryConflict(Exception):
@@ -49,6 +58,8 @@ class MemoryContribution:
 
 
 class MemoryTransaction(Protocol):
+    def extraction_states(self, turn_ids: frozenset[str]) -> dict[str, ExtractionState | None]: ...
+    def notification_versions(self, turn_ids: frozenset[str]) -> dict[str, int]: ...
     def contribution_ids(self, turn_id: str) -> frozenset[str]: ...
     def baseline_dependencies(
         self, identifiers: frozenset[str]
