@@ -2,8 +2,26 @@
 
 from dataclasses import replace
 
-from digital_souls_memory.memory.domain import MemoryRelation
+from digital_souls_memory.memory.domain import MemoryRelation, MemoryValidationError
 from digital_souls_memory.memory.ports import MemoryContribution
+
+
+def resolve_representative(identifier: str, representatives: dict[str, str]) -> str:
+    seen: set[str] = set()
+    while identifier in representatives:
+        if identifier in seen:
+            raise MemoryValidationError("Cyclic representative mapping")
+        seen.add(identifier)
+        identifier = representatives[identifier]
+    return identifier
+
+
+def normalize_relations(
+    relations: tuple[MemoryRelation, ...], representatives: dict[str, str]
+) -> tuple[MemoryRelation, ...]:
+    return tuple(
+        replace(r, to_id=resolve_representative(r.to_id, representatives)) for r in relations
+    )
 
 
 def resolve_relations(

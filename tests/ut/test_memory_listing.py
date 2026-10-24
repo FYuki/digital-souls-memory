@@ -11,7 +11,12 @@ from digital_souls_memory.adapters.postgres_memory_listing import PostgresMemory
 from digital_souls_memory.memory.domain import InputDependency, memory_valid_at
 from digital_souls_memory.memory.inputs import ResolvedTurn, input_eligible, resolve_input
 from digital_souls_memory.memory.ports import MemoryUnavailable
-from digital_souls_memory.memory.projection import collect_evidence, projection_input, source_ids
+from digital_souls_memory.memory.projection import (
+    ProjectionResult,
+    collect_evidence,
+    projection_input,
+    source_ids,
+)
 from tests.evidence_support import RECORDED, turn
 from tests.it1.test_memory_worker import setup_worker
 from tests.memory_support import memory
@@ -88,11 +93,11 @@ def test_loaded_projection_checks_dependency_range_without_fetching_during_evalu
     monkeypatch.setattr(
         h.materials, "get_text", MagicMock(side_effect=AssertionError("Unexpected I/O"))
     )
-    results, relations = loaded.project(snapshot, RECORDED)
-    assert tuple(v for v in results.values() if memory_valid_at(v, RECORDED)) == (
+    result = loaded.project(snapshot, RECORDED)
+    assert tuple(v for v in result.memories.values() if memory_valid_at(v, RECORDED)) == (
         (value,) if visible else ()
     )
-    assert relations == []
+    assert result.relations == ()
     assert store.get_memory("char-b", value.id) == value
 
 
@@ -113,6 +118,6 @@ def test_postgres_listing_translates_connect_failure_and_retries_with_a_new_conn
     with pytest.raises(MemoryUnavailable):
         listing.read("char-b", RECORDED)
     snapshot, evidence = listing.read("char-b", RECORDED)
-    assert evidence.project(snapshot, RECORDED) == ({}, [])
+    assert evidence.project(snapshot, RECORDED) == ProjectionResult({}, (), {})
     connection.__exit__.assert_called_once()
     assert connect.call_count == 2

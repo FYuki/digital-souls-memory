@@ -29,8 +29,8 @@ class MemoryService:
             with self.store.transaction(character_id) as tx:
                 snapshot = projection_input(tx)
             evidence = collect_evidence(snapshot, character_id, self.inputs)
-        result, _ = evidence.project(snapshot, now)
-        return tuple(v for v in result.values() if memory_valid_at(v, now))
+        result = evidence.project(snapshot, now)
+        return tuple(v for v in result.memories.values() if memory_valid_at(v, now))
 
     def affected(self, tx: MemoryTransaction, turn_id: str) -> frozenset[str]:
         identifiers = tx.contribution_ids(turn_id)
@@ -53,13 +53,14 @@ class MemoryService:
             return
         (character_id,) = owners
         evidence = collect_evidence(snapshot, character_id, self.inputs)
-        result, relations = evidence.project(snapshot, self.clock())
+        result = evidence.project(snapshot, self.clock(), select_representatives=True)
         existing = {v.id: v for v in snapshot.existing}
-        withdrawn = tx.withdrawn_ids(frozenset(result))
-        for identifier, value in result.items():
+        withdrawn = tx.withdrawn_ids(frozenset(result.memories))
+        for identifier, value in result.memories.items():
             if identifier in existing:
                 if value != existing[identifier] or identifier in withdrawn:
                     tx.replace_projection(value)
             else:
                 tx.add_generated(value)
-        tx.sync_projection_relations(snapshot.generated, tuple(relations))
+        tx.sync_projection_relations(snapshot.generated, result.relations)
+        tx.sync_representatives(snapshot.generated, result.representatives)

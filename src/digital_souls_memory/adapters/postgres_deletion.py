@@ -36,8 +36,9 @@ from digital_souls_memory.governance.domain import (
     StoredReference,
     TemporalEffect,
 )
-from digital_souls_memory.memory.domain import MemoryValidationError
+from digital_souls_memory.memory.domain import MemoryRelation, MemoryValidationError
 from digital_souls_memory.memory.ports import MemoryConflict, MemoryUnavailable
+from digital_souls_memory.memory.relations import normalize_relations
 
 
 def _request(row: DictRow) -> DeletionRequest:
@@ -218,7 +219,9 @@ class PostgresDeletionStore:
                 raw = connection.execute(
                     "SELECT g.payload,EXISTS(SELECT 1 FROM memory_relations r "
                     "WHERE r.character_id=g.character_id AND r.from_id=g.memory_id "
-                    "AND r.type='extends') AS reinforcement_history "
+                    "AND r.type='extends') AS reinforcement_history, "
+                    "NOT EXISTS(SELECT 1 FROM memory_candidates c "
+                    "WHERE c.character_id=g.character_id AND c.memory_id=g.memory_id) AS retired "
                     "FROM memory_generated g WHERE g.character_id=%s AND g.memory_id=%s",
                     (owner, identifier),
                 ).fetchone()
@@ -227,7 +230,7 @@ class PostgresDeletionStore:
                 base = restore_memory(
                     raw["payload"], copy_sources(connection, "memory_generated", owner, identifier)
                 )
-                if raw["reinforcement_history"]:
+                if raw["reinforcement_history"] or raw["retired"]:
                     base = replace(base, superseded_at=copy.memory.superseded_at)
             effects = []
             for row in connection.execute(
@@ -289,6 +292,7 @@ class PostgresDeletionStore:
             ("memory_baseline_dependencies", ("character_id", "memory_id", "turn_id")),
             ("memory_extractions", ("character_id", "turn_id")),
             ("memory_relations", ("character_id", "from_id", "to_id", "type")),
+            ("memory_representatives", ("character_id", "absorbed_id")),
             ("memory_candidate_relations", ("character_id", "turn_id", "from_id", "to_id", "type")),
             ("verbatim_anchors", ("character_id", "anchor_id")),
             ("voice_exemplars", ("character_id", "exemplar_id")),
@@ -434,6 +438,7 @@ class PostgresDeletionStore:
                         (Jsonb(copy_payload(value)), *key),
                     )
                     save_copy_sources(connection, table, value)
+            self._normalize_candidate_relations(connection, invalidated)
             removed: list[StoredReference] = []
             provisions = self._remove_references(
                 connection,
@@ -488,6 +493,38 @@ class PostgresDeletionStore:
             ).fetchone()
             assert row is not None
             return _request(row)
+
+    def _normalize_candidate_relations(
+        self, connection: psycopg.Connection[DictRow], invalidated: set[tuple[str, str]]
+    ) -> None:
+        for owner in sorted({owner for owner, _ in invalidated}):
+            representatives = _MemoryTransaction(connection, owner).representatives()
+            targets = [identifier for character, identifier in invalidated if character == owner]
+            for relation in connection.execute(
+                "SELECT turn_id,from_id,to_id,type FROM memory_candidate_relations "
+                "WHERE character_id=%s AND to_id=ANY(%s)",
+                (owner, targets),
+            ).fetchall():
+                original = MemoryRelation(
+                    from_id=relation["from_id"], to_id=relation["to_id"], type=relation["type"]
+                )
+                (normalized,) = normalize_relations((original,), representatives)
+                connection.execute(
+                    "DELETE FROM memory_candidate_relations WHERE character_id=%s "
+                    "AND turn_id=%s AND from_id=%s AND to_id=%s AND type=%s",
+                    (owner, relation["turn_id"], original.from_id, original.to_id, original.type),
+                )
+                connection.execute(
+                    "INSERT INTO memory_candidate_relations VALUES(%s,%s,%s,%s,%s) "
+                    "ON CONFLICT DO NOTHING",
+                    (
+                        owner,
+                        relation["turn_id"],
+                        normalized.from_id,
+                        normalized.to_id,
+                        normalized.type,
+                    ),
+                )
 
     def _remove_extractions(
         self, connection: psycopg.Connection[DictRow], targets: tuple[str, ...]

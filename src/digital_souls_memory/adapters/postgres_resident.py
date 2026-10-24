@@ -508,4 +508,5 @@ class PostgresContextStore:
 
     def list_episodes(self, key: ContextKey) -> tuple[Episode, ...]:
         with self._connection() as connection:
+            connection.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
             return read_episodes(connection, key)

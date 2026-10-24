@@ -66,6 +66,13 @@ def deletion_url(database_url: str, monkeypatch: pytest.MonkeyPatch) -> Iterator
                     sql.Identifier(role)
                 )
             )
+            # Migration tests recreate tables after this role has been provisioned.
+            conn.execute(
+                sql.SQL(
+                    "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
+                    "GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {}"
+                ).format(sql.Identifier(role))
+            )
             url = make_url(database_url).set(username=role).render_as_string(hide_password=False)
             monkeypatch.setenv("MEMORY_DELETION_DATABASE_URL", url)
             yield url
