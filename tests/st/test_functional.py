@@ -4,11 +4,14 @@ import logging
 import os
 from datetime import timedelta
 from functools import partial
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
 import psycopg
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 
 from digital_souls_memory.adapters.postgres_provision import PostgresProvisionStore
 from digital_souls_memory.client import MemoryClient, MemoryHTTPError
@@ -42,12 +45,15 @@ pytestmark = pytest.mark.st
 
 def test_phase_one_http_lifecycle() -> None:
     audit_url = os.environ["MEMORY_CORE_ST_AUDIT_URL"]
+    head = ScriptDirectory.from_config(
+        Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    ).get_current_head()
     with psycopg.connect(audit_url) as conn:
         assert conn.execute(
             "SELECT pg_has_role('memory_st_app','memory_deletion_executor','MEMBER'), "
             "pg_has_role('memory_st_delete','memory_deletion_executor','MEMBER')"
         ).fetchone() == (False, True)
-        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0010",)
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == (head,)
     x, y, z = ("st-x-" + uuid4().hex, "st-y-" + uuid4().hex, "st-z-" + uuid4().hex)
     with new_client() as client:
         for character in (x, y, z):
