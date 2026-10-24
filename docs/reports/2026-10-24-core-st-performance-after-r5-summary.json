@@ -1,0 +1,2515 @@
+{
+  "revision": "6176895a54be158876e3ead1d6f78c98a74b3c9b",
+  "runner": {
+    "status": "PASS",
+    "exit_code": 0,
+    "started_at": "2026-10-24T12:46:17Z",
+    "finished_at": "2026-10-24T12:49:46Z",
+    "command": "docker compose -p memory-core-perf-r5-20261024 -f compose.core-st.yml -f compose.core-st.performance.yml run --no-deps --rm runner",
+    "unchanged": true,
+    "timeouts_s": {
+      "indexing": 1800,
+      "listing_preflight": 30,
+      "recall": 30
+    }
+  },
+  "performance": {
+    "manifest": {
+      "revision": "6176895a54be158876e3ead1d6f78c98a74b3c9b",
+      "environment": "Ubuntu / WSL2; Python 3.12.3; uv 0.8.22; Docker Compose dedicated tmpfs synthetic DB",
+      "hardware": "Intel Core i7-14700K, 28 logical CPUs; NVIDIA RTX 4070 Ti SUPER 16376 MiB; driver 610.88",
+      "db_image": "sha256:fdd3b6ffae6f632ea8d32c8ba64332cfd4e1b37e7f79faeae55ce2f0a0b8ab3d",
+      "client_image": "sha256:14c6fbd908219a2a8c8c39c108deb9155a02b4cc2444afec0ff0e70939dc3214",
+      "db_version": "PostgreSQL 18.6 / vector 0.8.2 / pg_bigm 1.2; migration 0012",
+      "embedding": {
+        "model_alias": "bge-m3",
+        "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+        "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+        "dimensions": 1024,
+        "pooling": "cls",
+        "quantization": "Q8_0",
+        "query_prefix": "",
+        "passage_prefix": "",
+        "extension": "pg_bigm"
+      },
+      "reranker": {
+        "model_alias": "bge-reranker-v2-m3",
+        "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+        "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+        "quantization": "Q8_0"
+      },
+      "dimensions": 1024,
+      "data_counts": [
+        100,
+        1000
+      ],
+      "input_text": "日本語",
+      "input_length": 3,
+      "candidate_limit": 200,
+      "rerank_limit": 20,
+      "result_limit": 5,
+      "token_limit": 1500,
+      "relevance_threshold": -2,
+      "repetitions": 100,
+      "warm_up": 5,
+      "concurrency": 1,
+      "cold_condition": "Models preloaded; 5 warm-ups separately recorded per level; no OS/DB/GPU cache reset; cache-ram=0; concurrency=1",
+      "period": "2026-10-24 UTC; unchanged runner defaults: indexing 1800s, listing and recall timeout 30s",
+      "aggregation": "nearest-rank"
+    },
+    "started_at": "2026-10-24T12:46:18.460635+00:00",
+    "command": "python -m tests.st.performance /evidence/manifest.json /evidence/performance.json",
+    "mode": "real_models",
+    "status": "PASS",
+    "runs": [
+      {
+        "data_count": 100,
+        "summary": {
+          "p50_ms": 139.82231500267517,
+          "p95_ms": 156.7675580008654,
+          "required_pass": true,
+          "p95_target_pass": true,
+          "p50_target_pass": true
+        },
+        "warm_up": [
+          {
+            "elapsed_ms": 360.75077800342115,
+            "success": true,
+            "provision_id": "c617b36e-6a49-4116-ae09-a7ba840eab11",
+            "error": null
+          },
+          {
+            "elapsed_ms": 135.60999600304058,
+            "success": true,
+            "provision_id": "193f7708-e3be-4a61-a081-27157a7c302a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.95268399937777,
+            "success": true,
+            "provision_id": "3ac93ec2-ba0c-46b0-b191-91420577a806",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.72887100680964,
+            "success": true,
+            "provision_id": "b8c1f50c-2ae6-4ef1-b104-8b1dfade17a6",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.63032399624353,
+            "success": true,
+            "provision_id": "44e0de4d-ab41-44c3-b128-8a9916ec2e9d",
+            "error": null
+          }
+        ],
+        "trials": [
+          {
+            "elapsed_ms": 151.28079099667957,
+            "success": true,
+            "provision_id": "3777a12e-4b83-4005-98c4-968f0fcf410f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.8935830036644,
+            "success": true,
+            "provision_id": "85abcb65-b270-4b8b-85cf-f39cffe31288",
+            "error": null
+          },
+          {
+            "elapsed_ms": 105.84895400097594,
+            "success": true,
+            "provision_id": "e219eb8f-b0ce-496d-99b7-4ef425739dcb",
+            "error": null
+          },
+          {
+            "elapsed_ms": 106.53974500019103,
+            "success": true,
+            "provision_id": "4d6f866f-6904-4b92-b713-1de25012feec",
+            "error": null
+          },
+          {
+            "elapsed_ms": 142.87680099369027,
+            "success": true,
+            "provision_id": "b33e2e48-389f-4e18-ab05-4b2c4504ea24",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.4221600019373,
+            "success": true,
+            "provision_id": "4523328d-4d3a-4066-a71b-f85281d07f74",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.38151099864626,
+            "success": true,
+            "provision_id": "342def80-d98e-4cc0-ba59-302d405aaaed",
+            "error": null
+          },
+          {
+            "elapsed_ms": 106.73236500588246,
+            "success": true,
+            "provision_id": "8bd464c1-f350-4741-9547-4bc700a242b1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 155.08179600146832,
+            "success": true,
+            "provision_id": "7d474f82-7723-4859-a25c-ddd2f0cb90fe",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.37962400045944,
+            "success": true,
+            "provision_id": "f80e3644-082d-41d6-87f4-16ba133b396f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.38068599579856,
+            "success": true,
+            "provision_id": "8a548807-6674-4591-a3b0-cab0dd62ea6f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.2617259985418,
+            "success": true,
+            "provision_id": "09697477-75da-49dc-902c-4381a9c94680",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.27918199583655,
+            "success": true,
+            "provision_id": "21074b88-1509-4661-a18b-b7d727ffec28",
+            "error": null
+          },
+          {
+            "elapsed_ms": 150.8396069984883,
+            "success": true,
+            "provision_id": "e85583a6-cd2a-4add-b4c8-7b94bf7e37f8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 149.26493300299626,
+            "success": true,
+            "provision_id": "bc7847bd-b60e-49da-8811-bb043fc5781f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 144.04603399452753,
+            "success": true,
+            "provision_id": "4880c521-2ad6-4cf1-a72d-649a24cdba97",
+            "error": null
+          },
+          {
+            "elapsed_ms": 147.8547279984923,
+            "success": true,
+            "provision_id": "65a371b2-bace-4108-831a-1003c4e9b289",
+            "error": null
+          },
+          {
+            "elapsed_ms": 156.7675580008654,
+            "success": true,
+            "provision_id": "a64a4915-124b-4255-910c-d44d6694f630",
+            "error": null
+          },
+          {
+            "elapsed_ms": 141.50333699944895,
+            "success": true,
+            "provision_id": "56c09748-7315-4b32-a97b-05d5140f9c99",
+            "error": null
+          },
+          {
+            "elapsed_ms": 142.28303200070513,
+            "success": true,
+            "provision_id": "3d44c219-7a15-4687-8f6c-5a9b7baf8257",
+            "error": null
+          },
+          {
+            "elapsed_ms": 142.9747089932789,
+            "success": true,
+            "provision_id": "9cdd2a84-5288-45a9-8035-7744443d9db1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 119.47975100338226,
+            "success": true,
+            "provision_id": "8cb553c5-26cc-45c4-ac1d-903c46afc2a6",
+            "error": null
+          },
+          {
+            "elapsed_ms": 119.48659100016812,
+            "success": true,
+            "provision_id": "2abdb9f6-36de-4190-895f-b6a3fc9748ee",
+            "error": null
+          },
+          {
+            "elapsed_ms": 143.94246399751864,
+            "success": true,
+            "provision_id": "92e34d02-5d39-4e78-906a-adcb69821aa2",
+            "error": null
+          },
+          {
+            "elapsed_ms": 110.77153000223916,
+            "success": true,
+            "provision_id": "f8b42bc7-aa13-42c1-aedc-cb2b40562d93",
+            "error": null
+          },
+          {
+            "elapsed_ms": 156.0049390027416,
+            "success": true,
+            "provision_id": "2e1acf97-e469-456c-b61f-a2bc48f076e3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 107.80407099809963,
+            "success": true,
+            "provision_id": "2e30d0a6-b58a-4276-bb75-371eeb8c27ce",
+            "error": null
+          },
+          {
+            "elapsed_ms": 141.73724300053436,
+            "success": true,
+            "provision_id": "fb52fce6-5aa5-4ac0-affe-ce9149cf4f43",
+            "error": null
+          },
+          {
+            "elapsed_ms": 112.6738960010698,
+            "success": true,
+            "provision_id": "e2b26432-95c7-44a1-a4b7-b9f34bf27fdd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 136.87719299923629,
+            "success": true,
+            "provision_id": "465be3d8-f298-4501-89a9-b066975b9fc7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 142.84917800250696,
+            "success": true,
+            "provision_id": "805998a3-4b41-4362-a2d4-d237a9776041",
+            "error": null
+          },
+          {
+            "elapsed_ms": 118.78276000061305,
+            "success": true,
+            "provision_id": "01f1c5cf-c7ff-41b9-b9d0-6532f493b61f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 141.21984000666998,
+            "success": true,
+            "provision_id": "4df36c35-4d4a-41f1-a6b3-e086f97f3f54",
+            "error": null
+          },
+          {
+            "elapsed_ms": 160.03133499907563,
+            "success": true,
+            "provision_id": "2069a831-0daa-44b7-8d7b-cb2caa5438b1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 146.809703001054,
+            "success": true,
+            "provision_id": "b0178f36-4f3e-4e48-ac5d-21d17913d4a8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 146.59643099730602,
+            "success": true,
+            "provision_id": "00463f15-62ba-4729-9a43-096b9aab1d33",
+            "error": null
+          },
+          {
+            "elapsed_ms": 146.87148099619662,
+            "success": true,
+            "provision_id": "a11cff89-b9da-4698-a957-ed6234fc9fc4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.24700600182405,
+            "success": true,
+            "provision_id": "a423e31a-4142-4607-a8c0-45b197fc3e95",
+            "error": null
+          },
+          {
+            "elapsed_ms": 142.48393599700648,
+            "success": true,
+            "provision_id": "b664cde3-12b4-412f-87b5-de2a42bc9456",
+            "error": null
+          },
+          {
+            "elapsed_ms": 145.26249500340782,
+            "success": true,
+            "provision_id": "1da06384-474a-444a-8e97-bd47a8493a12",
+            "error": null
+          },
+          {
+            "elapsed_ms": 151.2844109965954,
+            "success": true,
+            "provision_id": "0ad31c9a-ff62-4d8c-bfb9-217ba0d6bcb2",
+            "error": null
+          },
+          {
+            "elapsed_ms": 156.42032100004144,
+            "success": true,
+            "provision_id": "9fbaa197-99da-47f5-8631-d5ab9e0bfd83",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.8217329988256,
+            "success": true,
+            "provision_id": "85902c1e-1b3d-4a2b-af08-2d3f1e02856d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.28465099848108,
+            "success": true,
+            "provision_id": "ca275f28-5b1e-45db-8e2e-3423346017ac",
+            "error": null
+          },
+          {
+            "elapsed_ms": 143.53867399768205,
+            "success": true,
+            "provision_id": "2e8c3d5e-bac9-4bc5-bbbc-f10563825085",
+            "error": null
+          },
+          {
+            "elapsed_ms": 106.75766900385497,
+            "success": true,
+            "provision_id": "2427d5ac-a299-4907-93d5-b494911b94a7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.5737709972309,
+            "success": true,
+            "provision_id": "8870c877-efeb-41b1-8e83-364970b7be2a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 141.46619699749863,
+            "success": true,
+            "provision_id": "28e222af-2401-4761-ae04-0d873c840a31",
+            "error": null
+          },
+          {
+            "elapsed_ms": 146.09955399646424,
+            "success": true,
+            "provision_id": "1bd75812-39ae-4225-bdf9-e83dc21200e9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 140.47034500254085,
+            "success": true,
+            "provision_id": "158ff230-9191-4fd3-b281-763a43693d56",
+            "error": null
+          },
+          {
+            "elapsed_ms": 120.44433599658078,
+            "success": true,
+            "provision_id": "1f348edf-0b87-4490-8c22-ac25d58eeff6",
+            "error": null
+          },
+          {
+            "elapsed_ms": 106.46846900635865,
+            "success": true,
+            "provision_id": "7a48c1f6-0a52-4c9d-a34f-fc071818a11d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 108.34371799865039,
+            "success": true,
+            "provision_id": "9230a179-2db3-4a32-906d-46f3853418c8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 142.3768909953651,
+            "success": true,
+            "provision_id": "190d368c-0d0a-473c-824f-92cce2610b19",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.36510300118243,
+            "success": true,
+            "provision_id": "fc9ff163-fa2b-4de0-a365-d48ca2365d8e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 108.1839399994351,
+            "success": true,
+            "provision_id": "9f5e22b8-b36b-4f49-b583-cfe542585bf7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 141.0109989956254,
+            "success": true,
+            "provision_id": "32126e5a-9825-4db0-814c-bd5a23c4c57c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 142.53160899534123,
+            "success": true,
+            "provision_id": "c9ac2a8b-23cc-44d8-ae3a-8c131cb7fee5",
+            "error": null
+          },
+          {
+            "elapsed_ms": 165.26447299838765,
+            "success": true,
+            "provision_id": "d66f05db-a9e7-4e5f-9a89-4ea05d8ef672",
+            "error": null
+          },
+          {
+            "elapsed_ms": 133.9143459990737,
+            "success": true,
+            "provision_id": "a32b6439-c329-443a-a559-51451a090d8c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.93778499914333,
+            "success": true,
+            "provision_id": "73a78974-1c0b-46f4-96ed-127b4d3729ba",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.0022079940536,
+            "success": true,
+            "provision_id": "546b32ed-7c04-4831-8fa8-5b97a19976dc",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.67422900168458,
+            "success": true,
+            "provision_id": "dac449c1-b94a-49ad-9105-3ee88b5d66cc",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.07100100145908,
+            "success": true,
+            "provision_id": "7e5dbfd0-51ed-4e08-bb70-51ac2c4b7670",
+            "error": null
+          },
+          {
+            "elapsed_ms": 149.80256199487485,
+            "success": true,
+            "provision_id": "48984c53-61a6-42c5-93b8-63d7b3a1032c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.24473299994133,
+            "success": true,
+            "provision_id": "b7f4114c-b252-400e-b737-acdbdf0e2156",
+            "error": null
+          },
+          {
+            "elapsed_ms": 159.31924700271338,
+            "success": true,
+            "provision_id": "87da8274-6abb-4570-bfd8-cc36d5c0e82d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 141.6663839991088,
+            "success": true,
+            "provision_id": "85a24b87-3ec7-4648-bd29-90d7a57a0c35",
+            "error": null
+          },
+          {
+            "elapsed_ms": 144.48603100026958,
+            "success": true,
+            "provision_id": "b7e0cb46-dcfe-4773-88a2-2bb335ae56dc",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.13198999903398,
+            "success": true,
+            "provision_id": "f1dce543-20aa-4a56-9dbc-68a71d78a785",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.17611600097734,
+            "success": true,
+            "provision_id": "85d4a63c-acdc-4a5d-864b-57d3635b0870",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.3003519984195,
+            "success": true,
+            "provision_id": "41a9192f-4044-4a86-bc7e-3346eb0c82fd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 136.83494499855442,
+            "success": true,
+            "provision_id": "dfdae7cd-9434-4290-96b9-7ed3314d67c9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 140.47232699522283,
+            "success": true,
+            "provision_id": "c4009c23-2d60-4272-b58b-86464a3c6b90",
+            "error": null
+          },
+          {
+            "elapsed_ms": 150.92941100010648,
+            "success": true,
+            "provision_id": "7370d59d-3d7b-489a-ac71-846e1b7109be",
+            "error": null
+          },
+          {
+            "elapsed_ms": 147.94728199922247,
+            "success": true,
+            "provision_id": "c9c2ba50-a668-44c1-9d9d-876af5265350",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.09983699320583,
+            "success": true,
+            "provision_id": "6f9eebb6-35ce-4a83-86c1-448239a08c33",
+            "error": null
+          },
+          {
+            "elapsed_ms": 135.2805310016265,
+            "success": true,
+            "provision_id": "54fceb2e-e2fd-4c08-8d9e-c6f25895e650",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.46046399703482,
+            "success": true,
+            "provision_id": "ad01b8af-9ca1-49f5-8717-c71ec85ce25e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.22013100091135,
+            "success": true,
+            "provision_id": "e7e60bf0-d1da-45ca-9827-cb89fd5d751d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.37289200071245,
+            "success": true,
+            "provision_id": "66c7b9f1-0613-4d98-939f-53a5b114bac8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.82697499886854,
+            "success": true,
+            "provision_id": "20fbc8ea-250e-4a75-8c0e-d7edce592f80",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.49886900081765,
+            "success": true,
+            "provision_id": "a6f0d0fd-2d80-435f-ae38-231d6cd57db2",
+            "error": null
+          },
+          {
+            "elapsed_ms": 158.47104600106832,
+            "success": true,
+            "provision_id": "b336a46b-b4a0-4ff3-b540-58b70b413a11",
+            "error": null
+          },
+          {
+            "elapsed_ms": 145.25895499537,
+            "success": true,
+            "provision_id": "ef672b77-7f4d-4f1a-bdd0-5858b8abfe7b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 143.95867800340056,
+            "success": true,
+            "provision_id": "6f433002-dcb0-47ed-8812-1bae2f509a80",
+            "error": null
+          },
+          {
+            "elapsed_ms": 138.35347100393847,
+            "success": true,
+            "provision_id": "12fc4cc4-38c4-4120-94a4-1c0e8f017c3e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 135.26759799424326,
+            "success": true,
+            "provision_id": "f69b1709-73a8-40dc-bb20-c5402553a586",
+            "error": null
+          },
+          {
+            "elapsed_ms": 135.7155520017841,
+            "success": true,
+            "provision_id": "1b40add1-7fae-42f6-96ce-667ff08bda5d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 141.7064890047186,
+            "success": true,
+            "provision_id": "5017b652-b060-47da-94ea-d5f16d082162",
+            "error": null
+          },
+          {
+            "elapsed_ms": 140.52377200277988,
+            "success": true,
+            "provision_id": "41e33e54-0679-489c-9340-016ffbacd4a1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 152.90314800222404,
+            "success": true,
+            "provision_id": "4a547f8e-19cc-43e0-bbc3-4294a9a8cdc4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 144.5127949991729,
+            "success": true,
+            "provision_id": "115d15ae-cf44-4b9d-84f3-33f054a9ace5",
+            "error": null
+          },
+          {
+            "elapsed_ms": 144.1733009996824,
+            "success": true,
+            "provision_id": "e4afafaf-9dbb-4417-bb26-7fd50aed07bc",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.82231500267517,
+            "success": true,
+            "provision_id": "18adaa15-5a70-4535-b78b-31bd75920ec7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.28742700227303,
+            "success": true,
+            "provision_id": "d4835867-6418-4fd0-90c4-7cd59482f45e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.81422699725954,
+            "success": true,
+            "provision_id": "2b5c0da0-0730-4f88-b6bf-1454f7bcd3df",
+            "error": null
+          },
+          {
+            "elapsed_ms": 120.21674800053006,
+            "success": true,
+            "provision_id": "ae70b04f-b1fc-4efb-a45c-7a9805f88d38",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.96747800410958,
+            "success": true,
+            "provision_id": "b505524d-6bf8-4f13-9fd9-a5e6ff423e46",
+            "error": null
+          },
+          {
+            "elapsed_ms": 159.91482700337656,
+            "success": true,
+            "provision_id": "1731d982-8d2a-4c17-8102-a342637bdb8c",
+            "error": null
+          }
+        ]
+      },
+      {
+        "data_count": 1000,
+        "summary": {
+          "p50_ms": 221.22296599991387,
+          "p95_ms": 242.9058179986896,
+          "required_pass": true,
+          "p95_target_pass": true,
+          "p50_target_pass": false
+        },
+        "warm_up": [
+          {
+            "elapsed_ms": 463.60397600074066,
+            "success": true,
+            "provision_id": "63e0e785-31a3-4bed-a5a3-a84a9ae6b785",
+            "error": null
+          },
+          {
+            "elapsed_ms": 197.41296500433236,
+            "success": true,
+            "provision_id": "b842c76b-92f8-4f1d-b5c4-7bebf85bd53f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 180.4841060002218,
+            "success": true,
+            "provision_id": "de1d550d-2b5b-4d2a-a2ad-cfd6b53b728c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 178.0816429964034,
+            "success": true,
+            "provision_id": "45fd52b8-464e-40f0-a08e-046aea107b67",
+            "error": null
+          },
+          {
+            "elapsed_ms": 186.91195100109326,
+            "success": true,
+            "provision_id": "56f4e4d9-154d-4ff3-99d5-2c0df5c3c36a",
+            "error": null
+          }
+        ],
+        "trials": [
+          {
+            "elapsed_ms": 207.63900100428145,
+            "success": true,
+            "provision_id": "2e908fd4-866e-4209-b940-635fbc85289a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 184.98968899803003,
+            "success": true,
+            "provision_id": "387e8e17-1c46-4ddb-86b6-1fd76f7c886b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 179.90677699708613,
+            "success": true,
+            "provision_id": "61b9eeae-240e-4133-9b8f-b36890975246",
+            "error": null
+          },
+          {
+            "elapsed_ms": 194.04962599946884,
+            "success": true,
+            "provision_id": "69dda7cf-a19e-407b-8e30-c69d8aba1692",
+            "error": null
+          },
+          {
+            "elapsed_ms": 178.33240699837916,
+            "success": true,
+            "provision_id": "58531079-99f9-4063-9a48-f57b4f9ad0be",
+            "error": null
+          },
+          {
+            "elapsed_ms": 184.7372929987614,
+            "success": true,
+            "provision_id": "3660c17d-1c56-4ca9-9540-d70215e8e5a6",
+            "error": null
+          },
+          {
+            "elapsed_ms": 186.705931002507,
+            "success": true,
+            "provision_id": "609e9500-13ab-40f9-87e5-ba1b82995875",
+            "error": null
+          },
+          {
+            "elapsed_ms": 200.7449849988916,
+            "success": true,
+            "provision_id": "c25b8874-68b4-45ef-bec2-5105eaa59ab2",
+            "error": null
+          },
+          {
+            "elapsed_ms": 177.33078899618704,
+            "success": true,
+            "provision_id": "e78c01e3-b561-40cc-bb63-7458845d831b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 177.13735799770802,
+            "success": true,
+            "provision_id": "7715998f-8144-4948-901c-5090e8d0f7e1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 194.92553699819837,
+            "success": true,
+            "provision_id": "ec8916e8-9aeb-4c0f-85ff-33c531f1cbba",
+            "error": null
+          },
+          {
+            "elapsed_ms": 180.99090900068404,
+            "success": true,
+            "provision_id": "d9bafbb8-08fb-4924-8d76-0ab429ffb430",
+            "error": null
+          },
+          {
+            "elapsed_ms": 179.0763059980236,
+            "success": true,
+            "provision_id": "0de31ffb-ab74-4179-8542-06b47ed5be4c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 210.6873539960361,
+            "success": true,
+            "provision_id": "0fa9373e-9a51-4e59-bc7f-bcb970567188",
+            "error": null
+          },
+          {
+            "elapsed_ms": 176.26488400128437,
+            "success": true,
+            "provision_id": "135f8653-1cc0-46bd-8a78-5bb669356e05",
+            "error": null
+          },
+          {
+            "elapsed_ms": 175.49326800508425,
+            "success": true,
+            "provision_id": "b4ea722c-d20b-4391-a575-8fe290aee536",
+            "error": null
+          },
+          {
+            "elapsed_ms": 181.97069799498422,
+            "success": true,
+            "provision_id": "bf937592-3f48-4bda-bd4a-2c9f7d3d02a3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 198.68514799600234,
+            "success": true,
+            "provision_id": "e385f48a-0c06-4416-a381-5a3210b44201",
+            "error": null
+          },
+          {
+            "elapsed_ms": 177.02427999756765,
+            "success": true,
+            "provision_id": "2359bbd5-1024-4958-aca0-e33cfc42fdb7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 187.26474099821644,
+            "success": true,
+            "provision_id": "b304d0f2-5a9b-4df3-817f-a97a92cc9476",
+            "error": null
+          },
+          {
+            "elapsed_ms": 198.3894209988648,
+            "success": true,
+            "provision_id": "77e1d307-4bc2-488a-a6b4-eba5105966df",
+            "error": null
+          },
+          {
+            "elapsed_ms": 179.9453790008556,
+            "success": true,
+            "provision_id": "85ac4e06-ba02-4edc-8496-70622696c2f4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 185.01926900353283,
+            "success": true,
+            "provision_id": "173e43c8-e819-4892-abf1-8cddb82edf67",
+            "error": null
+          },
+          {
+            "elapsed_ms": 180.16181299753953,
+            "success": true,
+            "provision_id": "f6316b4b-ca97-4462-a8d0-0e7ff5925ab4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 198.56311500188895,
+            "success": true,
+            "provision_id": "4a739a18-7ddd-47fc-bdf4-0acb0890d9a3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 185.2348600004916,
+            "success": true,
+            "provision_id": "c7d22a5d-d574-4df7-a799-94b0985e7e5c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 189.97851599851856,
+            "success": true,
+            "provision_id": "7442d73e-5294-4e91-9b61-4cb2badb6424",
+            "error": null
+          },
+          {
+            "elapsed_ms": 231.2761720022536,
+            "success": true,
+            "provision_id": "344aa232-70a1-45c4-a1fa-5c2346ecce3a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 214.98465799959376,
+            "success": true,
+            "provision_id": "e27f3300-57b8-401e-b50a-3615316843c0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.8427870021551,
+            "success": true,
+            "provision_id": "9940c35a-2b87-48c7-9b4e-6eff4bb78eaa",
+            "error": null
+          },
+          {
+            "elapsed_ms": 238.34088199510006,
+            "success": true,
+            "provision_id": "142d528b-0d28-46f3-830a-87aa924f48e7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.5556669945945,
+            "success": true,
+            "provision_id": "b3da36c8-a383-492a-8e22-ef37af21de3a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 193.7523649976356,
+            "success": true,
+            "provision_id": "a0f26c4d-ce64-4802-9496-44faa6afcbd0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.6182389931637,
+            "success": true,
+            "provision_id": "6825857c-c2b7-400c-a0e7-48684d68a62a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 239.51222100004088,
+            "success": true,
+            "provision_id": "575916da-5d8c-490d-ace5-95fed986331c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 221.22296599991387,
+            "success": true,
+            "provision_id": "51e24b62-ee34-40b8-8a06-467a976d8d44",
+            "error": null
+          },
+          {
+            "elapsed_ms": 221.95495999767445,
+            "success": true,
+            "provision_id": "47379b59-1253-4d5b-bd20-f32a560bb511",
+            "error": null
+          },
+          {
+            "elapsed_ms": 251.8453469965607,
+            "success": true,
+            "provision_id": "6d7c7997-9d72-4001-a9fa-3c4aeecf0270",
+            "error": null
+          },
+          {
+            "elapsed_ms": 220.31460399739444,
+            "success": true,
+            "provision_id": "c0be7f03-28f8-48bc-9eae-d1709b2fdd4e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 224.52086800331017,
+            "success": true,
+            "provision_id": "7cd244d9-080a-4cc8-bd1b-db97fa9d3f33",
+            "error": null
+          },
+          {
+            "elapsed_ms": 228.16100799536798,
+            "success": true,
+            "provision_id": "edf95057-09f5-4fa6-a09d-cc0b019936d9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 240.60843500046758,
+            "success": true,
+            "provision_id": "0b7833f9-1e38-4bc4-8408-e9c5b2c46ec8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 219.87701800389914,
+            "success": true,
+            "provision_id": "d9b36694-b9ae-4619-b5d3-70f31f6760ca",
+            "error": null
+          },
+          {
+            "elapsed_ms": 227.71105599531438,
+            "success": true,
+            "provision_id": "ab7bff43-17b5-49a2-8cfb-21e87410153d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 233.9671610025107,
+            "success": true,
+            "provision_id": "4e2dc8f6-8069-4b13-b959-3314928ed406",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.94882399990456,
+            "success": true,
+            "provision_id": "a9372210-6831-465f-93c5-e5b917473115",
+            "error": null
+          },
+          {
+            "elapsed_ms": 226.67596099927323,
+            "success": true,
+            "provision_id": "3e5052ef-fc37-4aaa-900e-ae6362fa0bdd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 239.0693929992267,
+            "success": true,
+            "provision_id": "5c60862c-f83a-47d3-871c-f9b45eb4b419",
+            "error": null
+          },
+          {
+            "elapsed_ms": 232.74379900249187,
+            "success": true,
+            "provision_id": "aba9f8d2-09d3-459f-857c-558a458ad498",
+            "error": null
+          },
+          {
+            "elapsed_ms": 236.99287100316724,
+            "success": true,
+            "provision_id": "65b4409f-1108-4671-b50a-d8ba7c576339",
+            "error": null
+          },
+          {
+            "elapsed_ms": 234.7285150026437,
+            "success": true,
+            "provision_id": "e638e7f7-bab6-4540-839a-26b6908282a8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 237.92880499968305,
+            "success": true,
+            "provision_id": "ff6f8fd7-e3c2-4b24-a672-e5d39b03d172",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.50118399824714,
+            "success": true,
+            "provision_id": "e55c0f1a-7b98-49aa-ae41-3be30cd09568",
+            "error": null
+          },
+          {
+            "elapsed_ms": 226.99998199823312,
+            "success": true,
+            "provision_id": "5cb511e0-87e2-4a0d-858f-5000123b2380",
+            "error": null
+          },
+          {
+            "elapsed_ms": 253.84000899794046,
+            "success": true,
+            "provision_id": "1f6adc31-3e18-49d9-8a02-f2acb4d7370c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 218.12023800157476,
+            "success": true,
+            "provision_id": "e403c9ba-2d6e-4034-b031-3989f76e0974",
+            "error": null
+          },
+          {
+            "elapsed_ms": 224.2102279997198,
+            "success": true,
+            "provision_id": "ca38c667-99b0-41d6-8390-b4294a9cd2e8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 236.34526900423225,
+            "success": true,
+            "provision_id": "b2163b86-b9fa-4f7e-935b-aa585e189c9f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 218.5652600019239,
+            "success": true,
+            "provision_id": "3877d511-6a8b-4878-82bc-233e8f075c60",
+            "error": null
+          },
+          {
+            "elapsed_ms": 231.69156500080135,
+            "success": true,
+            "provision_id": "0455a333-180d-4880-bc17-8d4c08710b00",
+            "error": null
+          },
+          {
+            "elapsed_ms": 225.3183149950928,
+            "success": true,
+            "provision_id": "e946c8a4-efe0-479c-b24c-89938d21aade",
+            "error": null
+          },
+          {
+            "elapsed_ms": 246.77550499473,
+            "success": true,
+            "provision_id": "fa16b8bb-f2dd-4090-b0be-c4c048da8214",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.81911600171588,
+            "success": true,
+            "provision_id": "3e4a85f8-4e32-4020-bbf0-35a131ed149e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.8259099998977,
+            "success": true,
+            "provision_id": "cbe75112-ad5c-41d0-a7ae-c58cdff918b0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 236.55383499863092,
+            "success": true,
+            "provision_id": "1b0d38d2-a956-4533-b85a-ca4496705fd5",
+            "error": null
+          },
+          {
+            "elapsed_ms": 219.11562199966284,
+            "success": true,
+            "provision_id": "5e54725e-12bb-42b4-b69c-914fede64adf",
+            "error": null
+          },
+          {
+            "elapsed_ms": 224.37195100064855,
+            "success": true,
+            "provision_id": "5f724788-8ac7-45a9-9b84-bc909bcd8255",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.94529799808515,
+            "success": true,
+            "provision_id": "e56eca11-768d-4813-8bf2-7faf247ca4af",
+            "error": null
+          },
+          {
+            "elapsed_ms": 238.90793699683854,
+            "success": true,
+            "provision_id": "5b1105f3-3bde-4e60-bb5d-549864ecdced",
+            "error": null
+          },
+          {
+            "elapsed_ms": 223.29205599817215,
+            "success": true,
+            "provision_id": "2f5696b6-28d6-4a2b-b08b-ba1f445d58bd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 230.79199100175174,
+            "success": true,
+            "provision_id": "a3acb637-2793-41de-ae7c-acb784e1f822",
+            "error": null
+          },
+          {
+            "elapsed_ms": 242.9058179986896,
+            "success": true,
+            "provision_id": "1953e9f6-345b-4b7f-9cab-9874ea721c91",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.00728199700825,
+            "success": true,
+            "provision_id": "f85a6c9b-5dff-4b9e-85e9-6da5f1b982a4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 220.87747500336263,
+            "success": true,
+            "provision_id": "1a0d9230-8e2e-467d-aff3-ad05ee2e6d3f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 241.10678999568336,
+            "success": true,
+            "provision_id": "c414aeb6-dbb9-4282-aff1-9986a2974055",
+            "error": null
+          },
+          {
+            "elapsed_ms": 229.07554900302785,
+            "success": true,
+            "provision_id": "d73fddbf-7c50-49ae-af9a-ee5e2401de92",
+            "error": null
+          },
+          {
+            "elapsed_ms": 224.03124700213084,
+            "success": true,
+            "provision_id": "19c9c07a-5e53-407f-994a-dcf5f4b8272e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 215.8751620008843,
+            "success": true,
+            "provision_id": "9665c327-1ad2-4858-9bf4-87b8be8cdab7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 236.96549700252945,
+            "success": true,
+            "provision_id": "5af54e21-1cf9-4cae-8a16-2daf7e467faf",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.347314003855,
+            "success": true,
+            "provision_id": "95f3ec84-cc8a-4a14-98c0-76c650d91761",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.46142999472795,
+            "success": true,
+            "provision_id": "2eb8df79-c48f-459d-8d28-f6c52555342d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 249.74184799793875,
+            "success": true,
+            "provision_id": "be952170-29b7-4b8b-a329-2b90797c7e3c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 220.2508590053185,
+            "success": true,
+            "provision_id": "4c334f0b-692f-427f-bf7b-cf7b46d1c0e0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.0542580022593,
+            "success": true,
+            "provision_id": "2366afce-5565-4f4c-9bdc-54b25fd4d9ff",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.76430800411617,
+            "success": true,
+            "provision_id": "4edb1d16-b708-402f-934e-36eb94f99e49",
+            "error": null
+          },
+          {
+            "elapsed_ms": 234.01647199352738,
+            "success": true,
+            "provision_id": "2b25db5d-1d70-4acf-810f-8f132cdded37",
+            "error": null
+          },
+          {
+            "elapsed_ms": 234.99395199905848,
+            "success": true,
+            "provision_id": "91212e4d-2d57-4026-8e76-cc149a63a156",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.2484090004,
+            "success": true,
+            "provision_id": "5adcc778-5a58-4241-9e34-2accb133723b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 234.87762700096937,
+            "success": true,
+            "provision_id": "10d3d8d7-918c-4ce2-93af-0fc231f3cf86",
+            "error": null
+          },
+          {
+            "elapsed_ms": 229.5198369974969,
+            "success": true,
+            "provision_id": "ad8eebc8-c75d-4658-b800-4235dd7d233f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.70915100205457,
+            "success": true,
+            "provision_id": "9f54d970-2bf8-4eed-b839-9ef9ec4e7d0a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 249.5692570009851,
+            "success": true,
+            "provision_id": "9fe76f8f-7bca-4710-862d-bed852a7e42a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 223.8142659989535,
+            "success": true,
+            "provision_id": "510a8783-5216-4487-8c53-8032e920faca",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.04954700282542,
+            "success": true,
+            "provision_id": "be1f89bf-96ec-48cf-a99b-9726e969c983",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.9514609995531,
+            "success": true,
+            "provision_id": "6c3197d1-389f-4b8c-85c9-384ecdea6bca",
+            "error": null
+          },
+          {
+            "elapsed_ms": 242.57547999877715,
+            "success": true,
+            "provision_id": "302bc66e-1d2b-473f-a4ae-b9e1d956ce4c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.06814100354677,
+            "success": true,
+            "provision_id": "7ab6971d-f997-47fd-a81d-076a2dcf88fa",
+            "error": null
+          },
+          {
+            "elapsed_ms": 221.81284899852471,
+            "success": true,
+            "provision_id": "7aae7a1f-d6fa-407f-981c-8e32ffc2650e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 234.4503429994802,
+            "success": true,
+            "provision_id": "20f5dd54-0124-4889-8ae8-fd71fbdd75a4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 218.72698399965884,
+            "success": true,
+            "provision_id": "6ad085e9-ca78-49bc-a1fb-12d8568b7251",
+            "error": null
+          }
+        ]
+      }
+    ],
+    "finished_at": "2026-10-24T12:49:46.040082+00:00"
+  },
+  "list_api": {
+    "data_count": 1000,
+    "elapsed_s": 0.24051331800001208,
+    "success": true,
+    "timeout_s": 30,
+    "scope": "Separate post-run HTTP call using unchanged MemoryClient, including full typed response validation; not instrumented runner preflight"
+  },
+  "comparison_pr60": {
+    "100": {
+      "p50_ms": {
+        "previous": 139.33979000285035,
+        "current": 139.82231500267517,
+        "delta_ms": 0.4825249998248182,
+        "delta_percent": 0.346293761326133
+      },
+      "p95_ms": {
+        "previous": 155.21966000233078,
+        "current": 156.7675580008654,
+        "delta_ms": 1.5478979985346086,
+        "delta_percent": 0.9972306333562164
+      }
+    },
+    "1000": {
+      "p50_ms": {
+        "previous": 213.38564899633639,
+        "current": 221.22296599991387,
+        "delta_ms": 7.837317003577482,
+        "delta_percent": 3.6728416556785604
+      },
+      "p95_ms": {
+        "previous": 232.24235200177645,
+        "current": 242.9058179986896,
+        "delta_ms": 10.663465996913146,
+        "delta_percent": 4.591525148191566
+      }
+    }
+  },
+  "list_delta_s": 0.002902407002693508,
+  "audit": {
+    "runs": [
+      {
+        "count": 100,
+        "provision_counts_candidate_rerank_returned": {
+          "(100, 20, 5)": 105
+        }
+      },
+      {
+        "count": 1000,
+        "provision_counts_candidate_rerank_returned": {
+          "(300, 20, 5)": 105
+        }
+      }
+    ],
+    "documents": 1000,
+    "ready": 1000
+  },
+  "diagnostic": {
+    "scope": "Separate diagnostic HTTP API after acceptance; same 1000-document DB and models; lifespan off; not a decomposition of acceptance percentiles. Candidate context timings include consumption, hydration and eligibility; overlapping spans must not be added.",
+    "warm_up": 2,
+    "repetitions": 10,
+    "mean": {
+      "anchors": {
+        "calls_per_recall": 5,
+        "ms": 2.178568297676975
+      },
+      "commit": {
+        "calls_per_recall": 6,
+        "ms": 1.0574425010418054
+      },
+      "connect": {
+        "calls_per_recall": 1,
+        "ms": 3.444285200384911
+      },
+      "embedding": {
+        "calls_per_recall": 1,
+        "ms": 3.7945429990941193
+      },
+      "execute": {
+        "calls_per_recall": 23,
+        "ms": 39.69692549217143
+      },
+      "http": {
+        "calls_per_recall": 1,
+        "ms": 168.55250620137667
+      },
+      "lexical_scan": {
+        "calls_per_recall": 1,
+        "ms": 17.242159798479406
+      },
+      "provision": {
+        "calls_per_recall": 1,
+        "ms": 46.7878365991055
+      },
+      "rerank": {
+        "calls_per_recall": 1,
+        "ms": 46.611834000214
+      },
+      "resolve": {
+        "calls_per_recall": 300,
+        "ms": 1.689489783893805
+      },
+      "search": {
+        "calls_per_recall": 1,
+        "ms": 50.59912230062764
+      },
+      "selection": {
+        "calls_per_recall": 1,
+        "ms": 1.2416384015523363
+      },
+      "semantic_approximate": {
+        "calls_per_recall": 1,
+        "ms": 23.241229901032057
+      },
+      "service": {
+        "calls_per_recall": 1,
+        "ms": 164.21455070085358
+      },
+      "tokenizer": {
+        "calls_per_recall": 7,
+        "ms": 5.649285596882692
+      }
+    },
+    "semantic_exact_fallback": {
+      "warm_up_calls": 0,
+      "measurement_calls": 0,
+      "total_ms": 0,
+      "interpretation": "Not entered in this diagnostic; no claim about exact-path latency or acceptance-run fallback count."
+    },
+    "raw_spans": [
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 4.640126004233025
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 58.80051501299022
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.898711004992947
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.4940260007278994
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 35.27136099728523
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 23.6415909967036
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 19.44447899586521
+        },
+        "search": {
+          "calls": 1,
+          "ms": 50.35707400384126
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.6462979256175458
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 387.18406399857486
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.563759994402062
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.192837004258763
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 63.22886599809863
+        },
+        "service": {
+          "calls": 1,
+          "ms": 552.9606659983983
+        },
+        "http": {
+          "calls": 1,
+          "ms": 559.4244889944093
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.6455039953580126
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 53.796215972397476
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 1.0050139972008765
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.118275999033358
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 5.184178000490647
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.244577998004388
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 16.846803002408706
+        },
+        "search": {
+          "calls": 1,
+          "ms": 45.23617999802809
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.5590359180350788
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 44.95756899996195
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 26.595431998430286
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.2198269944055937
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 58.294554000895005
+        },
+        "service": {
+          "calls": 1,
+          "ms": 191.23436999507248
+        },
+        "http": {
+          "calls": 1,
+          "ms": 195.84097099868814
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.543967002769932
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 35.00410098058637
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.7895740054664202
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.1414489999879152
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.7723810019087978
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.44247300020652
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 18.20271599717671
+        },
+        "search": {
+          "calls": 1,
+          "ms": 47.360523996758275
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 2.046386965957936
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 45.936909002193715
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.668170997523703
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.205196004069876
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 39.848706997872796
+        },
+        "service": {
+          "calls": 1,
+          "ms": 153.68243999546394
+        },
+        "http": {
+          "calls": 1,
+          "ms": 158.1081250042189
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.4491600017645396
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 35.39433600963093
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.6292020043474622
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.1770350029109977
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.794609001488425
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.19602199672954
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 16.650638994178735
+        },
+        "search": {
+          "calls": 1,
+          "ms": 46.9652390020201
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.6924320225371048
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 44.40943399822572
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.525827000383288
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.1978739969199523
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 39.509934998932295
+        },
+        "service": {
+          "calls": 1,
+          "ms": 151.18128799804254
+        },
+        "http": {
+          "calls": 1,
+          "ms": 155.4986499977531
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.3511670044390485
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 32.66843998426339
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 3.613724999013357
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.2535220012068748
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.69859400234418
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.424648999527562
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 16.72261199564673
+        },
+        "search": {
+          "calls": 1,
+          "ms": 46.01974099932704
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.545119026559405
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 45.24068300088402
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.790805000287946
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.190007988247089
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 40.20417100400664
+        },
+        "service": {
+          "calls": 1,
+          "ms": 151.34518200648017
+        },
+        "http": {
+          "calls": 1,
+          "ms": 155.58133000013186
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.3750500006135553
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 54.6582069946453
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.7641549964318983
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.2545550052891485
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.7373129962361418
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 40.46918200037908
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 17.702003999147564
+        },
+        "search": {
+          "calls": 1,
+          "ms": 65.9995589958271
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.706684022792615
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 44.54078499838943
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.5031979936757125
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.1426040038932115
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 59.72345199552365
+        },
+        "service": {
+          "calls": 1,
+          "ms": 190.0843800030998
+        },
+        "http": {
+          "calls": 1,
+          "ms": 194.39812999917194
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.465918001893442
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 38.18466699885903
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.7247969915624708
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.2845100063714199
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 4.142161997151561
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.449986001243815
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 17.600821993255522
+        },
+        "search": {
+          "calls": 1,
+          "ms": 46.417015000770334
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.578267925651744
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 44.94088699721033
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 6.090750001021661
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.0647279961849563
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 42.92304500268074
+        },
+        "service": {
+          "calls": 1,
+          "ms": 155.0075380000635
+        },
+        "http": {
+          "calls": 1,
+          "ms": 159.43963899917435
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.4648919972823933
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 31.813246983801946
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.8063119967118837
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.2115200006519444
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.7374009989434853
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.544076000282075
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 18.12142300332198
+        },
+        "search": {
+          "calls": 1,
+          "ms": 47.40431500249542
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.846349929110147
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 44.650720003119204
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.476489001011942
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.2446949951699935
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 35.664236995216925
+        },
+        "service": {
+          "calls": 1,
+          "ms": 147.8831690037623
+        },
+        "http": {
+          "calls": 1,
+          "ms": 152.2160110034747
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.3912930011865683
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 51.00252698321128
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.8217299982788973
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.235253999766428
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.8942899991525337
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.270649005600717
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 16.697856997780036
+        },
+        "search": {
+          "calls": 1,
+          "ms": 68.4305479953764
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.6676419691066258
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 44.9598019986297
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.5847659896244295
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.146982995327562
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 55.737859998771455
+        },
+        "service": {
+          "calls": 1,
+          "ms": 189.31030800013104
+        },
+        "http": {
+          "calls": 1,
+          "ms": 193.60792999941623
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.481293999357149
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 34.40095800033305
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.8500730036757886
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.304760000493843
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.6805559939239174
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.240825997665524
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 16.48677200137172
+        },
+        "search": {
+          "calls": 1,
+          "ms": 45.36113600624958
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.5610079281032085
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 45.19075999996858
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.516721990716178
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.0911869942210615
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 39.373489998979494
+        },
+        "service": {
+          "calls": 1,
+          "ms": 149.86079800291918
+        },
+        "http": {
+          "calls": 1,
+          "ms": 154.25537199917017
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.5073600010946393
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 31.881675007753074
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.7758050051052123
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.2836669993703254
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.818673998466693
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 21.49020100478083
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 16.84094499796629
+        },
+        "search": {
+          "calls": 1,
+          "ms": 46.338657004525885
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.6308519916492514
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 44.52821599988965
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.702449991076719
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.252662008686457
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 36.15416200045729
+        },
+        "service": {
+          "calls": 1,
+          "ms": 147.36813899799017
+        },
+        "http": {
+          "calls": 1,
+          "ms": 151.76547500595916
+        }
+      },
+      {
+        "connect": {
+          "calls": 1,
+          "ms": 3.412750993447844
+        },
+        "execute": {
+          "calls": 23,
+          "ms": 51.96109697862994
+        },
+        "commit": {
+          "calls": 6,
+          "ms": 0.7990520098246634
+        },
+        "selection": {
+          "calls": 1,
+          "ms": 1.2701119994744658
+        },
+        "embedding": {
+          "calls": 1,
+          "ms": 3.6694500013254583
+        },
+        "semantic_approximate": {
+          "calls": 1,
+          "ms": 20.884235003904905
+        },
+        "lexical_scan": {
+          "calls": 1,
+          "ms": 17.395808004948776
+        },
+        "search": {
+          "calls": 1,
+          "ms": 45.694489002926275
+        },
+        "resolve": {
+          "calls": 300,
+          "ms": 1.6201560574700125
+        },
+        "rerank": {
+          "calls": 1,
+          "ms": 61.720144003629684
+        },
+        "tokenizer": {
+          "calls": 7,
+          "ms": 5.633678003505338
+        },
+        "anchors": {
+          "calls": 5,
+          "ms": 2.24974599404959
+        },
+        "provision": {
+          "calls": 1,
+          "ms": 78.73930699861376
+        },
+        "service": {
+          "calls": 1,
+          "ms": 206.42226500058314
+        },
+        "http": {
+          "calls": 1,
+          "ms": 210.65440000529634
+        }
+      }
+    ],
+    "client": {
+      "warm_up": [
+        {
+          "elapsed_ms": 561.5240039987839,
+          "success": true,
+          "provision_id": "ad201231-24c9-4dc2-b3b0-0e7d407cdb7d",
+          "error": null
+        },
+        {
+          "elapsed_ms": 196.66489299561363,
+          "success": true,
+          "provision_id": "306b0304-ce9f-423e-8684-64e4b39e58fd",
+          "error": null
+        }
+      ],
+      "trials": [
+        {
+          "elapsed_ms": 158.92166100093164,
+          "success": true,
+          "provision_id": "f409c72d-b78e-4726-ac92-8094c92ca2bd",
+          "error": null
+        },
+        {
+          "elapsed_ms": 156.28820800338872,
+          "success": true,
+          "provision_id": "49962d23-05c7-4849-9c03-458fa80511d6",
+          "error": null
+        },
+        {
+          "elapsed_ms": 156.3101919964538,
+          "success": true,
+          "provision_id": "4833a253-73c8-493a-801d-5db371f2220a",
+          "error": null
+        },
+        {
+          "elapsed_ms": 195.12819899682654,
+          "success": true,
+          "provision_id": "21b619c8-4562-4fde-9eea-b3b76e8ac733",
+          "error": null
+        },
+        {
+          "elapsed_ms": 160.17314799682936,
+          "success": true,
+          "provision_id": "761aa0cd-6387-4a75-a3a9-18280a638d00",
+          "error": null
+        },
+        {
+          "elapsed_ms": 152.99193999817362,
+          "success": true,
+          "provision_id": "ca25df9f-0bb5-4dbe-a548-90bac26d3ba8",
+          "error": null
+        },
+        {
+          "elapsed_ms": 194.3826389979222,
+          "success": true,
+          "provision_id": "a46bcd12-4c8b-4678-8fe7-2e9a645db9d2",
+          "error": null
+        },
+        {
+          "elapsed_ms": 155.00954300659942,
+          "success": true,
+          "provision_id": "78f98a82-8129-4a15-b123-6e6f6e3efd28",
+          "error": null
+        },
+        {
+          "elapsed_ms": 152.59224500186974,
+          "success": true,
+          "provision_id": "5a5f3d0a-8b97-4057-9c44-14ddb2782d1d",
+          "error": null
+        },
+        {
+          "elapsed_ms": 211.37458500015782,
+          "success": true,
+          "provision_id": "acf1b97b-2a76-4d21-ab74-f484f216adc7",
+          "error": null
+        }
+      ]
+    }
+  },
+  "model_server_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+  "model_server_arguments": [
+    "[\"--model\",\"/models/bge-m3-q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"cls\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18049\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+    "[\"--model\",\"/models/bge-reranker-v2-m3-Q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"rank\",\"--reranking\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18050\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7"
+  ],
+  "source_sha256": {
+    "tests/st/performance.py": "4f8fefa42bda914ffa286dea9d984f0262d9897602fef103b3310ab695545423",
+    "tests/st/support.py": "aabf7118a1782ac1545bf454b2dcd7c653e1ed0a5bd19906d82f9863531aef58",
+    "tests/st/latency.py": "4994c757d354361576ce92fc2c15d3e094bef1a99a8382921cde8989049dae7e",
+    "tools/core_st_db.py": "ae8a05fc0e0fbac1ad8b7421f851ccc0559bf3ce6e61326b9dca8c452ce9c658",
+    "compose.core-st.yml": "7f015aac3527574e102d1817c2b1b5e9175726596bf27fbbfa29169d97cdeefe",
+    "compose.core-st.performance.yml": "8ad353ded939ffd4e0b3e28948fae96dd6a2058c526d4804e9bcebe6795337e9"
+  },
+  "image_source_hashes": [
+    "4f8fefa42bda914ffa286dea9d984f0262d9897602fef103b3310ab695545423  tests/st/performance.py",
+    "aabf7118a1782ac1545bf454b2dcd7c653e1ed0a5bd19906d82f9863531aef58  tests/st/support.py",
+    "4994c757d354361576ce92fc2c15d3e094bef1a99a8382921cde8989049dae7e  tests/st/latency.py",
+    "ae8a05fc0e0fbac1ad8b7421f851ccc0559bf3ce6e61326b9dca8c452ce9c658  tools/core_st_db.py"
+  ],
+  "quality": {
+    "frozen_sync": "PASS after initial sandbox DNS FAIL",
+    "lock_check": "PASS",
+    "shell_and_compose": "PASS",
+    "ruff_check": "PASS (src tests migrations tools)",
+    "ruff_format": "PASS (298 files)",
+    "mypy": "PASS (296 files)",
+    "ut": {
+      "status": "PASS",
+      "passed": 1096,
+      "elapsed_s": 6.59
+    },
+    "it1": {
+      "status": "PASS",
+      "passed": 935,
+      "elapsed_s": 28.35
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 624,
+      "elapsed_s": 819.13,
+      "project": "memory-core-perf-r5-quality-20261024",
+      "db_image": "sha256:4c630ab46cdbe5aebc87958379852d7fef4754bbc35fb359171089f9a64d7dbf",
+      "initial_setup_attempts": [
+        {
+          "status": "FAIL",
+          "reason": "Previous image ID unavailable; compose attempted pull before tests"
+        },
+        {
+          "status": "FAIL",
+          "reason": "Acceptance DB image metadata no longer available; shared tag had changed before quality setup"
+        }
+      ],
+      "successful_setup": "Dedicated tag pinned to available local image; pull_policy never; separate tmpfs synthetic DB"
+    },
+    "wheel_build_and_locked_isolated_install_import": "PASS",
+    "evidence_validation": "PASS (frozen manifest / all 210 samples / nearest-rank recomputed)",
+    "ci": "NOT VERIFIED; no merge performed"
+  },
+  "cleanup": {
+    "projects": {
+      "memory-core-perf-r5-20261024": {
+        "down": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": " Container memory-core-perf-r5-20261024-memory-1 Stopping \n Container memory-core-perf-r5-20261024-memory-1 Stopped \n Container memory-core-perf-r5-20261024-memory-1 Removing \n Container memory-core-perf-r5-20261024-memory-1 Removed \n Container memory-core-perf-r5-20261024-init-1 Stopping \n Container memory-core-perf-r5-20261024-init-1 Stopped \n Container memory-core-perf-r5-20261024-init-1 Removing \n Container memory-core-perf-r5-20261024-init-1 Removed \n Container memory-core-perf-r5-20261024-postgres-1 Stopping \n Container memory-core-perf-r5-20261024-postgres-1 Stopped \n Container memory-core-perf-r5-20261024-postgres-1 Removing \n Container memory-core-perf-r5-20261024-postgres-1 Removed \n Network memory-core-perf-r5-20261024_default Removing \n Network memory-core-perf-r5-20261024_default Removed \n"
+        },
+        "containers": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "networks": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "volumes": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "memory-core-perf-r5-quality-20261024": {
+        "down": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": " Container memory-core-perf-r5-quality-20261024-postgres-1 Stopping \n Container memory-core-perf-r5-quality-20261024-postgres-1 Stopped \n Container memory-core-perf-r5-quality-20261024-postgres-1 Removing \n Container memory-core-perf-r5-quality-20261024-postgres-1 Removed \n Network memory-core-perf-r5-quality-20261024_default Removing \n Network memory-core-perf-r5-quality-20261024_default Removed \n"
+        },
+        "containers": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "networks": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "volumes": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    "models_and_diagnostic": {
+      "memory-core-perf-r5-embedding": {
+        "rm": {
+          "exit_code": 0,
+          "stdout": "memory-core-perf-r5-embedding\n",
+          "stderr": ""
+        },
+        "remaining": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "memory-core-perf-r5-reranker": {
+        "rm": {
+          "exit_code": 0,
+          "stdout": "memory-core-perf-r5-reranker\n",
+          "stderr": ""
+        },
+        "remaining": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      },
+      "memory-core-perf-r5-diagnostic": {
+        "rm": {
+          "exit_code": 0,
+          "stdout": "memory-core-perf-r5-diagnostic\n",
+          "stderr": ""
+        },
+        "remaining": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    "status": "PASS",
+    "other_running_containers": {
+      "exit_code": 0,
+      "stdout": "digital-souls-dev-livekit-livekit-1\n",
+      "stderr": ""
+    },
+    "prior_observation": {
+      "status": "FAIL",
+      "reason": "Project residual query ran before separately named diagnostic was deleted; detected that diagnostic. Removal succeeded later in same cleanup.",
+      "evidence": "cleanup-initial.json"
+    }
+  },
+  "not_run": [
+    "10000 memories",
+    "cold-start/cache reset",
+    "concurrency >1",
+    "long or real input",
+    "model quality reevaluation",
+    "server-setting comparison",
+    "functional ST rerun",
+    "100-level diagnostic",
+    "exact-fallback forced diagnostic or production-span instrumentation"
+  ],
+  "evidence_sha256": {
+    "start.log": "7a0d0798212b80ad28eb2acec9c74dcedfd67182bb01e821033e9c5689f47ab0",
+    "quality-db-version.txt": "1f5941832963b5372c0ff04082a830bf357bed2c94af7f16a618ff1f311b70b7",
+    "postgres.log": "03117ce55ea4b4789aff6ea8778252d87a5f7361bf06c1252431583228ddf67f",
+    "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "runner-start.txt": "b40329cf75c2a5906d4d6cd7f7930395c88f5e22fded4d28af71c1be230d7f58",
+    "runner-end.txt": "f276214efc037de37ed2d9d17abc7872d8563d6ab02d9d36c3378df6f1483d87",
+    "evidence-validation.txt": "aae715d5ffefd9b91e3aebab06026029e5acab1c2d5763fd083d52ce000d0d2f",
+    "diagnostic-start.log": "7c1c201c4f026a1997755d5056a09c36cda9506556bb207f1d03d1d4ebfcb29f",
+    "diagnostic-client.log": "c97505a2b648d8bbbbff219eedb06a8ba4188435bde7cc08b95399a02b2d02c9",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "container-images.txt": "facb7ca500d458ab076f705f8ee3a2e5dfc5d54a11c767bf6af980a1de8b34e6",
+    "audit.json": "0ed4d45ebbe2e2e866bf54e14824ef90b294c4f231c79ca5cb3fa3e18439d6ef",
+    "quality-result.json": "e0e8cac017782874a59f6e9e62556729ba55097aced74cc24c11b056edcb63cd",
+    "quality.log": "e68892229da8c59e05fad5fb225575558f0c3132a699d1c1ec73a2a11e2cbaa8",
+    "manifest.json": "ffe7ec9732b5e7dddf79c1bc53a12391618900cc9688c2f5bd8a7d2616a3f149",
+    "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "runtime.txt": "69695cb37ef51e65e29a468b89c75f58f01b77b265670b2ff7855997be0b1276",
+    "sync-retry.log": "6d0ad211460053a9c1733bccfff91d18a83036cd1c116e370fabe4c97280c64c",
+    "quality-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "quality-postgres-start-initial-failed.log": "34b825d9b27563b61575581088c81b120b6f8b6bbddf9dcf16e4738f1c09d545",
+    "ids.json": "2be92a38e76ae6b49c9cba1fd27d2600c75d28b7e0cb8eb7bcee015b1bb3dbfa",
+    "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "sync.log": "c5fee456d3f731798e87c84965eb881989c1396936f48dd47fba15a327fbab7b",
+    "runner.log": "477ce176c10eb4f8e64ac94600c05b43c394ab380e5b96ede13694dd2bcd29f9",
+    "list-timing.json": "3f46b3ead02208ec7d0bc848b56a9aefbe685018939d87c586722365d5bffc8e",
+    "quality-postgres-start.log": "b62dbd3f92be67863b5921d27a348f67e1ec2afb2917013521b2e0fb92b6ca28",
+    "build.log": "5c51697d4b92056535f9093f5fb40f9d6e2abf7382a8dba7d64fc6278fac717f",
+    "source-hashes.txt": "0a3eb3d9fde9a29d2c1fc86cea636930a328c03bc6d68bd7e5c76ed435ebf9a2",
+    "diagnostic.jsonl": "a53549bed745da2b98530ccf124876d256ccb38d1b877ee6faf842aa2e662bb2",
+    "cleanup.json": "38a32715038b3d7d43531b9671162437195c3d470ef19c2aec6aa85fc42e5a93",
+    "memory.log": "8bb4cb98bb84ed2a892f224dbb9c216475b8af782b3a43a239921c79269b17ab",
+    "cleanup-initial.json": "bcc8398b1fad76af6289e5c1344e4c6512b8c77f6fa1bd8546a9ed1556a67f65",
+    "diagnostic-client.json": "78ed459aea2101178cc44fb7e8802c34fc496961c52c0a2b5cede79dadb36e7f",
+    "performance.json": "0f5861022b4ccaa6a8a9c111096c1466dd2db536e093b5af46f2eea3cab75d16",
+    "report-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "quality-postgres-start-second-failed.log": "47fcaec369c36f90c8fb6613d632fbbfe16133d9b53a761240156b51a66a7cd3",
+    "db-audit.txt": "dbbd42738ecce62d021767f1a96c6e6fad979b48ebee056ec4ab9cdf0b75deac"
+  }
+}
