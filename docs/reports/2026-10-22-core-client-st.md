@@ -78,6 +78,7 @@ memory-core-st-1792644139-2を明示して手動downで全て除去した。
 固定revision・モデルdigest・全標本・別診断の内訳・原因・修正案・cleanupは上記レポートと付属JSONを参照。
 修正 #43 / PR #44 統合後の[再測定](2026-10-22-core-st-performance-rerun.md)は、100件で **必達PASS**（p50 104.973ms / p95 140.719ms）、目標も両方達成。1000件は30分の準備予算超過で **NOT RUN**。
 PR #54統合後の[最終測定（100件・1000件）](2026-10-24-core-st-performance-final.md)と[要約JSON](2026-10-24-core-st-performance-final-summary.json)を参照。
+PR #58 / #59統合後の[runner無変更での再測定](2026-10-24-core-st-performance-unmodified.md)と[要約JSON](2026-10-24-core-st-performance-unmodified-summary.json)を参照。100件・1000件とも標準runnerが終了0で完走し、必達PASS。
 以下の過去時点のNOT RUN記録は、その時点の履歴として保持する。
 
 ## reimplement の補完結果
