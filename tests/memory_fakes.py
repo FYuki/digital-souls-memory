@@ -495,15 +495,23 @@ class FakeMemoryTransaction:
         )
 
     def sync_projection_relations(
-        self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
+        self,
+        identifiers: frozenset[str],
+        values: tuple[MemoryRelation, ...],
+        projected_ids: frozenset[str],
     ) -> None:
-        contributions = self.source_contributions(identifiers)
+        history = self.history(identifiers)
+        current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
+        replacements = {
+            previous: replacement
+            for previous, replacement in equivalent_ids(history, current).items()
+            if replacement in projected_ids
+        }
         for key, sources in tuple(self.store.reinforcements.items()):
             if key[0] == self.character:
-                retained = tuple(c for c in sources if c.fact_id not in identifiers)
                 self.store.reinforcements[key] = tuple(
                     dict.fromkeys(
-                        (*retained, *(c for c in contributions if c.extraction_turn_id == key[1]))
+                        replace(c, fact_id=replacements.get(c.fact_id, c.fact_id)) for c in sources
                     )
                 )
         raw = tuple(
@@ -513,7 +521,18 @@ class FakeMemoryTransaction:
             for e in effects
             if e.relation.from_id in identifiers
         )
-        resolved = dict(zip(raw, self.relation_effects(identifiers), strict=True))
+        resolved = {
+            previous: resolved
+            for previous, resolved in zip(raw, self.relation_effects(identifiers), strict=True)
+            if (
+                previous.relation.from_id == resolved.relation.from_id
+                or resolved.relation.from_id in projected_ids
+            )
+            and (
+                previous.relation.to_id == resolved.relation.to_id
+                or resolved.relation.to_id in projected_ids
+            )
+        }
         for (owner, origin), effects in tuple(self.store.effects.items()):
             if owner == self.character:
                 self.store.effects[(owner, origin)] = tuple(resolved.get(e, e) for e in effects)

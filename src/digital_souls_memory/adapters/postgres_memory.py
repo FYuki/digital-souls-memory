@@ -518,12 +518,19 @@ class _MemoryTransaction:
         return tuple(MemoryRelation(**r) for r in rows)
 
     def sync_projection_relations(
-        self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
+        self,
+        identifiers: frozenset[str],
+        values: tuple[MemoryRelation, ...],
+        projected_ids: frozenset[str],
     ) -> None:
-        self._sync_source_contributions(identifiers)
+        self._sync_source_contributions(identifiers, projected_ids)
         for effect, resolved in self._resolved_relation_effects(identifiers):
             previous = effect.relation
             if previous == resolved:
+                continue
+            if (previous.from_id != resolved.from_id and resolved.from_id not in projected_ids) or (
+                previous.to_id != resolved.to_id and resolved.to_id not in projected_ids
+            ):
                 continue
             key = (
                 self.character_id,
@@ -558,8 +565,12 @@ class _MemoryTransaction:
             if relation not in existing:
                 self.add_relation(relation)
 
-    def _sync_source_contributions(self, identifiers: frozenset[str]) -> None:
+    def _sync_source_contributions(
+        self, identifiers: frozenset[str], projected_ids: frozenset[str]
+    ) -> None:
         for previous, current in self._equivalent_ids(identifiers).items():
+            if current not in projected_ids:
+                continue
             self.connection.execute(
                 "INSERT INTO memory_source_contributions "
                 "SELECT character_id,%s,extraction_turn_id,source_turn_id,occurred_at "
