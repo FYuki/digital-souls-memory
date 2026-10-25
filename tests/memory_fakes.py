@@ -371,7 +371,23 @@ class FakeMemoryTransaction:
     def projection_neighbors(
         self, identifiers: frozenset[str], source_only: frozenset[str]
     ) -> frozenset[str]:
-        neighbors: set[str] = set()
+        origins = frozenset(v.turn_id for v in self.history(identifiers))
+        history = tuple(
+            v
+            for (owner, _), v in self.store.history.items()
+            if owner == self.character and v.turn_id in origins
+        )
+        replacements = equivalent_ids(history, self.candidates_for_turns(origins))
+        neighbors = {
+            identifier
+            for previous, current_id in replacements.items()
+            if previous in identifiers or current_id in identifiers
+            for identifier in (previous, current_id)
+        }
+        source_only = source_only | frozenset(
+            previous for previous, current_id in replacements.items() if current_id in source_only
+        )
+        identifiers = identifiers | frozenset(neighbors)
         relations = [r for owner, r in self.store.relations if owner == self.character]
         relations.extend(
             r

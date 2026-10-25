@@ -26,6 +26,70 @@ from tests.memory_support import memory
 pytestmark = pytest.mark.ut
 
 
+def test_dependency_revival_rebuilds_old_equivalent_sources_and_update_target() -> None:
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    a = replace(memory(), id="a", valid_from=RECORDED)
+    x = replace(memory(), id="x", object="water", source_turn_ids=("turn-x",))
+    c = replace(memory(), id="c", object="milk", source_turn_ids=("turn-c",))
+    d = replace(memory(), id="d", object="juice", source_turn_ids=("turn-d",))
+    for candidate in (x, a, c, d):
+        origin = candidate.source_turn_ids[0]
+        h.evidence.add_turn(turn(origin, actor="user-a"))
+        h.gateway.output = ExtractionProposal(
+            memories=(candidate,),
+            relations=(MemoryRelation(from_id="d", to_id="c", type="contradicts"),)
+            if candidate.id == "d"
+            else (),
+        )
+        worker.process("char-b", origin)
+        state = store.get_extraction("char-b", origin)
+        assert state is not None and state.status == "done"
+    h.evidence.add_turn(replace(turn("turn-b", actor="user-a"), occurred_at=RECORDED))
+    h.gateway.output = ExtractionProposal(
+        memories=(replace(a, id="b", source_turn_ids=("turn-b",)),),
+        relations=(MemoryRelation(from_id="b", to_id="x", type="updates"),),
+    )
+    worker.process("char-b", "turn-b")
+    assert store.get_memory("char-b", "x") == replace(x, valid_to=RECORDED)
+    service.requeue("turn-1")
+    z = replace(a, id="z")
+    summary = replace(memory("summary"), id="summary")
+    h.gateway.output = ExtractionProposal(
+        memories=(z, summary),
+        relations=(MemoryRelation(from_id="z", to_id="c", type="derives"),),
+    )
+    worker.process("char-b", "turn-1")
+    state = store.get_extraction("char-b", "turn-1")
+    assert state is not None and state.status == "done"
+    assert store.get_memory("char-b", "summary") == summary
+    assert store.get_memory("char-b", "z") is None
+    assert store.get_memory("char-b", "x") == x
+
+    service.requeue("turn-d")
+    h.gateway.output = (d,)
+    worker.process("char-b", "turn-d")
+    state = store.get_extraction("char-b", "turn-d")
+    assert state is not None and state.status == "done"
+    revived = store.get_memory("char-b", "z")
+    assert revived is not None
+    assert set(revived.source_turn_ids) == {"turn-1", "turn-b"}
+    assert revived.last_reinforced_at == RECORDED
+    assert revived.epistemics.independent_evidence_count == 1
+    assert store.get_memory("char-b", "x") == replace(x, valid_to=RECORDED)
+    with store.transaction("char-b") as tx:
+        snapshot = projection_input(tx)
+        full = collect_evidence(snapshot, "char-b", service.inputs).project(snapshot, h.now)
+        assert {v.id: v for v in tx.memories()} == full.memories
+        assert set(tx.applied_relations()) == set(full.relations)
+        tx.add_memory(replace(memory(), id="referrer", object="referrer"))
+        tx.add_relation(MemoryRelation(from_id="referrer", to_id="a", type="derives"))
+        assert "referrer" not in tx.projection_neighbors(frozenset({"z"}), frozenset({"z"}))
+        assert "referrer" in tx.projection_neighbors(frozenset({"z"}), frozenset())
+
+
 def test_equivalent_id_change_moves_sources_without_leaving_them_on_retired_projection() -> None:
     h = Harness(reports_delivery=False)
     store = FakeMemoryStore(h.evidence)
@@ -233,6 +297,23 @@ def test_affected_memories_include_effects_and_dependents_but_not_derives_refere
     same_fact = replace(seed, id="same-fact")
     unrelated = replace(memory(), id="unrelated", object="unrelated")
     with store.transaction("char-b") as tx:
+        for origin in ("origin", "another-origin"):
+            tx.save_extraction(
+                ExtractionState(
+                    character_id="char-b",
+                    turn_id=origin,
+                    delivery_basis=DeliveryBasis.ORIGINAL,
+                    signature="synthetic",
+                    status="done",
+                    token=None,
+                    lease_until=None,
+                    deadline=RECORDED,
+                    error=None,
+                    text_hash=None,
+                    used_end=None,
+                    receipt_version=0,
+                )
+            )
         tx.add_memory(target)
         tx.add_memory(unrelated)
         tx.set_candidates("origin", (seed,), dependencies=())
