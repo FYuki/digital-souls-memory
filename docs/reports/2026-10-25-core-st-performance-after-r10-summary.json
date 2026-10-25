@@ -1383,19 +1383,62 @@
     "[\"--model\",\"/models/bge-reranker-v2-m3-Q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"rank\",\"--reranking\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18050\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7"
   ],
   "quality": {
-    "status": "PARTIAL",
     "ruff_check": {
       "status": "PASS",
       "exit_code": 0
     },
     "ruff_format_check": {
       "status": "PASS",
+      "exit_code": 0,
+      "source_files": 311
+    },
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0,
+      "source_files": 311
+    },
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 1121,
+      "elapsed_s": 7.5
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 935,
+      "elapsed_s": 32.67
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 737,
+      "elapsed_s": 764.76,
+      "db_image": "sha256:f2d52f13ecf6d47a87aec9d370cbf0220337382494e96d1b247e6b5150fe522d",
+      "db_version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "scope": "standard with-test-postgres.sh; dedicated synthetic tmpfs DB; network none; no published ports; cpus=1; memory=1g; separate from performance acceptance DB"
+    },
+    "lock": {
+      "status": "PASS",
       "exit_code": 0
     },
-    "additional_checks": {
-      "status": "NOT RUN",
-      "exit_code": null
-    }
+    "shell": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "compose": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "package": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PASS"
   },
   "cleanup": {
     "status": "PASS",
@@ -1403,7 +1446,9 @@
     "containers": [],
     "networks": [],
     "volumes": [],
-    "model_containers": []
+    "model_containers": [],
+    "quality_db_container": [],
+    "quality_db_socket_removed": true
   },
   "not_run": [
     "10000 items",
@@ -1429,26 +1474,49 @@
     "cumulative_1000_delta_s": 5.457297000000011
   },
   "evidence_sha256": {
-    "build.log": "aa45ea716a33e42892f89a467f4984e5091f6e015e5dbfcae55051feaf81bfbe",
+    "build-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "build.log": "70aee33610ed7b7e03359962f6bc07d91d89e5e13b70516cc380acf11512021b",
     "cleanup-models.log": "269940707d8e3877663d960f201d02ca53ad81c7b1ee0d169ce98cf918271bde",
     "cleanup-st.log": "d2d226fae1ee87572d89f68f9300c20692646d068ecd399845dea25ec1e7f890",
-    "cleanup.json": "2798d1614b768ca39ccd20727e5aaf48cef23f44ed074a04fbce61a7f276b66c",
+    "cleanup.json": "a105c88099d210f7146cde3974a0e0252ce9190153ba6683b89059b09ba2bb19",
+    "compose-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "compose.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
     "embedding-start.log": "3c2aaded3638e3582751b159cf6f3922f30e7e0bddda6874441382532dbc1847",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "it1-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "it1.log": "add3e8b5679c7e554804bbdbd7746bf1223416af38631cd0bf6d94560d9d16b7",
     "list-timing.json": "2ac7dbb90c0b080f3a594960caa7092b20fbb770b2cf78ad3c0326089e1330ae",
+    "lock-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "lock.log": "321f0b607da3e9134cfcf1529e067a07da87a9737f26f661d4b9d2228950f006",
     "manifest-before.sha256": "ba05af7a574a3e8e2c02b739ca15f83811a2fc0abc06a49514ed832ef64e5bb4",
     "manifest.json": "48de0fd1526961bc20c50a3d51238ecd2b9cb069baacf5ab93e993d8f8093a14",
     "memory.log": "b6e04b7493b9d9baa67ac77ce3eb445d62f71ec617fc47244305d67a189a20a5",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "mypy.log": "fb137be3de18a936fec5be2f8945360343e7552c7904ff5a51e61547cae8b7a6",
+    "package.log": "88263e0d2ff8b286c6caac103cf2fd5ff1f0b9d7e4b0160fd8b134c6a2cc1160",
     "performance.json": "be3de37a9e78498c6af740bcc9c54033b541b9c362be0ef0aa25b77c5f0c4f74",
-    "quality.json": "b5f3d6858b0470fe37606ef2fc909633bb090642226e5de6a44daa05f882025e",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "219ff696ee9d3fe76cfb77b1e5b3d67576df9a1ae0adf69cb4c7afa9dc241a36",
+    "quality-db-inspect.txt": "0ecd63109bbd7f3157b49facb9b08c2b0072b8fca38ae04d4efc8a9e267a7047",
+    "quality-db-version.txt": "1f5941832963b5372c0ff04082a830bf357bed2c94af7f16a618ff1f311b70b7",
+    "quality-db.json": "2e16a9cf309fce88109c3b41820c434dc24dfa72f3202546885ed9ce5c7d12d6",
+    "quality.json": "435e3643d75f29f3e0535f54a59b05a76d7c581efae9e60a668849609f9ee2ea",
     "ready.txt": "2be5bf31f082af441baf22d15d0b74c4c0f5834438a31ef50e8b73f829ddbb19",
     "reranker-start.log": "a655209f44bcbd523420913278d757e95a0428c95f11ba74bf63658639c78507",
+    "ruff_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_check.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    "ruff_format_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_format_check.log": "fcf70d879799d84809bf70d40442dbbd9a98147d68dc0e94a0a441578ffc77db",
     "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "runner.log": "f4d244c71c0f4a4c253363f0d2b16a983060f639e8c1428dd0a3a582176e2af6",
+    "shell-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "shell.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "source-hashes.json": "926d8b9471f32d4d3fc28f630c2e6702a4dbed135c2327b80921444cdce2b497",
     "start.log": "85698b5f4a415ae62518ba35c5c521be562ae8d733ebe0e7069d16be5df657be",
-    "sync.log": "89cc0721e94899ac03975577f938dfd1d78513a3cd809456d8fe1c9f3786c620"
+    "sync.log": "89cc0721e94899ac03975577f938dfd1d78513a3cd809456d8fe1c9f3786c620",
+    "ut-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ut.log": "44894254a7e7babdadf13bd86066eb7b4125c1597f5b084b221a5b4e21ceeb0a"
   }
 }
