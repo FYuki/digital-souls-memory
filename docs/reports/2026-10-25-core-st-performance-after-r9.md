@@ -54,7 +54,7 @@ p50 目標は両件数とも引き続き未達。単一の逐次測定なので�
 候補 / rerank / 返却数は100件で100 / 20 / 5、1000件で290 / 20 / 5（各105回）。
 PR #72 の1000件候補は320であり、同一候補集合の比較ではない。
 candidate_limit=200 は各検索経路の上限で、候補は和集合。負荷・クロック・キャッシュの変動も含み、
-差を ADR 0024 の変更だけに帰属させない。再表明の品質・同一 SPO 集約の意味的な受入はこの測定の対象外。
+他セッションの CPU 負荷やクロックは制御していない。差を ADR 0024 の変更だけに帰属させない。再表明の品質・同一 SPO 集約の意味的な受入はこの測定の対象外。
 
 ## 条件と runner 無変更の証跡
 
@@ -99,11 +99,22 @@ docker compose -p memory-core-perf-r9-20261025 -f compose.core-st.yml -f compose
 
 ## 検証・cleanup・未実施
 
-ruff check / ruff format --check（308 files）は **PASS**。その他の追加品質ゲートは **NOT RUN**（中断対策として計測証跡を先に Draft PR 化し、その後に実行予定）。
+ruff check / ruff format --check（308 files）、mypy（308 source files）、UT 1112件、IT1 935件、
+実 PostgreSQL 724件（743.73秒）、lock / shell / Compose 検査、wheel build・独立環境への
+locked install/import は **PASS**。追加品質試験は Draft PR #76 作成後に実施した。
+
+初回 IT1 は sandbox 内で約5分進捗がなく、自分の pytest のみを中断（終了143、PASS扱いなし）。
+SIGINT では終了せず SIGTERM で終了。原因は未確定。sandbox 外で全 IT1 を再実行し終了0。
+再実行時は診断用 faulthandler_timeout=60（スタック出力のみ）を指定し、試験の timeout や成功条件は変更していない。
+性能 runner の実行とは別である。
+
+品質 DB は標準 tools/with-test-postgres.sh の新規合成 tmpfs DB（network none、公開ポートなし、cpus=1 / memory=1g）。
+受入 DB と別 image ID（両方の実 ID・PostgreSQL 18.6 の確認値は JSON）を使い、受入結果と混ぜていない。
 ホストの初回 uv sync は sandbox の DNS 制限で FAIL。ネットワーク許可下の frozen sync 再試行は PASS。
 ST の build / 起動 / runner 自体には失敗なし。
 
 今回起動した専用 ST project とモデル2 container だけを停止・削除し、container / network / volume 残存0を確認（PASS）。
+追加品質試験の自分の DB container と一時 socket も削除・消失を確認。
 既存の他 project の container には操作していない。生証跡は `/tmp/core-st-performance-after-r9-20261025`、
 hash は要約 JSON。秘密・利用者ホーム絶対パス・モデル本体はコミットしない。
 

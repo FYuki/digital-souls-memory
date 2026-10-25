@@ -1411,9 +1411,55 @@
     "memory": "sha256:9a6c1d66d95dcf4c5cab732b6e3a839620397ea9b1ab4ad1381820b092fedb3c"
   },
   "quality": {
-    "ruff_check": "PASS",
-    "ruff_format_check": "PASS (308 files)",
-    "other_gates": "NOT RUN; follow after Draft PR"
+    "status": "PASS",
+    "ruff_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ruff_format_check": {
+      "status": "PASS",
+      "exit_code": 0,
+      "files": 308
+    },
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0,
+      "source_files": 308
+    },
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 1112,
+      "elapsed_s": 6.82
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 935,
+      "elapsed_s": 28.74,
+      "execution": "outside sandbox; full suite; faulthandler_timeout=60 (diagnostic stack dump only)"
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 724,
+      "elapsed_s": 743.73,
+      "db_image": "sha256:b05d51fb3941b1a6f9a9cb215f04e135147f0330d48b7b7b5e79e1070f44e374",
+      "db_version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "scope": "standard with-test-postgres.sh; dedicated synthetic tmpfs DB, network none, no published ports, cpus=1, memory=1g; separate from acceptance DB"
+    },
+    "lock_shell_compose": "PASS",
+    "wheel_build_locked_install_import": "PASS",
+    "initial_it1": {
+      "status": "INTERRUPTED",
+      "exit_code": 143,
+      "reason": "No progress about 5 minutes under sandbox; SIGINT did not finish; terminated own pytest; cause unconfirmed; full suite rerun outside sandbox"
+    },
+    "initial_uv_sync": {
+      "status": "FAIL",
+      "reason": "sandbox DNS unavailable",
+      "retry": "PASS outside sandbox with frozen lock"
+    }
   },
   "cleanup": {
     "status": "PASS",
@@ -1421,7 +1467,9 @@
     "containers": [],
     "networks": [],
     "volumes": [],
-    "model_containers": []
+    "model_containers": [],
+    "quality_db_container": [],
+    "quality_db_socket_removed": true
   },
   "not_run": [
     "10000 items",
@@ -1448,22 +1496,34 @@
     "cumulative_1000_delta_s": -56.420691000000005
   },
   "evidence_sha256": {
+    "audit.json": "dd79be7607eaf1d5fb5b0008136104963c6af340942b9c3e65727965c155f47d",
     "build.log": "10b315be08c00a529059c7a409d07fa073161f33521234896e9a952bc6997e00",
     "cleanup-models.log": "bdf1d68d9f5da027d9f72be751426444ca735a7568f25afa05352a628db70b23",
     "cleanup-st.log": "b98d6a23f16e0b35b516f813e1d9328614ded11996b5e1f111aa89f243a35670",
-    "cleanup.json": "b3c2817c9492adaffe8ac7695694079a51b2e3c955a5e1d013c59a53cc4a88d0",
+    "cleanup.json": "7b8a3662074f9547e165dd7e5638b0c29d861e8ebcf5ce8810fd3a902c490e4b",
     "client-image.txt": "de3fb4812b9f5800983d648c45443f6dafb009839a10b5b23d31b037f100c5e2",
     "db-image.txt": "ca08fc013e3799e24bbfc30f0ab16cfcc41cbe4ffc00d7727f568eb56ee74b45",
     "db-version.txt": "cb8d801dd8f07bca4140277a511b1c6e659faf8911c3715a3d3402a4310fdc96",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "it1-exit.txt": "9d9b18720961e9b4689fd763b85e7b6f36160ccd3a8a1c9ddc5103bb0f66c396",
+    "it1-retry-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "it1-retry.log": "500c391911172b099323aa0d17be7c97d74f73e73aff7b8ac95869a8939e5de2",
+    "it1.log": "24f16b8a797aec51d1e5e8d1edf55e3602536e20054dd1f6a93c2df1cf814c6a",
     "list-timing.json": "7e4504020fe489020f99ada92b45b7f9ff148bcc91b2dc9e257190d518bd0f3b",
     "manifest-before.sha256": "ab4039f1e1b122ca0f53b96f699719baef87d48660565efb96b6f09a1a6301ae",
     "manifest.json": "fc965624e88c5383afd2e8af00d8de29b8d55d40d2e91cdff4ee0db114b45ded",
     "memory-image.txt": "de3fb4812b9f5800983d648c45443f6dafb009839a10b5b23d31b037f100c5e2",
     "memory.log": "99fe69db6b85ece87613ca61a1bf5def3ae14f2506c4881489ee1c86a8740806",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "mypy.log": "3a4bd2bf7ce769eea191b78ca28e039e525ec3cb2949f0f28b8b9a411dd61be6",
     "performance.json": "6beea54fd26c4c757169593b6a4b2b9d434948571aaae12394801e37bae3ace5",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "fb6051f08514a3ce14c352a32924e4269c767b6d6c12297d2de76465a535a68e",
     "provisions.json": "2258a6e8cfa155039dbb5f2de958f1dd385f3eaaf67fc41e3cde83a216bbc2e4",
+    "quality-db-inspect.txt": "58e4df542ebcfae13fa676d8285fa72c2fd7207e94b9f856f6cb001994a0f588",
+    "quality-db-version.txt": "1f5941832963b5372c0ff04082a830bf357bed2c94af7f16a618ff1f311b70b7",
+    "quality-other.json": "70dd2a59922bd67c6d108cdd15c6f89b3d83044393a2fc12826a1965aca38fe2",
     "ready.txt": "61c078ee04639f2a6a0bbce8a4e30a68d08028008039ad878c49e6f70993dc15",
     "ruff-check.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
     "ruff-format.log": "0b82d5f0ddee3cd7c567e296e3fa87dceeffd23a0571e1e8f662a061c2e29a12",
@@ -1472,6 +1532,8 @@
     "source-sha256.txt": "0a3eb3d9fde9a29d2c1fc86cea636930a328c03bc6d68bd7e5c76ed435ebf9a2",
     "start.log": "3540a278fb83d54febffa4a4e5bf5381f066b1d33f3245e3c72a40b47a23547c",
     "sync-retry.log": "4e429d15820780275b97edf288d234e7e9cda5a1826b3b3b37002aa8a5364993",
-    "sync.log": "34cf258ba75af3fb4d4e84e93e7afda7c46c09ae5c6edbbed46846b80ae65daa"
+    "sync.log": "34cf258ba75af3fb4d4e84e93e7afda7c46c09ae5c6edbbed46846b80ae65daa",
+    "ut-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ut.log": "eec52e4e64ea48653045b0f0585f4da7821966df244fa7f91585ef545fbfbebd"
   }
 }
