@@ -1383,7 +1383,6 @@
     "[\"--model\",\"/models/bge-reranker-v2-m3-Q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"rank\",\"--reranking\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18050\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7"
   ],
   "quality": {
-    "status": "NOT RUN",
     "ruff_check": {
       "status": "PASS",
       "exit_code": 0
@@ -1391,10 +1390,62 @@
     "ruff_format_check": {
       "status": "PASS",
       "exit_code": 0
-    }
+    },
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 1122,
+      "elapsed_s": 7.35
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 935,
+      "elapsed_s": 32.95
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 747,
+      "elapsed_s": 797.47,
+      "scope": "standard with-test-postgres.sh; isolated tmpfs synthetic DB; network none; memory 1g; separate from performance DB",
+      "image_inspect": "sha256:47aabdb20331ed46313128c39a80fabd55fec176499da2de068f77f4ba06ebc1 1073741824 none"
+    },
+    "lock": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "shell": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "compose": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "package": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PASS"
   },
   "cleanup": {
-    "status": "NOT RUN"
+    "status": "PASS",
+    "project": "memory-core-perf-r12-20261026",
+    "containers": [],
+    "networks": [],
+    "volumes": [],
+    "model_containers": [],
+    "quality_db_container": [],
+    "quality_db_socket_removed": true
   },
   "not_run": [
     "10000 items",
@@ -1475,19 +1526,37 @@
     }
   },
   "evidence_sha256": {
-    "build.log": "365a5f6ddb9e90a447c1b0178c83cdc5ee19d6ac132f66ae1760cc31ef0e72a5",
+    "build-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "build.log": "70aee33610ed7b7e03359962f6bc07d91d89e5e13b70516cc380acf11512021b",
+    "cleanup-models.log": "3a570bfa64c58e1f7f197af56ade0248fddf717ccea6a47939c45acfe7e321c1",
+    "cleanup-st.log": "7600debdda61d326c5130f6298b44459e4793ed08de83f4a361934f5d26732f4",
+    "cleanup.json": "2930885d31c37975c28278b679ebec9c92c8e1e12c49e3130825f9fad4f5ac46",
+    "compose-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "compose.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
     "embedding-start.log": "21bf58ec34c0bfcc9192d6e094bc33ae02a81ab3c8587b0516b94fd66751acc5",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "it1-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "it1.log": "ae85c652d81eb2e05b8a229b0c09da12be2858cf5c303af0697f0b724010396d",
     "list-timing.json": "74f40a350de0835251b4c34785256e13e716658c333f1521c581b731c973bba9",
+    "lock-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "lock.log": "321f0b607da3e9134cfcf1529e067a07da87a9737f26f661d4b9d2228950f006",
     "manifest-before.sha256": "8d1d64bf46fba45be3317350ee392fe786e8b2cd968d256a560c6c6e5728d612",
     "manifest.json": "f1030c60e0757d6ba0d7a30c686c2463f079a757f7807b4059811cc7b8e78808",
     "memory.log": "3e6bf64aabab9b365db86991e4f28ca370022bb867ccd1cf5809dd6f39301575",
     "model-digests.json": "6f2f31bd8318f308562823d20dcb950a313ccc3030866bdd2c5a81a1028ea801",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "mypy.log": "794300c2999253202f40591396f3daf5e865557b6eb6041815c69e51b874990f",
+    "package.log": "a4e1e6a6cea7afad555038bdee66bddbb27e07cdaa3ee1b24c06a0d3f20fee0f",
     "performance.json": "79a5bb4e47b0bd9033761cf399495609eba20d70f25b6916a9aa81a01e015397",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "d2d55295f32be5eb99f52d3a885b9d2c5384bf751b37c427b0763cf8c8daeaba",
     "projection-probe.json": "87bfc684838cd6e9fba44a512f0b9e319e791ef34527e052af2033bbdb4afa47",
     "projection-probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "quality-db-inspect.txt": "81f8d83902da48800bc4406ed309bc2c6c6d334c3f7d4cfbc4863b5f1598937c",
+    "quality-db.json": "429677669babba5bd114622dc27994a87bde90d543c5bd976ab9fe8a3649e2b4",
+    "quality.json": "08acc2b51a5f90e08eb0be1cdacff4d034a43028df5d43d859489b0bd9cdbc67",
     "ready.txt": "cc5de2122a414ecd094e6857e9d81ba68e4ee3d11d47723a44d8ea41de1f157e",
     "reranker-start.log": "36b42e6b92a2de0f88f547db1ece66ba0a71b4472dd96e234f098a7c5311a56c",
     "ruff_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
@@ -1496,8 +1565,12 @@
     "ruff_format_check.log": "d534f2fbd06a778b07e8eda1c49ca39fbe3c89ed56b8a4fe3785a17fc4e081f4",
     "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "runner.log": "29ace31a499e5439178656c51c4c344abb582291b359ec47c409cd742c785431",
+    "shell-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "shell.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "source-hashes.json": "926d8b9471f32d4d3fc28f630c2e6702a4dbed135c2327b80921444cdce2b497",
     "start.log": "9735e9f4c2f50bb5777dcefbd0f9843659c6c89d5f8ffed3e50ff4e495b19c0d",
-    "sync.log": "29c70dbf93916a1632171eedd7e6a850cfc13bde1ea961400de5b04dd1fd6ea4"
+    "sync.log": "29c70dbf93916a1632171eedd7e6a850cfc13bde1ea961400de5b04dd1fd6ea4",
+    "ut-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ut.log": "5b745ca4a0690d71719896c5f3860386995d9b4611bf71058d782a8be944f4a2"
   }
 }
