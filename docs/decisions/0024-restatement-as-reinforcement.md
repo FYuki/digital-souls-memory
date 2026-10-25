@@ -1,7 +1,7 @@
 # 0024. 同じ Fact の再表明は別の記憶にせず、既存の Fact への出典寄与として記録する
 
 - 日付：2026-10-25
-- 状態：提案
+- 状態：承認（2026-10-25、本人回答 Q-005「その推奨案で進めて」）
 - 関連：[ADR 0001](0001-raw-turns-as-source-of-truth.md)、[ADR 0012](0012-retrieval-scoring-and-recency.md)、[ADR 0019](0019-phase1-deletion.md)、[ADR 0023](0023-extraction-unit-and-independent-evidence.md)、Issue #61・#65・#68・#71
 
 ## 背景
