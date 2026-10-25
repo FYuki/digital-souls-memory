@@ -280,7 +280,10 @@ class PostgresDeletionStore:
             history = tx.history(
                 frozenset(i for r in owned for i in (r["memory_id"], r["proposed_target"]))
             )
-            current = tx.candidates_for_turns(frozenset(c.turn_id for c in history))
+            current = tx.candidates_for_turns(
+                frozenset(c.turn_id for c in history),
+                history_ids=frozenset(c.memory.id for c in history),
+            )
             resolved = resolve_relations(
                 tuple(
                     MemoryRelation(
@@ -704,7 +707,10 @@ class PostgresDeletionStore:
             )
             tx = _MemoryTransaction(connection, owner)
             history = tx.history(frozenset(i for r in proposed for i in (r.from_id, r.to_id)))
-            current = tx.candidates_for_turns(frozenset(c.turn_id for c in history))
+            current = tx.candidates_for_turns(
+                frozenset(c.turn_id for c in history),
+                history_ids=frozenset(c.memory.id for c in history),
+            )
             owned = tuple(zip(rows, resolve_relations(proposed, history, current), strict=True))
             removed = {r for row, r in owned if row["turn_id"] in withdrawn}
             retained = {r for row, r in owned if row["turn_id"] not in withdrawn}

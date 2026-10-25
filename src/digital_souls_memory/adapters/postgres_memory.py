@@ -115,15 +115,20 @@ class _MemoryTransaction:
 
     def fact_matches(self, value: DerivedMemory, now: datetime) -> tuple[DerivedMemory, ...]:
         rows = self.connection.execute(
-            "SELECT memory_id FROM (SELECT memory_id,payload FROM memory_generated "
+            "SELECT DISTINCT matches.memory_id FROM "
+            "(SELECT memory_id,payload FROM memory_generated "
             "WHERE character_id=%s AND payload->>'kind'='fact' "
             "AND md5(payload->>'subject')=md5(%s) AND md5(payload->>'predicate')=md5(%s) "
             "AND md5(payload->>'object')=md5(%s) UNION "
             "SELECT memory_id,payload FROM memory_baselines "
             "WHERE character_id=%s AND payload->>'kind'='fact' "
             "AND md5(payload->>'subject')=md5(%s) AND md5(payload->>'predicate')=md5(%s) "
-            "AND md5(payload->>'object')=md5(%s)) matches",
-            (self.character_id, value.subject, value.predicate, value.object) * 2,
+            "AND md5(payload->>'object')=md5(%s)) matches "
+            "JOIN derived_memories m ON m.character_id=%s AND m.id=matches.memory_id "
+            "WHERE m.id<>%s AND m.kind='fact' AND m.superseded_at IS NULL "
+            "AND m.valid_from<=%s AND (m.valid_to IS NULL OR %s<m.valid_to)",
+            (self.character_id, value.subject, value.predicate, value.object) * 2
+            + (self.character_id, value.id, now, now),
         ).fetchall()
         return tuple(
             v
@@ -172,7 +177,10 @@ class _MemoryTransaction:
 
     def _equivalent_ids(self, identifiers: frozenset[str]) -> dict[str, str]:
         history = self.history(identifiers)
-        current = self.candidates_for_turns(frozenset(v.turn_id for v in history))
+        current = self.candidates_for_turns(
+            frozenset(v.turn_id for v in history),
+            history_ids=frozenset(v.memory.id for v in history),
+        )
         return equivalent_ids(history, current)
 
     def set_source_contributions(
@@ -234,7 +242,10 @@ class _MemoryTransaction:
         history = self.history(
             frozenset(i for e in effects for i in (e.relation.from_id, e.relation.to_id))
         )
-        current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
+        current = self.candidates_for_turns(
+            frozenset(c.turn_id for c in history),
+            history_ids=frozenset(c.memory.id for c in history),
+        )
         resolved = resolve_relations(tuple(e.relation for e in effects), history, current)
         return tuple(zip(effects, resolved, strict=True))
 
@@ -246,7 +257,10 @@ class _MemoryTransaction:
         ).fetchall()
         historical = tuple(MemoryRelation(**r) for r in previous)
         history = self.history(frozenset(i for r in historical for i in (r.from_id, r.to_id)))
-        current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
+        current = self.candidates_for_turns(
+            frozenset(c.turn_id for c in history),
+            history_ids=frozenset(c.memory.id for c in history),
+        )
         for relation in resolve_relations(historical, history, current):
             self.connection.execute(
                 "DELETE FROM memory_relations WHERE character_id=%s AND from_id=%s "
@@ -310,10 +324,21 @@ class _MemoryTransaction:
             for r in rows
         )
 
-    def candidates_for_turns(self, turn_ids: frozenset[str]) -> tuple[MemoryContribution, ...]:
+    def candidates_for_turns(
+        self, turn_ids: frozenset[str], *, history_ids: frozenset[str] | None = None
+    ) -> tuple[MemoryContribution, ...]:
+        selected = None if history_ids is None else list(history_ids)
         rows = self.connection.execute(
-            "SELECT memory_id FROM memory_candidates WHERE character_id=%s AND turn_id=ANY(%s)",
-            (self.character_id, list(turn_ids)),
+            "SELECT c.memory_id FROM memory_candidates c "
+            "WHERE c.character_id=%s AND c.turn_id=ANY(%s) "
+            "AND (%s::text[] IS NULL OR EXISTS (SELECT 1 FROM memory_generated h "
+            "WHERE h.character_id=c.character_id AND h.turn_id=c.turn_id "
+            "AND h.memory_id=ANY(%s) AND (h.memory_id=c.memory_id OR "
+            "(h.payload->'kind'=c.payload->'kind' AND h.payload->'content'=c.payload->'content' "
+            "AND h.payload->'subject' IS NOT DISTINCT FROM c.payload->'subject' "
+            "AND h.payload->'predicate' IS NOT DISTINCT FROM c.payload->'predicate' "
+            "AND h.payload->'object' IS NOT DISTINCT FROM c.payload->'object'))))",
+            (self.character_id, list(turn_ids), selected, selected),
         ).fetchall()
         return self.candidates(frozenset(r["memory_id"] for r in rows))
 
@@ -321,12 +346,34 @@ class _MemoryTransaction:
         self, identifiers: frozenset[str], source_only: frozenset[str]
     ) -> frozenset[str]:
         historical_ids = self.connection.execute(
-            "SELECT memory_id FROM memory_generated WHERE character_id=%s AND turn_id IN "
-            "(SELECT turn_id FROM memory_generated WHERE character_id=%s AND memory_id=ANY(%s))",
-            (self.character_id, self.character_id, list(identifiers)),
+            "SELECT h.memory_id FROM memory_generated h WHERE h.character_id=%s "
+            "AND h.turn_id IN (SELECT turn_id FROM memory_generated "
+            "WHERE character_id=%s AND memory_id=ANY(%s)) "
+            "AND EXISTS (SELECT 1 FROM memory_generated seed "
+            "WHERE seed.character_id=h.character_id AND seed.turn_id=h.turn_id "
+            "AND seed.memory_id=ANY(%s) AND (seed.memory_id=h.memory_id OR "
+            "(seed.payload->'kind'=h.payload->'kind' "
+            "AND seed.payload->'content'=h.payload->'content' "
+            "AND seed.payload->'subject' IS NOT DISTINCT FROM h.payload->'subject' "
+            "AND seed.payload->'predicate' IS NOT DISTINCT FROM h.payload->'predicate' "
+            "AND seed.payload->'object' IS NOT DISTINCT FROM h.payload->'object'))) "
+            "AND (h.memory_id=ANY(%s) OR EXISTS (SELECT 1 FROM memory_source_contributions s "
+            "WHERE s.character_id=h.character_id AND s.fact_id=h.memory_id) "
+            "OR EXISTS (SELECT 1 FROM memory_candidate_relations r "
+            "WHERE r.character_id=h.character_id "
+            "AND (r.from_id=h.memory_id OR r.to_id=h.memory_id)) "
+            "OR EXISTS (SELECT 1 FROM memory_relations r WHERE r.character_id=h.character_id "
+            "AND (r.from_id=h.memory_id OR r.to_id=h.memory_id)) "
+            "OR EXISTS (SELECT 1 FROM derived_memories m "
+            "WHERE m.character_id=h.character_id AND m.id=h.memory_id "
+            "AND m.superseded_at IS NULL))",
+            (self.character_id, self.character_id, *([list(identifiers)] * 3)),
         ).fetchall()
         history = self.history(frozenset(r["memory_id"] for r in historical_ids))
-        current = self.candidates_for_turns(frozenset(v.turn_id for v in history))
+        current = self.candidates_for_turns(
+            frozenset(v.turn_id for v in history),
+            history_ids=frozenset(v.memory.id for v in history),
+        )
         replacements = equivalent_ids(history, current)
         equivalents = frozenset(
             identifier
@@ -586,7 +633,14 @@ class _MemoryTransaction:
     def _sync_source_contributions(
         self, identifiers: frozenset[str], projected_ids: frozenset[str]
     ) -> None:
-        for previous, current in self._equivalent_ids(identifiers).items():
+        rows = self.connection.execute(
+            "SELECT DISTINCT fact_id FROM memory_source_contributions "
+            "WHERE character_id=%s AND fact_id=ANY(%s)",
+            (self.character_id, list(identifiers)),
+        ).fetchall()
+        for previous, current in self._equivalent_ids(
+            frozenset(r["fact_id"] for r in rows)
+        ).items():
             if current not in projected_ids:
                 continue
             self.connection.execute(

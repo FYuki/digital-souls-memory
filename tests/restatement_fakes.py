@@ -104,7 +104,10 @@ class SequenceDeletionStore(SharedDeletionStore):
                 for r in values
             ) + tuple((e.turn_id, e.relation) for e in tx.relation_effects())
             history = tx.history(frozenset(i for _, r in raw for i in (r.from_id, r.to_id)))
-            current = tx.candidates_for_turns(frozenset(c.turn_id for c in history))
+            current = tx.candidates_for_turns(
+                frozenset(c.turn_id for c in history),
+                history_ids=frozenset(c.memory.id for c in history),
+            )
             owned = tuple(
                 zip(
                     (o for o, _ in raw),
