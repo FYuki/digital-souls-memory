@@ -320,6 +320,24 @@ class _MemoryTransaction:
     def projection_neighbors(
         self, identifiers: frozenset[str], source_only: frozenset[str]
     ) -> frozenset[str]:
+        historical_ids = self.connection.execute(
+            "SELECT memory_id FROM memory_generated WHERE character_id=%s AND turn_id IN "
+            "(SELECT turn_id FROM memory_generated WHERE character_id=%s AND memory_id=ANY(%s))",
+            (self.character_id, self.character_id, list(identifiers)),
+        ).fetchall()
+        history = self.history(frozenset(r["memory_id"] for r in historical_ids))
+        current = self.candidates_for_turns(frozenset(v.turn_id for v in history))
+        replacements = equivalent_ids(history, current)
+        equivalents = frozenset(
+            identifier
+            for previous, current_id in replacements.items()
+            if previous in identifiers or current_id in identifiers
+            for identifier in (previous, current_id)
+        )
+        source_only = source_only | frozenset(
+            previous for previous, current_id in replacements.items() if current_id in source_only
+        )
+        identifiers = identifiers | equivalents
         rows = self.connection.execute(
             "WITH relations AS (SELECT from_id,to_id,type FROM memory_relations "
             "WHERE character_id=%s UNION SELECT from_id,to_id,type "
@@ -338,7 +356,7 @@ class _MemoryTransaction:
                 list(source_only),
             ),
         ).fetchall()
-        return frozenset(r["memory_id"] for r in rows)
+        return equivalents | frozenset(r["memory_id"] for r in rows)
 
     def withdrawn_ids(self, identifiers: frozenset[str]) -> frozenset[str]:
         rows = self.connection.execute(
