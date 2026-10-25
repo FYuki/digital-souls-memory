@@ -276,8 +276,14 @@ def test_unprojected_equivalent_target_does_not_receive_restatement_effect(
     ],
     ids=["same-speaker", "literal-content", "retired-destination", "different-speaker"],
 )
+@pytest.mark.parametrize("origin_first", [False, True], ids=["support-first", "origin-first"])
 def test_dependency_revival_recovers_stranded_contribution_and_effect(
-    database_url: str, actor: str, content: str, historical_destination: bool, expected_count: int
+    database_url: str,
+    actor: str,
+    content: str,
+    historical_destination: bool,
+    expected_count: int,
+    origin_first: bool,
 ) -> None:
     reinforced_at = RECORDED - timedelta(hours=1)
     evidence = seed_evidence(database_url)
@@ -402,6 +408,36 @@ def test_dependency_revival_recovers_stranded_contribution_and_effect(
             ).fetchall() == [("turn-b", "z", "x", "updates", "z")]
         assert_consistent(worker.service, database_url, {"c", "d", "z", "summary", "key"})
         assert_recalled_values(database_url, {"z": revived})
+        if origin_first:
+            response = client.post(
+                "/deletion-requests",
+                headers=HEADERS,
+                json={"request_id": "delete-origin-first", "target_turn_ids": ["turn-1"]},
+            )
+            assert response.status_code == 200, response.json()
+            assert response.json()["status"] == "done"
+            surviving = replace(
+                z,
+                source_turn_ids=("turn-b",),
+                last_reinforced_at=reinforced_at,
+            )
+            assert store.get_memory("char-b", "z") == surviving
+            assert store.get_memory("char-b", "x") == replace(x, valid_to=RECORDED)
+            with store.list_relations("char-b", "z") as relations:
+                assert set(relations) == {MemoryRelation(from_id="z", to_id="x", type="updates")}
+            assert_consistent(worker.service, database_url, {"c", "d", "z"})
+            assert_recalled_values(database_url, {"z": surviving})
+            response = client.post(
+                "/deletion-requests",
+                headers=HEADERS,
+                json={"request_id": "delete-last-support", "target_turn_ids": ["turn-b"]},
+            )
+            assert response.status_code == 200, response.json()
+            assert response.json()["status"] == "done"
+            assert store.get_memory("char-b", "z") is None
+            assert store.get_memory("char-b", "x") == x
+            assert_consistent(worker.service, database_url, {"x", "c", "d"})
+            return
         response = client.post(
             "/deletion-requests",
             headers=HEADERS,

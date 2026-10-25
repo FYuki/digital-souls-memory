@@ -468,7 +468,13 @@ class PostgresDeletionStore:
                 for r in replacements
                 if r.copy.table == "derived_memories"
             }
-            affected: dict[str, frozenset[str]] = {}
+            withdrawn_relations = self._withdrawn_relations(
+                connection, attempt.request.target_turn_ids
+            )
+            affected: dict[str, frozenset[str]] = {
+                owner: frozenset(i for r in relations for i in (r.from_id, r.to_id))
+                for owner, relations in withdrawn_relations.items()
+            }
             for owner in {owner for owner, _ in projected}:
                 withdrawn_facts = {
                     r.copy.memory.id
@@ -496,7 +502,7 @@ class PostgresDeletionStore:
                     )
                 )
                 if targets:
-                    affected[owner] = targets
+                    affected[owner] = affected.get(owner, frozenset()) | targets
             for owner, identifiers in affected.items():
                 tx = _MemoryTransaction(connection, owner)
                 while True:
@@ -620,6 +626,13 @@ class PostgresDeletionStore:
                     (owner, identifier),
                 )
             self._remove_extractions(connection, attempt.request.target_turn_ids)
+            for owner, relations in withdrawn_relations.items():
+                for relation in relations:
+                    connection.execute(
+                        "DELETE FROM memory_relations WHERE character_id=%s AND from_id=%s "
+                        "AND to_id=%s AND type=%s",
+                        (owner, relation.from_id, relation.to_id, relation.type),
+                    )
             self._withdraw_index(
                 connection,
                 attempt.request.target_turn_ids,
@@ -666,6 +679,38 @@ class PostgresDeletionStore:
             ).fetchone()
             assert row is not None
             return _request(row)
+
+    def _withdrawn_relations(
+        self, connection: psycopg.Connection[DictRow], targets: tuple[str, ...]
+    ) -> dict[str, frozenset[MemoryRelation]]:
+        origins = connection.execute(
+            "SELECT character_id,turn_id FROM memory_candidate_relations "
+            "WHERE turn_id=ANY(%s) UNION "
+            "SELECT character_id,extraction_turn_id FROM memory_input_dependencies "
+            "WHERE turn_id=ANY(%s)",
+            (list(targets), list(targets)),
+        ).fetchall()
+        result = {}
+        for owner in {r["character_id"] for r in origins}:
+            withdrawn = {r["turn_id"] for r in origins if r["character_id"] == owner}
+            rows = connection.execute(
+                "SELECT r.turn_id,r.from_id,r.to_id,r.type FROM memory_candidate_relations r "
+                "JOIN memory_extractions e USING(character_id,turn_id) "
+                "WHERE r.character_id=%s AND (e.status='done' OR r.turn_id=ANY(%s))",
+                (owner, list(withdrawn)),
+            ).fetchall()
+            proposed = tuple(
+                MemoryRelation(from_id=r["from_id"], to_id=r["to_id"], type=r["type"]) for r in rows
+            )
+            tx = _MemoryTransaction(connection, owner)
+            history = tx.history(frozenset(i for r in proposed for i in (r.from_id, r.to_id)))
+            current = tx.candidates_for_turns(frozenset(c.turn_id for c in history))
+            owned = tuple(zip(rows, resolve_relations(proposed, history, current), strict=True))
+            removed = {r for row, r in owned if row["turn_id"] in withdrawn}
+            retained = {r for row, r in owned if row["turn_id"] not in withdrawn}
+            if removed - retained:
+                result[owner] = frozenset(removed - retained)
+        return result
 
     def _remove_extractions(
         self, connection: psycopg.Connection[DictRow], targets: tuple[str, ...]
