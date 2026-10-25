@@ -1383,10 +1383,72 @@
     "[\"--model\",\"/models/bge-reranker-v2-m3-Q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"rank\",\"--reranking\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18050\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7"
   ],
   "quality": {
-    "status": "NOT RUN"
+    "ruff_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ruff_format_check": {
+      "status": "PASS",
+      "exit_code": 0,
+      "source_files": 312
+    },
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0,
+      "source_files": 312
+    },
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 1121,
+      "elapsed_s": 7.24
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 935,
+      "elapsed_s": 33.13
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 742,
+      "elapsed_s": 787.38,
+      "db_image": "sha256:c14a7345e354960130a7f7fe7338aa7a3440b51d292c780e6ccaa60a41a3c5e4",
+      "db_version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "scope": "standard with-test-postgres.sh; dedicated synthetic tmpfs DB; network none; no published ports; cpus=1; memory=1g; separate from performance acceptance DB"
+    },
+    "lock": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "shell": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "compose": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "package": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PASS"
   },
   "cleanup": {
-    "status": "NOT RUN"
+    "status": "PASS",
+    "project": "memory-core-perf-r11-20261026",
+    "containers": [],
+    "networks": [],
+    "volumes": [],
+    "model_containers": [],
+    "quality_db_container": [],
+    "quality_db_socket_removed": true
   },
   "not_run": [
     "10000 items",
@@ -1411,18 +1473,42 @@
     "additional_900_delta_s": 4.902844999999999,
     "cumulative_1000_delta_s": 8.202003999999988
   },
+  "manifest_period_note": "manifest.period calendar label says 2026-10-26 UTC in error; actual runner UTC timestamps are 2026-10-25, corresponding to 2026-10-26 JST. Frozen manifest preserved.",
+  "verified_local_model_sha256": {
+    "embedding": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "reranker": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3"
+  },
   "evidence_sha256": {
-    "build.log": "f2abb67ed03ebdca7826471998a8609820f6b89d2f68a0cced9f05a388ef46ca",
+    "build-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "build.log": "70aee33610ed7b7e03359962f6bc07d91d89e5e13b70516cc380acf11512021b",
+    "cleanup-models.log": "1e2f16ffdd4c9e49b01b818dca5175e7a8b848b6852390eb0904749fbf5fe8cd",
+    "cleanup-st.log": "7a2426c8f259c1fabd5d55ab7ce4223b26adbf7b19ac32ad02a4a5a23132526f",
+    "cleanup.json": "874a8081efc6d13c830b5d76bf094764264641934d24a580d79dd8191f0b7a25",
+    "compose-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "compose.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
     "embedding-start.log": "3ae4c46d02f03ecdfb676ab2f8761d7c58ab6afb75a62719cc7f46ed544f7ddb",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "it1-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "it1.log": "328a59e6a1b5a4863e60313ddac0dffe7320255b24d49beeb42f4d42fdda57fa",
     "list-timing.json": "cf977c065958c405cda6205d331adc9e316f33f870c2732f574866656f1ea285",
+    "lock-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "lock.log": "3b004af3ad231e380184cb8d9c030f19a4fbf69d5cb42780cfccfdedc392874b",
     "manifest-before.sha256": "99a60b4a95dcea5b927c68137e9c4e26f42d02f4b32bec0d2da6cc63e29dbdb8",
     "manifest.json": "b63d9fba253f9ee860a016af5bd80b884bc2c1c63433595493df5e4a490d5c04",
     "memory.log": "d5ed95a54c85b7470f8569b2ffbe7b1c1bbf3bb6d4de7ef18ee468519ec5844c",
     "model-digests.json": "6f2f31bd8318f308562823d20dcb950a313ccc3030866bdd2c5a81a1028ea801",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "mypy.log": "794300c2999253202f40591396f3daf5e865557b6eb6041815c69e51b874990f",
+    "package.log": "6ef2eb76842a55079f064b397f51dd30c33eb02f33505b5d8d9eb5ade083328e",
     "performance.json": "789a2a6e22632be90552d523038ea48cc20c232b3fa0b0ceb5a957003a0649fa",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "c23b96b57964cb8554ca1a8ab852e7c5ea56e7144478f3cc46dda64b3c724afe",
+    "quality-db-inspect.txt": "0fddd6f4a8c0a5f1bb3142b2c8a037e03dcb4263004cd74f1cd43012ae0edf18",
+    "quality-db-version.txt": "1f5941832963b5372c0ff04082a830bf357bed2c94af7f16a618ff1f311b70b7",
+    "quality-db.json": "7848c68bfe64ca7b2fb8e1f5d20bab6062f7e78f1ace83dec8f4431fe64fdaf8",
+    "quality.json": "df42db4a508c73c046777f349bdaf700fb10123f9721f76b099ffab3aa5addd6",
     "ready.txt": "fa41c77773ddfb6cfc141731801c9d69034af010854780c4dbd259e4705f144a",
     "reranker-start.log": "504b00ff3c6241ef785c7d59d202781f3472b54af0df3a43fa459f0590cd3812",
     "ruff_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
@@ -1431,8 +1517,12 @@
     "ruff_format_check.log": "d534f2fbd06a778b07e8eda1c49ca39fbe3c89ed56b8a4fe3785a17fc4e081f4",
     "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "runner.log": "f67ff7c4cf727574c5c9736680f9530828d8aedfea1c87f6d200d6d2a978cd98",
+    "shell-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "shell.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "source-hashes.json": "926d8b9471f32d4d3fc28f630c2e6702a4dbed135c2327b80921444cdce2b497",
     "start.log": "12c046c4f7c0a8565cb692b85e22916da8eee8e88381caf3e6bb6da1b58f62d8",
-    "sync.log": "add1391ea7fc487a101895a5715944138abb03539146c60087e4c1ad3cbe4ea2"
+    "sync.log": "add1391ea7fc487a101895a5715944138abb03539146c60087e4c1ad3cbe4ea2",
+    "ut-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ut.log": "81fcdb0331bbfa20e3555f00d607604f79ca42f4094f30b73b52774881febe48"
   }
 }
