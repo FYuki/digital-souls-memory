@@ -1472,9 +1472,42 @@
     "0013"
   ],
   "quality": {
+    "status": "PASS",
+    "exit_code": 0,
     "ruff_check": "PASS",
     "ruff_format_check": "PASS (299 files)",
-    "additional_checks": "NOT RUN; run after draft PR creation"
+    "mypy": "PASS (299 source files)",
+    "ut": {
+      "status": "PASS",
+      "passed": 1111,
+      "elapsed_s": 6.61
+    },
+    "it1": {
+      "status": "PASS",
+      "passed": 935,
+      "elapsed_s": 42.93
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 641,
+      "elapsed_s": 719.58,
+      "db_image": "sha256:97feed65f07968816442bb7d482d97051e92f4dcd93e3c2a936442563f2986f5",
+      "db_version": [
+        "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit"
+      ],
+      "scope": "Dedicated synthetic tmpfs DB, no network, no published ports, cpus=1 memory=1g; same setup as with-test-postgres.sh; pre-existing quality image used after acceptance image ID unavailable"
+    },
+    "lock_shell_compose": "PASS",
+    "wheel_build_locked_install_import": "PASS",
+    "setup_failures": [
+      {
+        "status": "FAIL",
+        "docker_run_exit_code": 125,
+        "cleanup": "Initial removal also failed because the container was never created; recorded initial wrapper status 1.",
+        "reason": "Acceptance DB image ID had no reusable local Docker image metadata after cleanup. Retried on existing same-version quality-only image; acceptance run had no failures."
+      }
+    ]
   },
   "cleanup": {
     "project": "memory-core-perf-r7-20261025",
@@ -1483,7 +1516,9 @@
     "volumes": [],
     "model_containers": [],
     "unrelated_livekit_running": true,
-    "status": "PASS"
+    "status": "PASS",
+    "quality_container_remaining": [],
+    "quality_db_cleanup": "PASS"
   },
   "not_run": [
     "10000 items",
@@ -1499,11 +1534,14 @@
     "audit.json": "e966d29b2b8e82eb86cee4f8afa3a890553d7e4e9d516db5eb56110e906bad3d",
     "build.log": "1103d0ff054fb132896a4ecdfead6b8f679de0dde432992100699dde02750f96",
     "cleanup-models.log": "28c4df2e073e98447d27651adcf83814c747e47f447fa8d7a5060e2c67571ec5",
+    "cleanup-quality-initial.log": "7aa8d57ba2dd460505fe4fb9ff05d646ed1bd162542be3febae2d3be3143f728",
+    "cleanup-quality.log": "d9bbf30d5595ca3d850a2df45194b0d69dc161061bd313af96bf736695e5ad51",
     "cleanup-st.log": "403fb60e500560d992e9c47d3f653fda4c7c854da196c7b65c2b590c28b84b64",
-    "cleanup.json": "41a9f5c205f2f176675aebe2dedc87649c0c95c0571df26ef7fd5cb6bf3f4e57",
+    "cleanup.json": "a6ec1c656917ab1697bda4ccff1e24871e1896d7b156f069928f2732091692ac",
     "client-image.txt": "4ec5d16c49cfa67b6245d44c005c3ef5667f11f20f2c6e79f0fc27aeea0ce18e",
     "db-image.txt": "20bba974679d7980da9e84a7055bf0a91416bde4d3c87971b30ac8de7ef7c77a",
     "db-version.txt": "fb0b97cc518f122fd3c53f180aa545b844539da18befb47cee72bd6eff663d41",
+    "hardware.txt": "9a615f8b4753c1892dbd59cc02a90d92b73781cabf3c49e5c89a08e5b35c454d",
     "health-18049.json": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
     "health-18050.json": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
@@ -1515,6 +1553,17 @@
     "model-ids.txt": "e307d585cac3cb912b53ca8841eb718b916c18a92f105f05bd2b4866d2e24c01",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
     "performance.json": "23244e8a78edba943599c2545f9191861a3309f6abd1966e7c5766ab69bd8651",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres-setup-failed-exit.txt": "a5e45837a2959db847f7e67a915d0ecaddd47f943af2af5fa6453be497faabca",
+    "postgres-setup-failed.log": "b9a1075a2cac6605e9f4dbc94a7789f46f941cfe78ea332547a54925b30cf4ed",
+    "postgres.log": "9c305304ce949ef95271dd699653c6780dfeb69bc666d9cb27d40e1f47055763",
+    "quality-db-id.txt": "fd744cc6b85a68d853494a5e5ed601e55a9d346b688f8f4c5a25165a59989d97",
+    "quality-db-image.txt": "e745106bf69d6cd0bee5a861a37dc393f355747fdccaefc120da3dc20722dd5a",
+    "quality-db-version.txt": "1f5941832963b5372c0ff04082a830bf357bed2c94af7f16a618ff1f311b70b7",
+    "quality-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "quality-report.txt": "f81266e80aecf1482b3e827f2ef25fed37396621e82d730f171cc37e653f115b",
+    "quality.json": "9830a1c5171b60d83e6fdd1886a0058710a960c22ff0e6b58876a0f9fcd17397",
+    "quality.log": "eda9ddeb5a52be299dc5f1183e82f2d7330f9689fce5c7c0d3411bece86cd7fe",
     "ruff-check.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
     "ruff-format.log": "ffba53228028ab5e83fd6eec10baaef02185f93538208045e94653d66bbc1ef1",
     "runner-end.txt": "1670b4bfc9c6c8d194ed6be3c16ec4dd29ac1e2977c881368d3901ca0363fc7f",

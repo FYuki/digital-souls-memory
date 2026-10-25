@@ -50,7 +50,8 @@ runner・アプリへ計時処理を挿入せず、DockerのUTC付きHTTPアク�
 
 中断した試行はユーザー提供の丸めた参考値で、生証跡は再起動で消失しており原記録の再検証はできない。
 今回の標本には混ぜていない。PR #69と中断試行のrunner終了コードはいずれも0。
-候補 / rerank / 返却数の全105回監査結果は要約JSON参照。PR #69の1000件候補は300、中断試行は280。
+候補 / rerank / 返却数は100件で100 / 20 / 5、1000件で320 / 20 / 5（各105回）。
+PR #69の1000件候補は300、中断試行は280。候補数に差があるため同一集合の比較ではない。
 候補集合は各検索経路の和集合であり、candidate_limit=200は各経路の上限。
 単一の逐次測定であり、候補の同一性・品質を再評価していない。負荷・クロック・キャッシュの変動を含み、
 差をR7の修正だけに帰属させず、統計的な回帰なしとも断定しない。
@@ -88,13 +89,20 @@ export MEMORY_EMBEDDING_ENDPOINT=http://127.0.0.1:18049
 export MEMORY_RERANKER_ENDPOINT=http://127.0.0.1:18050
 export MEMORY_CORE_ST_EVIDENCE_DIR=/tmp/core-st-performance-after-r7-20261025
 # 起点からbuild、モデルhealth確認、manifest固定後
- docker compose -p memory-core-perf-r7-20261025 -f compose.core-st.yml -f compose.core-st.performance.yml up -d --no-build --wait memory
- docker compose -p memory-core-perf-r7-20261025 -f compose.core-st.yml -f compose.core-st.performance.yml run --no-deps --rm runner
+docker compose -p memory-core-perf-r7-20261025 -f compose.core-st.yml -f compose.core-st.performance.yml up -d --no-build --wait memory
+docker compose -p memory-core-perf-r7-20261025 -f compose.core-st.yml -f compose.core-st.performance.yml run --no-deps --rm runner
 ```
 
 ## 検証・cleanup・未実施
 
-ruff check / ruff format --checkはPASS。追加品質試験はDraft PR作成後に実施予定で、現時点はNOT RUN。
+ruff check / ruff format --check（299 files）、mypy（299 source files）、UT 1111件、IT1 935件、
+実PostgreSQL 641件（719.58秒）、lock / shell / Compose検査、wheel build・独立locked install/importは **PASS**。
+追加品質試験はDraft PR作成後に実行した。
+
+追加PostgreSQL試験の初回起動は、受入DB image IDのDocker metadataがなく **FAIL**（docker run終了125）。
+未作成containerの初回削除も失敗し、初回wrapperは終了1。受入計測自体の失敗ではない。
+既存の同版品質試験用imageへ切り替え再実行し、suite終了0・専用container削除・残存0を確認した。
+品質DB image IDと版・初回失敗ログhashをJSONに記録。受入DBと品質DBのimage IDは別である。
 
 今回起動した専用ST projectとモデル2 containerだけを停止・削除し、container / network / volume残存0を確認（PASS）。
 既存LiveKitは稼働継続。生証跡は `/tmp/core-st-performance-after-r7-20261025`、hashはJSONに保存。
