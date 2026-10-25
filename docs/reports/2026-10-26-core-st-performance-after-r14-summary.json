@@ -1391,10 +1391,54 @@
       "status": "PASS",
       "exit_code": 0
     },
-    "additional_checks": {
-      "status": "NOT RUN"
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0
     },
-    "status": "NOT RUN"
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 1130,
+      "elapsed_s": 7.73,
+      "skip_xfail_xpass_reported": false
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 1095,
+      "elapsed_s": 35.13,
+      "skip_xfail_xpass_reported": false
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0,
+      "passed": 776,
+      "elapsed_s": 861.05,
+      "skip_xfail_xpass_reported": false,
+      "scope": "standard with-test-postgres.sh; isolated tmpfs synthetic DB; network none; memory 1g; separate from performance DB",
+      "image_inspect": "none 1073741824 {\"/var/lib/postgresql\":\"uid=1000,gid=1000,mode=0700\"}"
+    },
+    "lock": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "shell": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "compose": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "package": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PASS"
   },
   "cleanup": {
     "status": "PASS",
@@ -1402,7 +1446,10 @@
     "containers": [],
     "networks": [],
     "volumes": [],
-    "model_containers": []
+    "model_containers": [],
+    "quality_db_container": [],
+    "quality_db_socket_removed": true,
+    "quality_db_fixture_removed": true
   },
   "not_run": [
     "10000 items",
@@ -1426,7 +1473,13 @@
     "list_api_delta_s": 0.420954132998304,
     "additional_900_delta_s": 1.5858960000000053,
     "cumulative_1000_delta_s": 4.000734999999992,
-    "baseline_revision": "1b216bb48fd7b319f8827cd679f6ca204ab73622"
+    "baseline_revision": "1b216bb48fd7b319f8827cd679f6ca204ab73622",
+    "unchanged_source_hashes": true,
+    "changed_manifest_fields": [
+      "revision",
+      "db_image",
+      "client_image"
+    ]
   },
   "verified_local_model_sha256": {
     "embedding": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
@@ -1490,29 +1543,51 @@
     }
   },
   "evidence_sha256": {
-    "build.log": "0853616e7b8309f63b8bc069f75bccd5e4bb95d00492a7c748435735983b2b7a",
+    "build-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "build.log": "70aee33610ed7b7e03359962f6bc07d91d89e5e13b70516cc380acf11512021b",
     "cleanup-models.log": "d3c4cebc59f5c2f7b35e4148e8fb3d33d58312667e424077e263dd9cc31b447c",
     "cleanup-st.log": "9082fe3f65fdcc9749e13c7d8551750e3c70006d38c35c5a35cabcd2c640771d",
-    "cleanup.json": "5c3dddbf900ebcef74ae5aaf4c09f8684075c27ee709440691cbdfd93404d5be",
+    "cleanup.json": "ec3c477f98d6923e2a3d0ca612000052f192d77a4cf47f0fd269fe5fab65e351",
+    "compose-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "compose.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
     "embedding-start.log": "68114fb1ffce122f78aa401df945b427547d75f861fdf8da93d7e1ce173533ca",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "it1-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "it1.log": "fd66673f88b474c2060276675e461d4d4872cac2a4277c80cd9b03874ad27d6d",
     "list-timing.json": "6ca8929aafba91268e305fe77c481a6f6895db90a8854d89cbb1bbef4c87644f",
+    "lock-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "lock.log": "321f0b607da3e9134cfcf1529e067a07da87a9737f26f661d4b9d2228950f006",
     "manifest-before.sha256": "056fa3b6755fecce225cd8ff9050ad3cb9b3cde0dda1640868a38ae493badae5",
     "manifest.json": "a9436f4233bf47cb7840a078f1617598e4727b757a4fe76af8b0156326ff574a",
     "memory.log": "7717b93b512c55e0e4e3766cd5beb695a7598e1fe78e7a6b0aefdd620f5e8c79",
     "model-digests.json": "6f2f31bd8318f308562823d20dcb950a313ccc3030866bdd2c5a81a1028ea801",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "mypy.log": "3adfda9ee552433e47e3220b3a5316b3c7e195dec5e669938ac553a7f7bf6d71",
+    "package.log": "f6e3535200d7e317023a6d7ead80829626832b1647c3beec3809ada50cb0adce",
     "performance.json": "176e04a0608b794c8deae3ca60d0b8260dc28e6019d719c97dbc06eb7add19df",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "d9b66c0f9840cae7dd00e892459551848299b0b99c8b5e2bbeff06d0ec160bcb",
     "projection-probe.json": "2c1ca57d336fa2069fb9ceeeaf00a183e62333404774380ff7990d32c1ac8f7e",
     "projection-probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "quality.json": "15977e6633de0509cfa8750ba919f417c5487d75125c4e4306f88e7e6c6e26fa",
+    "quality-db-inspect.txt": "3224e1c6079bbbbf92a0e4bc9081673b8fb3a120f6e7606e19ddfd46741ee1f3",
+    "quality-db.json": "41b94b2f9f5b83ea02b9895b2e6e2a6b45f5179f13bf6c9867d2793292d19c0d",
+    "quality.json": "e84262d0d722c5ea658774d2d0d4a572de5cf756caea74fd8a34a4e3771ecce1",
     "ready.txt": "154de6f98273321bc76c06b3637c8e5e059c4e17f7bddb72c1e8229a298ad408",
     "reranker-start.log": "54082d4eef517d875cb49357c9cf51f4805fa034b527cc35738373f01c47ca45",
+    "ruff_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_check.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    "ruff_format_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_format_check.log": "052421aab453b9c0087aea55ba6398d3ed1325ff894fc2cdfa61e9c4c66cb127",
     "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "runner.log": "7d943980e0fd5e9822c7412a9fbb292bc9cd497abaebbfae49fd9f20477082d8",
+    "shell-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "shell.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "source-hashes.json": "926d8b9471f32d4d3fc28f630c2e6702a4dbed135c2327b80921444cdce2b497",
     "start.log": "86cf4e400af6fb5437084d58e1c2a136f6f1d32bb484d370ef7b23abeed9f272",
-    "sync.log": "6de1f09f6225c4cb5179d119609057a252f3d421e60b51ab8cfcccaf7adc0193"
+    "sync.log": "6de1f09f6225c4cb5179d119609057a252f3d421e60b51ab8cfcccaf7adc0193",
+    "ut-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ut.log": "8fc05d84eaa47f607ffbefbbc99741885fda628b0be7fe3cad797274fe830b00"
   }
 }

@@ -120,9 +120,23 @@ docker compose -p memory-core-perf-r14-20261026 -f compose.core-st.yml -f compos
 
 ## 検証・cleanup・未実施
 
-ruff check / ruff format --check は **PASS**（終了0、319 files）。追加品質試験は **NOT RUN**。計測完了後の Draft PR 作成を優先し、その後に実施する。
+品質検査結果：
 
-今回起動した専用 ST project とモデル2 container を停止・削除し、container / network / volume 残存0を確認（**PASS**）。既存の LiveKit container には操作していない。
+- ruff_check: **PASS**（終了0）
+- ruff_format_check: **PASS**（終了0）
+- mypy: **PASS**（終了0）
+- ut: **PASS**（終了0）
+- it1: **PASS**（終了0）
+- postgres: **PASS**（終了0）
+- lock: **PASS**（終了0）
+- shell: **PASS**（終了0）
+- compose: **PASS**（終了0）
+- build: **PASS**（終了0）
+- package: **PASS**（終了0）
+
+追加品質試験は Draft PR 作成後に実施した。UT 1130件、IT1 1095件、POSTGRES 776件。すべてskip/xfail/xpassなし。
+
+今回起動した専用 ST project とモデル2 container を停止・削除し、container / network / volume 残存0を確認（**PASS**）。品質試験専用DBとsocketも削除・消失を確認。他プロジェクトのcontainerには操作していない。
 生証跡は `/tmp/core-st-performance-after-r14-20261026`、hash は要約 JSON。
 秘密・利用者ホーム絶対パス・モデル本体はコミットしない。
 
