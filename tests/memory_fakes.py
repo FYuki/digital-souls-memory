@@ -286,7 +286,12 @@ class FakeMemoryTransaction:
         )
         history = self.history(frozenset(c.fact_id for c in values))
         current = (
-            self.candidates_for_turns(frozenset(c.turn_id for c in history)) if history else ()
+            self.candidates_for_turns(
+                frozenset(c.turn_id for c in history),
+                history_ids=frozenset(c.memory.id for c in history),
+            )
+            if history
+            else ()
         )
         replacements = equivalent_ids(history, current)
         return tuple(replace(c, fact_id=replacements.get(c.fact_id, c.fact_id)) for c in values)
@@ -311,7 +316,10 @@ class FakeMemoryTransaction:
         history = self.history(
             frozenset(i for e in effects for i in (e.relation.from_id, e.relation.to_id))
         )
-        current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
+        current = self.candidates_for_turns(
+            frozenset(c.turn_id for c in history),
+            history_ids=frozenset(c.memory.id for c in history),
+        )
         resolved = resolve_relations(tuple(e.relation for e in effects), history, current)
         return tuple(
             replace(e, relation=r, candidate=replace(e.candidate, id=r.from_id))
@@ -365,19 +373,105 @@ class FakeMemoryTransaction:
             if owner == self.character and identifier in identifiers
         )
 
-    def candidates_for_turns(self, turn_ids: frozenset[str]) -> tuple[MemoryContribution, ...]:
-        return tuple(value for value in self.candidates() if value.turn_id in turn_ids)
+    def candidates_for_turns(
+        self, turn_ids: frozenset[str], *, history_ids: frozenset[str] | None = None
+    ) -> tuple[MemoryContribution, ...]:
+        history = self.history(history_ids) if history_ids is not None else ()
+        return tuple(
+            value
+            for value in self.candidates()
+            if value.turn_id in turn_ids
+            and (
+                history_ids is None
+                or any(
+                    old.turn_id == value.turn_id
+                    and (
+                        old.memory.id == value.memory.id
+                        or (
+                            old.memory.kind,
+                            old.memory.content,
+                            old.memory.subject,
+                            old.memory.predicate,
+                            old.memory.object,
+                        )
+                        == (
+                            value.memory.kind,
+                            value.memory.content,
+                            value.memory.subject,
+                            value.memory.predicate,
+                            value.memory.object,
+                        )
+                    )
+                    for old in history
+                )
+            )
+        )
 
     def projection_neighbors(
         self, identifiers: frozenset[str], source_only: frozenset[str]
     ) -> frozenset[str]:
-        origins = frozenset(v.turn_id for v in self.history(identifiers))
+        seeds = self.history(identifiers)
+        origins = frozenset(v.turn_id for v in seeds)
+        relations = [r for owner, r in self.store.relations if owner == self.character]
+        relations.extend(
+            r
+            for (owner, _), items in self.store.proposed.items()
+            if owner == self.character
+            for r in items
+        )
+        relations.extend(
+            e.relation
+            for (owner, _), items in self.store.effects.items()
+            if owner == self.character
+            for e in items
+        )
+        required = (
+            identifiers
+            | {i for r in relations for i in (r.from_id, r.to_id)}
+            | {
+                c.fact_id
+                for (owner, _), items in self.store.reinforcements.items()
+                if owner == self.character
+                for c in items
+            }
+            | {
+                v.id
+                for (owner, _), v in self.store.values.items()
+                if owner == self.character and v.superseded_at is None
+            }
+        )
         history = tuple(
             v
             for (owner, _), v in self.store.history.items()
-            if owner == self.character and v.turn_id in origins
+            if owner == self.character
+            and v.turn_id in origins
+            and v.memory.id in required
+            and any(
+                seed.turn_id == v.turn_id
+                and (
+                    seed.memory.id == v.memory.id
+                    or (
+                        seed.memory.kind,
+                        seed.memory.content,
+                        seed.memory.subject,
+                        seed.memory.predicate,
+                        seed.memory.object,
+                    )
+                    == (
+                        v.memory.kind,
+                        v.memory.content,
+                        v.memory.subject,
+                        v.memory.predicate,
+                        v.memory.object,
+                    )
+                )
+                for seed in seeds
+            )
         )
-        replacements = equivalent_ids(history, self.candidates_for_turns(origins))
+        replacements = equivalent_ids(
+            history,
+            self.candidates_for_turns(origins, history_ids=frozenset(v.memory.id for v in history)),
+        )
         neighbors = {
             identifier
             for previous, current_id in replacements.items()
@@ -388,14 +482,6 @@ class FakeMemoryTransaction:
             previous for previous, current_id in replacements.items() if current_id in source_only
         )
         identifiers = identifiers | frozenset(neighbors)
-        relations = [r for owner, r in self.store.relations if owner == self.character]
-        relations.extend(
-            r
-            for (owner, _), items in self.store.proposed.items()
-            if owner == self.character
-            for r in items
-        )
-        relations.extend(e.relation for e in self.relation_effects())
         for relation in relations:
             if relation.from_id in identifiers and (
                 relation.type != "derives"
@@ -517,7 +603,10 @@ class FakeMemoryTransaction:
         projected_ids: frozenset[str],
     ) -> None:
         history = self.history(identifiers)
-        current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
+        current = self.candidates_for_turns(
+            frozenset(c.turn_id for c in history),
+            history_ids=frozenset(c.memory.id for c in history),
+        )
         replacements = {
             previous: replacement
             for previous, replacement in equivalent_ids(history, current).items()

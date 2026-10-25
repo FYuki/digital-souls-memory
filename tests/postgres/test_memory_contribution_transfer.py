@@ -88,7 +88,7 @@ def test_equivalent_reverse_closure_is_limited_to_its_origin(
                     identifiers = expanded
                 closures[count] = identifiers
             measurements[count] = measured
-    assert closures == {1: frozenset({"a", "z"}), 30: frozenset({"a", "z"})}
+    assert closures == {1: frozenset({"z"}), 30: frozenset({"z"})}
     assert measurements[30].rows <= measurements[1].rows
     assert measurements[30].queries <= measurements[1].queries
     with store.transaction("char-b") as tx:

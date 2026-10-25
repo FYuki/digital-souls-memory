@@ -73,7 +73,9 @@ def projection_input(
         frozenset(i for r in (*proposed, *applied) for i in (r.from_id, r.to_id))
         | frozenset(v.id for v in existing)
     )
-    current = tx.candidates_for_turns(frozenset(v.turn_id for v in history))
+    current = tx.candidates_for_turns(
+        frozenset(v.turn_id for v in history), history_ids=frozenset(v.memory.id for v in history)
+    )
     replacements = equivalent_ids(history, current)
     proposed = resolve_relations(proposed, history, current)
     applied = resolve_relations(applied, history, current)

@@ -30,6 +30,10 @@ depends_on: str | None = None
 
 def upgrade() -> None:
     op.execute("""
+        CREATE INDEX memory_generated_turn
+            ON memory_generated(character_id,turn_id,memory_id);
+        CREATE INDEX memory_candidates_turn
+            ON memory_candidates(character_id,turn_id,memory_id);
         CREATE TABLE memory_source_contributions (
             character_id TEXT NOT NULL,
             fact_id TEXT NOT NULL,
@@ -338,6 +342,7 @@ def downgrade() -> None:
                 RAISE EXCEPTION 'Cannot downgrade: contributions cannot reconstruct absorbed IDs';
             END IF;
         END; $$;
+        DROP INDEX memory_generated_turn,memory_candidates_turn;
         DROP TRIGGER recall_contribution_receipt ON delivery_receipts;
         DROP FUNCTION withdraw_recall_contribution();
         ALTER TABLE memory_candidate_relations DROP COLUMN effect;
