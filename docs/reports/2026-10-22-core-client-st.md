@@ -82,6 +82,7 @@ PR #58 / #59統合後の[runner無変更での再測定](2026-10-24-core-st-perf
 PR #63 / #64統合後の[再測定](2026-10-24-core-st-performance-after-r5.md)と[要約JSON](2026-10-24-core-st-performance-after-r5-summary.json)を参照。標準runnerは終了0、100件・1000件とも必達PASS。1000件p95は242.906ms、p50目標は未達。
 
 PR #67統合後の[最終確認](2026-10-24-core-st-performance-after-r6.md)と[要約JSON](2026-10-24-core-st-performance-after-r6-summary.json)を参照。runner無変更・終了0、100件/1000件とも必達PASS。1000件p95は245.452ms、p50目標は未達。一覧0.258秒、累積準備183.751秒。前回比で一覧と準備の代替指標に増加あり。
+PR #70統合後の[再測定（100件・1000件）](2026-10-25-core-st-performance-after-r7.md)と[要約JSON](2026-10-25-core-st-performance-after-r7-summary.json)を参照。runner無変更・終了0、両件数とも必達PASS。p50目標は両件数で未達。
 以下の過去時点のNOT RUN記録は、その時点の履歴として保持する。
 
 ## reimplement の補完結果
