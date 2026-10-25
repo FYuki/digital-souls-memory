@@ -8,7 +8,7 @@ from digital_souls_memory.memory.domain import (
     memory_valid_at,
 )
 from digital_souls_memory.memory.ports import MemoryContribution
-from digital_souls_memory.memory.relations import resolve_relations
+from digital_souls_memory.memory.relations import equivalent_ids, resolve_relations
 from tests.evidence_support import RECORDED
 from tests.memory_support import memory
 
@@ -18,7 +18,10 @@ pytestmark = pytest.mark.ut
 @pytest.mark.parametrize(
     "case", ["equivalent", "different", "origin", "owner", "ambiguous", "current"]
 )
-def test_relation_resolves_only_one_equivalent_candidate_from_same_origin(case: str) -> None:
+@pytest.mark.parametrize("endpoint", ["from", "to"])
+def test_relation_resolves_only_one_equivalent_candidate_from_same_origin(
+    case: str, endpoint: str
+) -> None:
     old = MemoryContribution("turn-1", memory())
     candidate = replace(
         old.memory,
@@ -42,9 +45,22 @@ def test_relation_resolves_only_one_equivalent_candidate_from_same_origin(case: 
         current += (MemoryContribution("turn-1", replace(candidate, id="also-equivalent")),)
     if case == "current":
         current += (old,)
-    relation = MemoryRelation(from_id="updated", to_id=old.memory.id, type="updates")
+    relation = MemoryRelation(
+        from_id=old.memory.id if endpoint == "from" else "updated",
+        to_id=old.memory.id if endpoint == "to" else "target",
+        type="updates",
+    )
+    assert equivalent_ids((old,), current) == (
+        {old.memory.id: candidate.id} if case == "equivalent" else {}
+    )
     assert resolve_relations((relation,), (old,), current) == (
-        replace(relation, to_id=candidate.id) if case == "equivalent" else relation,
+        replace(
+            relation,
+            from_id=candidate.id if endpoint == "from" else relation.from_id,
+            to_id=candidate.id if endpoint == "to" else relation.to_id,
+        )
+        if case == "equivalent"
+        else relation,
     )
 
 

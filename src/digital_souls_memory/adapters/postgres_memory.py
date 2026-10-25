@@ -40,7 +40,7 @@ from digital_souls_memory.memory.ports import (
     WorkPage,
 )
 from digital_souls_memory.memory.projection import ProjectionEvidence, ProjectionInput
-from digital_souls_memory.memory.relations import resolve_relations
+from digital_souls_memory.memory.relations import equivalent_ids, resolve_relations
 
 
 def _state(row: DictRow | None) -> ExtractionState | None:
@@ -166,7 +166,14 @@ class _MemoryTransaction:
             "ORDER BY extraction_turn_id,source_turn_id",
             (self.character_id, selected, selected),
         ).fetchall()
-        return tuple(SourceContribution(**r) for r in rows)
+        values = tuple(SourceContribution(**r) for r in rows)
+        replacements = self._equivalent_ids(frozenset(v.fact_id for v in values))
+        return tuple(replace(v, fact_id=replacements.get(v.fact_id, v.fact_id)) for v in values)
+
+    def _equivalent_ids(self, identifiers: frozenset[str]) -> dict[str, str]:
+        history = self.history(identifiers)
+        current = self.candidates_for_turns(frozenset(v.turn_id for v in history))
+        return equivalent_ids(history, current)
 
     def set_source_contributions(
         self, turn_id: str, values: tuple[SourceContribution, ...]
@@ -198,7 +205,9 @@ class _MemoryTransaction:
         self, identifiers: frozenset[str] | None = None
     ) -> tuple[RelationEffect, ...]:
         return tuple(
-            replace(effect, relation=relation)
+            replace(
+                effect, relation=relation, candidate=replace(effect.candidate, id=relation.from_id)
+            )
             for effect, relation in self._resolved_relation_effects(identifiers)
         )
 
@@ -222,7 +231,9 @@ class _MemoryTransaction:
         )
         if not effects:
             return ()
-        history = self.history(frozenset(e.relation.to_id for e in effects))
+        history = self.history(
+            frozenset(i for e in effects for i in (e.relation.from_id, e.relation.to_id))
+        )
         current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
         resolved = resolve_relations(tuple(e.relation for e in effects), history, current)
         return tuple(zip(effects, resolved, strict=True))
@@ -234,7 +245,7 @@ class _MemoryTransaction:
             (self.character_id, turn_id),
         ).fetchall()
         historical = tuple(MemoryRelation(**r) for r in previous)
-        history = self.history(frozenset(r.to_id for r in historical))
+        history = self.history(frozenset(i for r in historical for i in (r.from_id, r.to_id)))
         current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
         for relation in resolve_relations(historical, history, current):
             self.connection.execute(
@@ -509,6 +520,7 @@ class _MemoryTransaction:
     def sync_projection_relations(
         self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
     ) -> None:
+        self._sync_source_contributions(identifiers)
         for effect, resolved in self._resolved_relation_effects(identifiers):
             previous = effect.relation
             if previous == resolved:
@@ -523,10 +535,11 @@ class _MemoryTransaction:
             self.connection.execute(
                 "INSERT INTO memory_candidate_relations "
                 "(character_id,turn_id,from_id,to_id,type,effect) "
-                "SELECT character_id,turn_id,from_id,%s,type,effect "
+                "SELECT character_id,turn_id,%s,%s,type,"
+                "effect || jsonb_build_object('id',%s::text) "
                 "FROM memory_candidate_relations WHERE character_id=%s AND turn_id=%s "
                 "AND from_id=%s AND to_id=%s AND type=%s ON CONFLICT DO NOTHING",
-                (resolved.to_id, *key),
+                (resolved.from_id, resolved.to_id, resolved.from_id, *key),
             )
             self.connection.execute(
                 "DELETE FROM memory_candidate_relations WHERE character_id=%s AND turn_id=%s "
@@ -544,6 +557,20 @@ class _MemoryTransaction:
         for relation in values:
             if relation not in existing:
                 self.add_relation(relation)
+
+    def _sync_source_contributions(self, identifiers: frozenset[str]) -> None:
+        for previous, current in self._equivalent_ids(identifiers).items():
+            self.connection.execute(
+                "INSERT INTO memory_source_contributions "
+                "SELECT character_id,%s,extraction_turn_id,source_turn_id,occurred_at "
+                "FROM memory_source_contributions WHERE character_id=%s AND fact_id=%s "
+                "ON CONFLICT DO NOTHING",
+                (current, self.character_id, previous),
+            )
+            self.connection.execute(
+                "DELETE FROM memory_source_contributions WHERE character_id=%s AND fact_id=%s",
+                (self.character_id, previous),
+            )
 
     def candidates(
         self, identifiers: frozenset[str] | None = None

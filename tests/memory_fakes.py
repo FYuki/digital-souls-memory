@@ -33,7 +33,7 @@ from digital_souls_memory.memory.projection import (
     ProjectionInput,
     collect_evidence,
 )
-from digital_souls_memory.memory.relations import resolve_relations
+from digital_souls_memory.memory.relations import equivalent_ids, resolve_relations
 from tests.it1.evidence_fakes import FakeEvidenceStore
 from tests.memory_support import memory
 
@@ -277,13 +277,19 @@ class FakeMemoryTransaction:
     def source_contributions(
         self, identifiers: frozenset[str] | None = None
     ) -> tuple[SourceContribution, ...]:
-        return tuple(
+        values = tuple(
             c
             for (owner, _), values in self.store.reinforcements.items()
             if owner == self.character
             for c in values
             if identifiers is None or c.fact_id in identifiers
         )
+        history = self.history(frozenset(c.fact_id for c in values))
+        current = (
+            self.candidates_for_turns(frozenset(c.turn_id for c in history)) if history else ()
+        )
+        replacements = equivalent_ids(history, current)
+        return tuple(replace(c, fact_id=replacements.get(c.fact_id, c.fact_id)) for c in values)
 
     def set_source_contributions(
         self, turn_id: str, values: tuple[SourceContribution, ...]
@@ -302,10 +308,15 @@ class FakeMemoryTransaction:
         )
         if not effects:
             return ()
-        history = self.history(frozenset(e.relation.to_id for e in effects))
+        history = self.history(
+            frozenset(i for e in effects for i in (e.relation.from_id, e.relation.to_id))
+        )
         current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
         resolved = resolve_relations(tuple(e.relation for e in effects), history, current)
-        return tuple(replace(e, relation=r) for e, r in zip(effects, resolved, strict=True))
+        return tuple(
+            replace(e, relation=r, candidate=replace(e.candidate, id=r.from_id))
+            for e, r in zip(effects, resolved, strict=True)
+        )
 
     def set_relation_effects(self, turn_id: str, values: tuple[RelationEffect, ...]) -> None:
         old = tuple(e for e in self.relation_effects() if e.turn_id == turn_id)
@@ -486,6 +497,15 @@ class FakeMemoryTransaction:
     def sync_projection_relations(
         self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
     ) -> None:
+        contributions = self.source_contributions(identifiers)
+        for key, sources in tuple(self.store.reinforcements.items()):
+            if key[0] == self.character:
+                retained = tuple(c for c in sources if c.fact_id not in identifiers)
+                self.store.reinforcements[key] = tuple(
+                    dict.fromkeys(
+                        (*retained, *(c for c in contributions if c.extraction_turn_id == key[1]))
+                    )
+                )
         raw = tuple(
             e
             for (owner, _), effects in self.store.effects.items()

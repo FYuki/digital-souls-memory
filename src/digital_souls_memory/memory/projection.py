@@ -20,7 +20,11 @@ from digital_souls_memory.memory.evidence import independent_evidence_count
 from digital_souls_memory.memory.inputs import MemoryInputs, ResolvedInput
 from digital_souls_memory.memory.ports import MemoryContribution, MemoryTransaction
 from digital_souls_memory.memory.reinforcement import aggregate_sources
-from digital_souls_memory.memory.relations import dependency_order, resolve_relations
+from digital_souls_memory.memory.relations import (
+    dependency_order,
+    equivalent_ids,
+    resolve_relations,
+)
 
 
 @dataclass(frozen=True)
@@ -47,6 +51,7 @@ class ProjectionInput:
     effects: tuple[RelationEffect, ...]
     body_sources: dict[str, tuple[str, ...]]
     owned_relations: tuple[MemoryRelation, ...]
+    retired_bodies: dict[str, DerivedMemory]
 
 
 def projection_input(
@@ -62,8 +67,13 @@ def projection_input(
     )
     proposed = tx.proposed_relations(identifiers)
     applied = tx.applied_relations(identifiers)
-    history = tx.history(frozenset(r.to_id for r in (*proposed, *applied)))
+    existing = tx.memories(identifiers)
+    history = tx.history(
+        frozenset(i for r in (*proposed, *applied) for i in (r.from_id, r.to_id))
+        | frozenset(v.id for v in existing)
+    )
     current = tx.candidates_for_turns(frozenset(v.turn_id for v in history))
+    replacements = equivalent_ids(history, current)
     proposed = resolve_relations(proposed, history, current)
     applied = resolve_relations(applied, history, current)
     reference_ids = (
@@ -75,7 +85,7 @@ def projection_input(
     withdrawn = tx.withdrawn_ids(reference_ids) if reference_ids else frozenset()
     baselines = tx.baselines(identifiers)
     return ProjectionInput(
-        tx.memories(identifiers),
+        existing,
         baselines,
         contributions,
         tx.extraction_states(frozenset(origins)),
@@ -91,6 +101,11 @@ def projection_input(
         effects,
         tx.fact_sources(frozenset(v.id for v in baselines)),
         tx.proposed_relations(identifiers, include_inactive=True),
+        {
+            c.memory.id: c.memory
+            for c in history
+            if c.memory.id in replacements and c.memory.id not in {v.id for v in baselines}
+        },
     )
 
 
@@ -423,7 +438,9 @@ class ProjectionEvidence:
                 or identifier in invalid_baselines
                 or identifier in baseline_ids
             ) and identifier not in result:
-                result[identifier] = supersede(value, at=now)
+                result[identifier] = supersede(
+                    snapshot.retired_bodies.get(identifier, value), at=now
+                )
         for identifier, value in tuple(result.items()):
             previous = existing.get(identifier)
             if previous is not None and previous.superseded_at is not None and value.superseded_at:
