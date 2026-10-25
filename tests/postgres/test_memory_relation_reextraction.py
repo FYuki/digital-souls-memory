@@ -101,7 +101,7 @@ def test_persisted_update_resolves_only_equivalent_reextraction(
                 object="juice" if replacement in ("collision", "different") else memory().object,
             ),
         )
-    store.requeue("turn-1")
+    worker.service.requeue("turn-1")
     worker.process("char-b", "turn-1")
     restored = PostgresMemoryStore(database_url)
     reader = make_worker(database_url, restored, gateway).service
@@ -166,10 +166,7 @@ def test_http_list_and_persisted_update_survive_reextraction_after_repetition(
     assert [(v["id"], v["source_turn_ids"]) for v in repeated.json()] == [
         (original.id, ["turn-1", "turn-2"])
     ]
-    with store.list_relations("char-b", repetition.id) as relations:
-        assert tuple(relations) == (
-            MemoryRelation(from_id=repetition.id, to_id=original.id, type="extends"),
-        )
+    assert store.get_memory("char-b", repetition.id) is None
     gateway.output = ExtractionProposal(
         memories=(updated,),
         relations=(MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),),

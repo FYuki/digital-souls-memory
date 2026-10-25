@@ -27,7 +27,7 @@ def test_single_revision_roundtrip_rechecks_existing_context_work(
     scripts = ScriptDirectory.from_config(config)
     revision = scripts.get_revision("0012")
     assert revision is not None and revision.down_revision == "0011"
-    assert scripts.get_heads() == ["0013"]
+    assert scripts.get_heads() == ["0014"]
     command.downgrade(config, "0011")
     before = []
     artifacts = []

@@ -11,7 +11,6 @@ from digital_souls_memory.memory.domain import (
     DerivedMemory,
     ExtractionProposal,
     ExtractionState,
-    InputDependency,
     MemoryRelation,
 )
 from digital_souls_memory.memory.inputs import MemoryInputs
@@ -25,80 +24,6 @@ from tests.memory_fakes import FakeMemoryStore
 from tests.memory_support import memory
 
 pytestmark = pytest.mark.ut
-
-
-@pytest.mark.parametrize("baseline", [False, True])
-def test_retry_keeps_only_surviving_baseline_representative(baseline: bool) -> None:
-    h = Harness(reports_delivery=False)
-    store = FakeMemoryStore(h.evidence)
-    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
-    worker = MemoryWorker(service, h.extractor)
-    for source, identifier in (("turn-1", "a"), ("turn-2", "b")):
-        h.evidence.add_turn(turn(source, actor="user-a"))
-        h.gateway.output = (replace(memory(), id=identifier, source_turn_ids=(source,)),)
-        worker.process("char-b", source)
-    with store.transaction("char-b") as tx:
-        assert tx.representatives() == {"b": "a"}
-        if baseline:
-            value = store.get_memory("char-b", "b")
-            assert value is not None
-            tx.replace_memory(value)
-        state = tx.get_extraction("turn-2")
-        assert state is not None
-        tx.save_extraction(replace(state, status="retry"))
-        service.rebuild(tx, frozenset({"a", "b"}))
-        assert tx.representatives() == ({"b": "a"} if baseline else {})
-
-
-@pytest.mark.parametrize("available_end", [2, 1])
-def test_baseline_mapping_requires_current_dependency_range(available_end: int) -> None:
-    h = Harness()
-    h.evidence.add_turn(turn(text="OK", address_mode="direct", addressees=("user-a",)))
-    h.evidence.add_receipt(receipt("full", 2))
-    store = FakeMemoryStore(h.evidence)
-    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
-    with store.transaction("char-b") as tx:
-        tx.add_memory(replace(memory(), id="a"))
-    h.gateway.output = (replace(memory(), id="b"),)
-    MemoryWorker(service, h.extractor).process("char-b", "turn-1")
-    with store.transaction("char-b") as tx:
-        absorbed = store.get_memory("char-b", "b")
-        assert absorbed is not None and absorbed.superseded_at == RECORDED
-        tx.replace_memory(absorbed)
-        store.baseline_inputs[("char-b", "b")] = (
-            InputDependency(
-                turn_id="turn-1",
-                basis="receipt_confirmed",
-                receipt_version=1,
-                available_end=2,
-                used_end=2,
-                deadline=RECORDED,
-            ),
-        )
-    if available_end == 1:
-        h.evidence.add_receipt(receipt("partial", 1))
-    with store.transaction("char-b") as tx:
-        snapshot = projection_input(tx, frozenset({"b"}))
-        projected = collect_evidence(snapshot, "char-b", service.inputs).project(
-            snapshot, RECORDED, select_representatives=True
-        )
-        assert projected.representatives == ({"b": "a"} if available_end == 2 else {})
-
-
-def test_representative_update_rolls_back_with_projection_transaction() -> None:
-    from digital_souls_memory.memory.ports import MemoryUnavailable
-
-    h = Harness(reports_delivery=False)
-    store = FakeMemoryStore(h.evidence)
-    with store.transaction("char-b") as tx:
-        tx.sync_representatives(frozenset({"b"}), {"b": "a"})
-    store.fail_commit = True
-    with pytest.raises(MemoryUnavailable), store.transaction("char-b") as tx:
-        tx.sync_representatives(frozenset({"b"}), {"b": "c"})
-    with store.transaction("char-b") as tx:
-        assert tx.representatives() == {"b": "a"}
-    with store.transaction("char-other") as tx:
-        assert tx.representatives() == {}
 
 
 def test_recalculated_baseline_owns_value_when_original_candidate_has_the_same_id() -> None:
@@ -289,7 +214,7 @@ def test_affected_memories_include_effects_and_dependents_but_not_derives_refere
             store.withdrawn.update({("char-b", "target"), ("char-b", "unrelated")})
         affected = service.affected(tx, "origin")
         assert affected == frozenset(
-            {"seed", "same-fact", "dependent"}
+            {"seed", "dependent"}
             | ({"target"} if relation_type != "derives" or withdrawn else set())
         )
         assert service.affected(tx, "absent") == frozenset()
@@ -362,10 +287,7 @@ def test_reextraction_after_repetition_keeps_update_and_saved_relation(
     assert [(v.id, v.object, v.source_turn_ids) for v in service.active("char-b")] == [
         (original.id, "coffee", ("turn-1", "turn-2"))
     ]
-    with store.list_relations("char-b", repetition.id) as relations:
-        assert tuple(relations) == (
-            MemoryRelation(from_id=repetition.id, to_id=original.id, type="extends"),
-        )
+    assert store.get_memory("char-b", repetition.id) is None
     h.gateway.output = ExtractionProposal(
         memories=(updated,),
         relations=(MemoryRelation(from_id=updated.id, to_id=original.id, type="updates"),),
@@ -384,7 +306,7 @@ def test_reextraction_after_repetition_keeps_update_and_saved_relation(
             recorded_at=original.recorded_at + timedelta(seconds=recorded_delay),
         ),
     )
-    store.requeue("turn-1")
+    worker.service.requeue("turn-1")
     worker.process("char-b", "turn-1")
     for identifier in ("turn-1", "turn-2", "turn-3"):
         state = store.get_extraction("char-b", identifier)
@@ -397,7 +319,7 @@ def test_reextraction_after_repetition_keeps_update_and_saved_relation(
     )
 
 
-def test_update_of_absorbed_repetition_targets_the_representative() -> None:
+def test_update_reference_to_restatement_in_same_extraction_targets_existing_fact() -> None:
     h = Harness(reports_delivery=False)
     store = FakeMemoryStore(h.evidence)
     service = MemoryService(store, h.extractor.inputs, lambda: h.now)
@@ -419,7 +341,7 @@ def test_update_of_absorbed_repetition_targets_the_representative() -> None:
     )
     h.evidence.add_turn(replace(turn("turn-3", actor="user-a"), occurred_at=RECORDED))
     h.gateway.output = ExtractionProposal(
-        memories=(updated,),
+        memories=(replace(repetition, source_turn_ids=("turn-3",)), updated),
         relations=(MemoryRelation(from_id=updated.id, to_id=repetition.id, type="updates"),),
     )
     worker.process("char-b", "turn-3")
@@ -444,7 +366,7 @@ def test_update_of_absorbed_repetition_targets_the_representative() -> None:
         ("ordinary-derives", {"a", "d"}),
     ],
 )
-def test_scoped_projection_matches_full_values_and_relations_after_absorption(
+def test_scoped_projection_matches_full_values_and_relations_after_restatement(
     case: str, expected_active: set[str]
 ) -> None:
     h = Harness(reports_delivery=False)
@@ -454,7 +376,7 @@ def test_scoped_projection_matches_full_values_and_relations_after_absorption(
     original = replace(memory(), id="a")
     proposals = [ExtractionProposal(memories=(original,), relations=())]
     if case != "ordinary-derives":
-        for identifier, target, source in (("b", "a", "turn-2"), ("c", "b", "turn-3")):
+        for identifier, source in (("b", "turn-2"), ("c", "turn-3")):
             candidate = replace(
                 original,
                 id=identifier,
@@ -468,7 +390,7 @@ def test_scoped_projection_matches_full_values_and_relations_after_absorption(
                     memories=(candidate,),
                     relations=()
                     if case == "implicit-repetition"
-                    else (MemoryRelation(from_id=identifier, to_id=target, type="extends"),),
+                    else (MemoryRelation(from_id=identifier, to_id="a", type="extends"),),
                 )
             )
     relation_type = (
@@ -492,7 +414,7 @@ def test_scoped_projection_matches_full_values_and_relations_after_absorption(
             relations=(
                 MemoryRelation(
                     from_id="d",
-                    to_id="a" if case == "ordinary-derives" else "c",
+                    to_id="c" if case == "different-spo-extends" else "a",
                     type=relation_type,
                 ),
             ),
@@ -502,7 +424,7 @@ def test_scoped_projection_matches_full_values_and_relations_after_absorption(
         proposals.append(
             ExtractionProposal(
                 memories=(replace(derived, id="e", object="juice", source_turn_ids=("turn-5",)),),
-                relations=(MemoryRelation(from_id="e", to_id="c", type="derives"),),
+                relations=(MemoryRelation(from_id="e", to_id="a", type="derives"),),
             )
         )
     for number, proposal in enumerate(proposals, 1):

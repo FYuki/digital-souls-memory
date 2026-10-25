@@ -30,7 +30,12 @@ def test_normal_sql_cannot_forge_or_change_deletion_authorization(
     evidence.add_turn(turn("t1"))
     evidence.add_turn(turn("t2"))
     command = DeletionCommand(request_id="protected", target_turn_ids=("t1",))
-    store = PostgresDeletionStore(os.environ["MEMORY_DELETION_DATABASE_URL"])
+    store = PostgresDeletionStore(
+        os.environ["MEMORY_DELETION_DATABASE_URL"],
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset({"synthetic-chat"}),
+        comment_surfaces=frozenset(),
+    )
     with psycopg.connect(app_database_url, autocommit=True) as conn:
         with pytest.raises(psycopg.errors.InsufficientPrivilege):
             conn.execute(
@@ -72,7 +77,12 @@ def test_expired_attempt_cannot_commit_or_fail_the_replacement_attempt(
 
     evidence = seed_evidence(database_url)
     evidence.add_turn(turn(actor="U"))
-    store = PostgresDeletionStore(os.environ["MEMORY_DELETION_DATABASE_URL"])
+    store = PostgresDeletionStore(
+        os.environ["MEMORY_DELETION_DATABASE_URL"],
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset({"synthetic-chat"}),
+        comment_surfaces=frozenset(),
+    )
     principal = AuthorPrincipal(author_id="synthetic-author")
     command = DeletionCommand(request_id="delete-lease", user_id="U")
     first = store.begin(command, principal=principal, now=RECORDED)
@@ -113,7 +123,12 @@ def test_commit_rejects_saved_authorization_that_differs_from_its_attempt(
     evidence = seed_evidence(database_url)
     evidence.add_turn(turn("t1"))
     evidence.add_turn(turn("t2"))
-    store = PostgresDeletionStore(os.environ["MEMORY_DELETION_DATABASE_URL"])
+    store = PostgresDeletionStore(
+        os.environ["MEMORY_DELETION_DATABASE_URL"],
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset({"synthetic-chat"}),
+        comment_surfaces=frozenset(),
+    )
     attempt = store.begin(
         DeletionCommand(request_id="changed", target_turn_ids=("t1",)),
         principal=AuthorPrincipal(author_id="synthetic-author"),
@@ -150,7 +165,12 @@ def test_receipt_change_after_snapshot_prevents_partial_commit_and_allows_retry(
     evidence.add_session(session(reports_delivery=True))
     original = turn()
     evidence.add_turn(original)
-    store = PostgresDeletionStore(os.environ["MEMORY_DELETION_DATABASE_URL"])
+    store = PostgresDeletionStore(
+        os.environ["MEMORY_DELETION_DATABASE_URL"],
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset({"synthetic-chat"}),
+        comment_surfaces=frozenset(),
+    )
     principal = AuthorPrincipal(author_id="synthetic-author")
     command = DeletionCommand(request_id="delete-snapshot", target_turn_ids=("turn-1",))
     attempt = store.begin(command, principal=principal, now=RECORDED)

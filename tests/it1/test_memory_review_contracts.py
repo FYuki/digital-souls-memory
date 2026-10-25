@@ -74,7 +74,7 @@ def test_reextracting_same_fact_with_new_ids_preserves_processed_update() -> Non
                 derivation=replace(memory().derivation, created_at=h.now),
             ),
         )
-        store.requeue("turn-1")
+        worker.service.requeue("turn-1")
         worker.process("char-b", "turn-1")
         assert service.active("char-b") == (updated,)
         assert store.get_extraction("char-b", "turn-2") == completed

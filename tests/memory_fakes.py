@@ -13,8 +13,12 @@ from digital_souls_memory.memory.domain import (
     ExtractionState,
     InputDependency,
     MemoryRelation,
+    RelationEffect,
+    SourceContribution,
+    memory_valid_at,
 )
 from digital_souls_memory.memory.extraction import CloudInput, LocalOnly
+from digital_souls_memory.memory.inputs import MemoryInputs
 from digital_souls_memory.memory.ports import (
     MemoryConflict,
     MemoryContribution,
@@ -24,6 +28,12 @@ from digital_souls_memory.memory.ports import (
     WorkCursor,
     WorkPage,
 )
+from digital_souls_memory.memory.projection import (
+    ProjectionEvidence,
+    ProjectionInput,
+    collect_evidence,
+)
+from digital_souls_memory.memory.relations import resolve_relations
 from tests.it1.evidence_fakes import FakeEvidenceStore
 from tests.memory_support import memory
 
@@ -116,7 +126,8 @@ class FakeMemoryStore:
         self.baseline_inputs: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
         self.history: dict[tuple[str, str], MemoryContribution] = {}
         self.withdrawn: set[tuple[str, str]] = set()
-        self.representatives: dict[tuple[str, str], str] = {}
+        self.reinforcements: dict[tuple[str, str], tuple[SourceContribution, ...]] = {}
+        self.effects: dict[tuple[str, str], tuple[RelationEffect, ...]] = {}
 
     @contextmanager
     def transaction(self, character_id: str) -> Iterator[MemoryTransaction]:
@@ -132,7 +143,9 @@ class FakeMemoryStore:
                 dict(self.dependencies),
                 dict(self.history),
                 set(self.withdrawn),
-                dict(self.representatives),
+                dict(self.reinforcements),
+                dict(self.effects),
+                dict(self.requests),
             )
             try:
                 yield FakeMemoryTransaction(self, character_id)
@@ -151,7 +164,9 @@ class FakeMemoryStore:
                     self.dependencies,
                     self.history,
                     self.withdrawn,
-                    self.representatives,
+                    self.reinforcements,
+                    self.effects,
+                    self.requests,
                 ) = snapshot
                 raise
 
@@ -201,12 +216,17 @@ class FakeMemoryStore:
         page = tuple(v for v in items if after is None or v > after)[:limit]
         return WorkPage(page, page[-1] if len(page) == limit else None)
 
-    def requeue(self, turn_id: str) -> None:
-        with self.lock:
+    @contextmanager
+    def requeue_transaction(self, turn_id: str) -> Iterator[tuple[MemoryTransaction, ...]]:
+        owners = sorted({owner for owner, origin in self.states if origin == turn_id})
+        with self.transaction(owners[0] if owners else ""):
             self.requests[turn_id] = self.requests.get(turn_id, 0) + 1
             for key, state in tuple(self.states.items()):
                 if key[1] == turn_id:
-                    self.states[key] = replace(state, signature="")
+                    self.states[key] = replace(
+                        state, signature="", status="retry", token=None, lease_until=None
+                    )
+            yield tuple(FakeMemoryTransaction(self, owner) for owner in owners)
 
     @contextmanager
     def claim_surface(self, surface: str, now: datetime) -> Iterator[bool]:
@@ -214,6 +234,11 @@ class FakeMemoryStore:
 
 
 class FakeMemoryTransaction:
+    def projection_evidence(
+        self, snapshot: ProjectionInput, inputs: MemoryInputs, now: datetime
+    ) -> ProjectionEvidence:
+        return collect_evidence(snapshot, self.character, inputs)
+
     def __init__(self, store: FakeMemoryStore, character: str) -> None:
         self.store = store
         self.character = character
@@ -230,29 +255,87 @@ class FakeMemoryTransaction:
             for value in self.baselines(identifiers)
         }
 
-    def representatives(self, identifiers: frozenset[str] | None = None) -> dict[str, str]:
-        return {
-            identifier: target
-            for (owner, identifier), target in self.store.representatives.items()
-            if owner == self.character and (identifiers is None or identifier in identifiers)
-        }
+    def validate_candidate(self, turn_id: str, value: DerivedMemory) -> None:
+        previous = self.store.history.get((self.character, value.id))
+        existing = self.store.values.get((self.character, value.id))
+        if (existing is not None and previous is None) or (
+            previous is not None and (previous.turn_id != turn_id or previous.memory != value)
+        ):
+            raise MemoryConflict()
 
-    def sync_representatives(self, identifiers: frozenset[str], values: dict[str, str]) -> None:
-        self.store.representatives = {
-            (owner, identifier): target
-            for (owner, identifier), target in self.store.representatives.items()
-            if owner != self.character or identifier not in identifiers
-        } | {(self.character, identifier): target for identifier, target in values.items()}
+    def fact_matches(self, value: DerivedMemory, now: datetime) -> tuple[DerivedMemory, ...]:
+        return tuple(
+            v
+            for v in self.memories()
+            if v.id != value.id
+            and v.kind == "fact"
+            and v.superseded_at is None
+            and memory_valid_at(v, now)
+            and (v.subject, v.predicate, v.object) == (value.subject, value.predicate, value.object)
+        )
+
+    def source_contributions(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[SourceContribution, ...]:
+        return tuple(
+            c
+            for (owner, _), values in self.store.reinforcements.items()
+            if owner == self.character
+            for c in values
+            if identifiers is None or c.fact_id in identifiers
+        )
+
+    def set_source_contributions(
+        self, turn_id: str, values: tuple[SourceContribution, ...]
+    ) -> None:
+        self.store.reinforcements[(self.character, turn_id)] = values
+
+    def relation_effects(
+        self, identifiers: frozenset[str] | None = None
+    ) -> tuple[RelationEffect, ...]:
+        effects = tuple(
+            e
+            for (owner, _), values in self.store.effects.items()
+            if owner == self.character
+            for e in values
+            if identifiers is None or e.relation.from_id in identifiers
+        )
+        if not effects:
+            return ()
+        history = self.history(frozenset(e.relation.to_id for e in effects))
+        current = self.candidates_for_turns(frozenset(c.turn_id for c in history))
+        resolved = resolve_relations(tuple(e.relation for e in effects), history, current)
+        return tuple(replace(e, relation=r) for e, r in zip(effects, resolved, strict=True))
+
+    def set_relation_effects(self, turn_id: str, values: tuple[RelationEffect, ...]) -> None:
+        old = tuple(e for e in self.relation_effects() if e.turn_id == turn_id)
+        self.store.effects[(self.character, turn_id)] = values
+        supported = {e.relation for e in self.relation_effects()}
+        self.store.relations = [
+            (owner, r)
+            for owner, r in self.store.relations
+            if owner != self.character or r not in {e.relation for e in old} or r in supported
+        ]
+
+    def fact_sources(self, identifiers: frozenset[str]) -> dict[str, tuple[str, ...]]:
+        return {v.id: v.source_turn_ids for v in self.baselines(identifiers)}
 
     def contribution_ids(self, turn_id: str) -> frozenset[str]:
-        return frozenset(
-            identifier
-            for (owner, identifier), value in self.store.history.items()
-            if owner == self.character and value.turn_id == turn_id
-        ) | frozenset(
-            identifier
-            for (owner, identifier), dependencies in self.store.baseline_inputs.items()
-            if owner == self.character and any(d.turn_id == turn_id for d in dependencies)
+        return (
+            frozenset(
+                identifier
+                for (owner, identifier), value in self.store.history.items()
+                if owner == self.character and value.turn_id == turn_id
+            )
+            | frozenset(
+                identifier
+                for (owner, identifier), dependencies in self.store.baseline_inputs.items()
+                if owner == self.character and any(d.turn_id == turn_id for d in dependencies)
+            )
+            | frozenset(
+                c.fact_id for c in self.source_contributions() if c.extraction_turn_id == turn_id
+            )
+            | frozenset(e.relation.from_id for e in self.relation_effects() if e.turn_id == turn_id)
         )
 
     def baseline_dependencies(
@@ -274,26 +357,10 @@ class FakeMemoryTransaction:
     def candidates_for_turns(self, turn_ids: frozenset[str]) -> tuple[MemoryContribution, ...]:
         return tuple(value for value in self.candidates() if value.turn_id in turn_ids)
 
-    def projection_neighbors(self, identifiers: frozenset[str]) -> frozenset[str]:
-        values = [
-            v.memory for (owner, _), v in self.store.history.items() if owner == self.character
-        ]
-        values.extend(self.baselines())
-        facts = {
-            (v.subject, v.predicate, v.object)
-            for v in values
-            if v.id in identifiers and v.kind == "fact"
-        }
-        neighbors = {
-            v.id for v in values if v.kind == "fact" and (v.subject, v.predicate, v.object) in facts
-        }
-        origins = {v.turn_id for v in self.history(identifiers)}
-        neighbors.update(
-            v.id
-            for (owner, origin), items in self.store.proposals.items()
-            if owner == self.character and origin in origins
-            for v in items
-        )
+    def projection_neighbors(
+        self, identifiers: frozenset[str], source_only: frozenset[str]
+    ) -> frozenset[str]:
+        neighbors: set[str] = set()
         relations = [r for owner, r in self.store.relations if owner == self.character]
         relations.extend(
             r
@@ -301,6 +368,7 @@ class FakeMemoryTransaction:
             if owner == self.character
             for r in items
         )
+        relations.extend(e.relation for e in self.relation_effects())
         for relation in relations:
             if relation.from_id in identifiers and (
                 relation.type != "derives"
@@ -310,7 +378,9 @@ class FakeMemoryTransaction:
                 )
             ):
                 neighbors.add(relation.to_id)
-            if relation.to_id in identifiers:
+            if relation.to_id in identifiers and (
+                relation.type != "derives" or relation.to_id not in source_only
+            ):
                 neighbors.add(relation.from_id)
         return frozenset(neighbors)
 
@@ -349,12 +419,13 @@ class FakeMemoryTransaction:
         )
 
     def proposed_relations(
-        self, identifiers: frozenset[str] | None = None
+        self, identifiers: frozenset[str] | None = None, *, include_inactive: bool = False
     ) -> tuple[MemoryRelation, ...]:
         return tuple(
             r
             for (owner, turn), items in self.store.proposed.items()
-            if owner == self.character and self.store.states[(owner, turn)].status == "done"
+            if owner == self.character
+            and (include_inactive or self.store.states[(owner, turn)].status == "done")
             for r in items
             if identifiers is None or r.from_id in identifiers
         )
@@ -415,6 +486,17 @@ class FakeMemoryTransaction:
     def sync_projection_relations(
         self, identifiers: frozenset[str], values: tuple[MemoryRelation, ...]
     ) -> None:
+        raw = tuple(
+            e
+            for (owner, _), effects in self.store.effects.items()
+            if owner == self.character
+            for e in effects
+            if e.relation.from_id in identifiers
+        )
+        resolved = dict(zip(raw, self.relation_effects(identifiers), strict=True))
+        for (owner, origin), effects in tuple(self.store.effects.items()):
+            if owner == self.character:
+                self.store.effects[(owner, origin)] = tuple(resolved.get(e, e) for e in effects)
         self.store.relations = [
             (owner, r)
             for owner, r in self.store.relations

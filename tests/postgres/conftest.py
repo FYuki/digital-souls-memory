@@ -22,6 +22,13 @@ def database_url(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
     finally:
         # Application tests may select a temporary nonowner role; migrations use the owner.
         monkeypatch.setenv("MEMORY_DATABASE_URL", url)
+        # 0014 cannot reconstruct absorption history once contributions exist.
+        # Discard synthetic derived data before exercising an empty downgrade.
+        with psycopg.connect(url, autocommit=True, connect_timeout=5) as connection:
+            if connection.execute("SELECT to_regclass('public.derived_memories')").fetchone() != (
+                None,
+            ):
+                connection.execute("TRUNCATE derived_memories CASCADE")
         # Remove derived references before truncating the append-only evidence tables.
         command.downgrade(config, "0005")
         with psycopg.connect(url, autocommit=True, connect_timeout=5) as connection:

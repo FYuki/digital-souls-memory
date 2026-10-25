@@ -2,6 +2,7 @@
 
 from collections.abc import Callable, Iterator
 from dataclasses import replace
+from hashlib import sha256
 from typing import TypedDict, cast
 
 import psycopg
@@ -12,7 +13,7 @@ from psycopg.abc import Params
 
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
-from digital_souls_memory.memory.domain import DerivedMemory
+from digital_souls_memory.memory.domain import DeliveryBasis, DerivedMemory, ExtractionState
 from tests.evidence_support import session, turn
 from tests.it1.test_memory_extraction import RecordingGateway
 from tests.memory_support import NEW_ID, OLD_ID, memory
@@ -29,6 +30,27 @@ def save_lookup_memory(url: str, value: DerivedMemory, origin: str) -> None:
     with PostgresMemoryStore(url).transaction(value.character_id) as tx:
         tx.add_memory(value)
     if origin == "generated":
+        worker = extraction_worker(url)
+        resolved = worker.service.inputs.resolve(value.character_id, (value.source_turn_ids[0],))
+        decision = resolved.turns[0].decision
+        assert decision is not None and decision.text is not None
+        with PostgresMemoryStore(url).transaction(value.character_id) as tx:
+            tx.save_extraction(
+                ExtractionState(
+                    character_id=value.character_id,
+                    turn_id=value.source_turn_ids[0],
+                    delivery_basis=DeliveryBasis(decision.basis),
+                    signature=resolved.signature(tx.notification_version(value.source_turn_ids[0])),
+                    status="done",
+                    token=None,
+                    lease_until=None,
+                    deadline=decision.deadline,
+                    error=None,
+                    text_hash=sha256(decision.text.encode()).hexdigest(),
+                    used_end=len(decision.text),
+                    receipt_version=decision.receipt_version,
+                )
+            )
         with psycopg.connect(url) as connection:
             connection.execute(
                 "INSERT INTO memory_generated(character_id,memory_id,turn_id,payload) "
@@ -38,6 +60,17 @@ def save_lookup_memory(url: str, value: DerivedMemory, origin: str) -> None:
             )
             connection.execute(
                 "INSERT INTO memory_generated_sources SELECT * FROM memory_baseline_sources "
+                "WHERE character_id=%s AND memory_id=%s",
+                (value.character_id, value.id),
+            )
+            connection.execute(
+                "INSERT INTO memory_candidates(character_id,turn_id,memory_id,payload) "
+                "SELECT character_id,turn_id,memory_id,payload FROM memory_generated "
+                "WHERE character_id=%s AND memory_id=%s",
+                (value.character_id, value.id),
+            )
+            connection.execute(
+                "INSERT INTO memory_candidate_sources SELECT * FROM memory_generated_sources "
                 "WHERE character_id=%s AND memory_id=%s",
                 (value.character_id, value.id),
             )
@@ -66,7 +99,6 @@ def test_lookup_preserves_complete_fact_identity_and_owner(
     evidence.add_turn(turn(actor="user-a"))
     save_lookup_memory(app_database_url, memory(), seed_origin)
     candidates = (
-        replace(memory(), id="equal"),
         replace(memory(), id="subject", subject="user-b"),
         replace(memory(), id="predicate", predicate="dislikes"),
         replace(memory(), id="object", object="tea", content="coffee"),
@@ -75,8 +107,17 @@ def test_lookup_preserves_complete_fact_identity_and_owner(
     )
     for candidate in candidates:
         save_lookup_memory(app_database_url, candidate, other_origin)
-    with PostgresMemoryStore(app_database_url).transaction("char-b") as tx:
-        assert tx.projection_neighbors(frozenset({OLD_ID})) == {OLD_ID, "equal"}
+    worker = extraction_worker(app_database_url)
+    gateway = RecordingGateway()
+    worker.extractor.gateway = gateway
+    evidence.add_turn(turn("turn-2", actor="user-a"))
+    gateway.output = (replace(memory(), id=NEW_ID, source_turn_ids=("turn-2",)),)
+    worker.process("char-b", "turn-2")
+    stored = worker.service.store.get_memory("char-b", OLD_ID)
+    assert stored is not None and set(stored.source_turn_ids) == {"turn-1", "turn-2"}
+    assert worker.service.store.get_memory("char-b", NEW_ID) is None
+    for candidate in candidates:
+        assert worker.service.store.get_memory(candidate.character_id, candidate.id) == candidate
 
 
 @pytest.mark.parametrize("same_fact", [True, False], ids=["P1", "N1"])
@@ -114,16 +155,13 @@ def test_worker_reinforces_only_matching_fact_attributes(
     worker.process("char-b", "turn-2")
     old = worker.service.store.get_memory("char-b", OLD_ID)
     new = worker.service.store.get_memory("char-b", NEW_ID)
-    assert old is not None and new is not None
+    assert old is not None
     if same_fact:
         assert old.source_turn_ids == ("turn-1", "turn-2")
         assert old.last_reinforced_at is not None
-        assert new.superseded_at is not None
-        with worker.service.store.list_relations("char-b", NEW_ID) as relations:
-            assert [(r.from_id, r.to_id, r.type) for r in relations] == [
-                (NEW_ID, OLD_ID, "extends")
-            ]
+        assert new is None
     else:
+        assert new is not None
         assert old == before
         assert new.superseded_at is None
         assert {v.id for v in worker.service.active("char-b")} == {OLD_ID, NEW_ID}
@@ -198,7 +236,7 @@ def test_fact_lookup_scan_is_bounded_and_migration_preserves_records(
             connection.execute("ANALYZE memory_baselines")
         repeated = []
         for _ in range(3):
-            worker.service.store.requeue("measured")
+            worker.service.requeue("measured")
             with monkeypatch.context() as patch:
                 measured = LockMeasurements(patch)
                 worker.process("char-b", "measured")
@@ -212,7 +250,7 @@ def test_fact_lookup_scan_is_bounded_and_migration_preserves_records(
                 }
             )
         record_property(f"worker_lock_{count}", repeated)
-        queries = measured.neighbor_queries
+        queries = measured.fact_queries
         assert queries
         plans = explain_queries(database_url, queries)
         nodes = [node for plan in plans for node in plan_nodes(plan)]
@@ -246,16 +284,14 @@ def test_fact_lookup_scan_is_bounded_and_migration_preserves_records(
         }
     command.downgrade(config, "0009")
     try:
-        with PostgresMemoryStore(database_url).transaction("char-b") as tx:
-            assert tx.projection_neighbors(frozenset({OLD_ID})) == {OLD_ID, "equal"}
-        without = explain_queries(database_url, queries)
-        record_property("without_fact_indexes", without)
-        assert any(
-            node.get("Node Type") == "Seq Scan"
-            and node.get("Relation Name") in ("memory_generated", "memory_baselines")
-            for plan in without
-            for node in plan_nodes(plan)
-        )
+        with psycopg.connect(database_url) as connection:
+            assert (
+                connection.execute(
+                    "SELECT indexname FROM pg_indexes WHERE indexname IN "
+                    "('memory_generated_fact_lookup','memory_baselines_fact_lookup')"
+                ).fetchall()
+                == []
+            )
     finally:
         command.upgrade(config, "head")
     with psycopg.connect(database_url) as connection:
@@ -263,5 +299,3 @@ def test_fact_lookup_scan_is_bounded_and_migration_preserves_records(
             assert (
                 connection.execute(f"SELECT * FROM {table} ORDER BY memory_id").fetchall() == rows
             )
-    with PostgresMemoryStore(database_url).transaction("char-b") as tx:
-        assert tx.projection_neighbors(frozenset({OLD_ID})) == {OLD_ID, "equal"}

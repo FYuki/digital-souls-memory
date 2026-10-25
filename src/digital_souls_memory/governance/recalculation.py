@@ -11,6 +11,7 @@ from digital_souls_memory.memory.domain import DerivedMemory, MemoryValidationEr
 from digital_souls_memory.memory.evidence import independent_evidence_count
 from digital_souls_memory.memory.extraction import CloudInput, make_gateway_input
 from digital_souls_memory.memory.ports import MemoryUnavailable
+from digital_souls_memory.memory.reinforcement import aggregate_sources
 from digital_souls_memory.recall.domain import SourceStamp
 
 
@@ -32,6 +33,17 @@ class MemoryRecalculator:
         old = copy.memory
         invalidated = MemoryReplacement(copy=copy, value=None)
         targets = set(snapshot.target_turn_ids)
+        unavailable_origins = targets | set(copy.withdrawn_origins)
+        remaining_contributions = tuple(
+            c
+            for c in copy.reinforcements
+            if c.extraction_turn_id not in unavailable_origins and c.source_turn_id not in targets
+        )
+        unsupported_sources = (
+            {c.source_turn_id for c in copy.reinforcements}
+            - set(copy.body_source_ids)
+            - {c.source_turn_id for c in remaining_contributions}
+        )
         if copy.origin_turn_id in targets or old.verbatim_turn_id in targets:
             return invalidated
         materials = []
@@ -42,6 +54,7 @@ class MemoryRecalculator:
             if (
                 turn.turn_id not in (*old.source_turn_ids, *effect_sources)
                 or turn.turn_id in targets
+                or turn.turn_id in unsupported_sources
             ):
                 continue
             decision = material_decision(
@@ -109,6 +122,16 @@ class MemoryRecalculator:
             superseded_at=base.superseded_at,
             last_reinforced_at=base.last_reinforced_at,
         )
+        if copy.reinforcements:
+            strengthened = aggregate_sources(
+                result,
+                tuple(i for i in copy.body_source_ids if i in output.source_turn_ids),
+                tuple(c for c in remaining_contributions if c.source_turn_id in sources),
+                sources,
+            )
+            if strengthened is None:
+                return invalidated
+            result = strengthened
         for effect in copy.temporal_effects:
             candidate = effect.candidate
             if not set(candidate.source_turn_ids) <= sources.keys():

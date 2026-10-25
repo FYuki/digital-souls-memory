@@ -1,4 +1,4 @@
-"""Absorbed Fact references agree across projection, persistence and recall."""
+"""Restated Fact references agree across projection, persistence and recall."""
 
 from dataclasses import replace
 
@@ -30,7 +30,7 @@ pytestmark = pytest.mark.postgres
     [("turn-x", False), ("turn-x", True), ("turn-b", False)],
     ids=["retry-rebuild", "same-id-success", "support-deleted"],
 )
-def test_context_deletion_preserves_surviving_baseline_representative(
+def test_context_deletion_preserves_fact_and_existing_dependents(
     database_url: str, deleted_source: str, reextract: bool
 ) -> None:
     evidence = seed_evidence(database_url)
@@ -47,7 +47,7 @@ def test_context_deletion_preserves_surviving_baseline_representative(
         )
         gateway.output = ExtractionProposal(
             memories=(candidate,),
-            relations=(MemoryRelation(from_id="d", to_id="b", type="derives"),)
+            relations=(MemoryRelation(from_id="d", to_id="a", type="derives"),)
             if candidate.id == "d"
             else (),
         )
@@ -84,10 +84,6 @@ def test_context_deletion_preserves_surviving_baseline_representative(
             assert state is not None and state.status == "retry"
         else:
             assert state is None
-        expected_mapping = {"b": "a"} if deleted_source == "turn-x" else {}
-        with store.transaction("char-b") as tx:
-            baselines = tx.baselines()
-            assert tx.representatives() == expected_mapping
         for after_operation in (False, True):
             if after_operation:
                 if reextract:
@@ -99,16 +95,10 @@ def test_context_deletion_preserves_surviving_baseline_representative(
                     with store.transaction("char-b") as tx:
                         worker.service.rebuild(tx, frozenset({"a", "b", "d"}))
             with store.transaction("char-b") as tx:
-                assert tx.representatives() == expected_mapping
-                assert tx.baselines() == baselines
                 saved = {v.id: v for v in tx.memories()}
                 saved_relations = tx.applied_relations()
                 snapshot = projection_input(tx)
-            if deleted_source == "turn-x":
-                assert saved["b"].superseded_at == RECORDED
-                assert saved["b"].source_turn_ids == ("turn-b",)
-            else:
-                assert "b" not in saved
+            assert "b" not in saved
             assert MemoryRelation(from_id="d", to_id="a", type="derives") in saved_relations
             response = client.get("/characters/char-b/memories")
             assert response.status_code == 200, response.json()
@@ -124,10 +114,9 @@ def test_context_deletion_preserves_surviving_baseline_representative(
             }
             with store.transaction("char-b") as tx:
                 assert {v.id: v for v in tx.memories()} == saved
-                assert tx.representatives() == expected_mapping
 
 
-def test_derives_from_absorbed_chain_is_saved_listed_and_indexed(
+def test_derives_from_repeated_fact_is_saved_listed_and_indexed(
     app_database_url: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
@@ -162,7 +151,7 @@ def test_derives_from_absorbed_chain_is_saved_listed_and_indexed(
             else (
                 MemoryRelation(
                     from_id=candidate.id,
-                    to_id=candidates[number - 2].id,
+                    to_id="a",
                     type="derives" if number == 4 else "extends",
                 ),
             ),
@@ -190,8 +179,7 @@ def test_derives_from_absorbed_chain_is_saved_listed_and_indexed(
     )
     assert store.get_memory("char-b", "a") == active["a"]
     for identifier in ("b", "c"):
-        absorbed = store.get_memory("char-b", identifier)
-        assert absorbed is not None and absorbed.superseded_at == RECORDED
+        assert store.get_memory("char-b", identifier) is None
 
 
 @pytest.mark.usefixtures("deletion_url")
@@ -205,7 +193,7 @@ def test_derives_from_absorbed_chain_is_saved_listed_and_indexed(
     ],
 )
 @pytest.mark.parametrize("reextract", [False, True], ids=["original-ids", "changed-id"])
-def test_author_deletion_keeps_absorbed_references_consistent(
+def test_author_deletion_keeps_restatement_relations_consistent(
     database_url: str, relation_type: str, deleted_source: str, reextract: bool
 ) -> None:
     evidence = seed_evidence(database_url)
@@ -235,7 +223,7 @@ def test_author_deletion_keeps_absorbed_references_consistent(
             else (
                 MemoryRelation(
                     from_id=candidate.id,
-                    to_id=candidates[number - 2].id,
+                    to_id="a",
                     type=relation_type if number == 4 else "extends",
                 ),
             ),
@@ -246,7 +234,8 @@ def test_author_deletion_keeps_absorbed_references_consistent(
 
     if reextract:
         gateway.output = (replace(original, id="z-reextracted"),)
-        store.requeue("turn-1")
+        with TestClient(create_app(clock=lambda: RECORDED)) as client:
+            assert client.post("/turns/turn-1/extractions").status_code == 202
         worker.process("char-b", "turn-1")
         state = store.get_extraction("char-b", "turn-1")
         assert state is not None and state.status == "done"
@@ -320,7 +309,7 @@ def test_author_deletion_keeps_absorbed_references_consistent(
         )
 
 
-def test_absorbed_identifier_is_resolved_within_its_character(database_url: str) -> None:
+def test_restatement_and_derives_keep_character_ownership(database_url: str) -> None:
     evidence = seed_evidence(database_url)
     store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
     worker = make_worker(database_url, store, gateway)
@@ -343,7 +332,7 @@ def test_absorbed_identifier_is_resolved_within_its_character(database_url: str)
                 else (
                     MemoryRelation(
                         from_id=identifier,
-                        to_id=root if number == 1 else "shared-absorbed-id",
+                        to_id=root,
                         type="extends" if number == 1 else "derives",
                     ),
                 ),

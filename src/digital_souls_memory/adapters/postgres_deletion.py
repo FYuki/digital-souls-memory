@@ -22,6 +22,7 @@ from digital_souls_memory.adapters.postgres_memory import (
     copy_sources,
     save_copy_sources,
 )
+from digital_souls_memory.adapters.postgres_projection_evidence import read_projection_evidence
 from digital_souls_memory.adapters.recall_records import json_record, read_material
 from digital_souls_memory.governance.domain import (
     AuthorPrincipal,
@@ -38,7 +39,8 @@ from digital_souls_memory.governance.domain import (
 )
 from digital_souls_memory.memory.domain import MemoryRelation, MemoryValidationError
 from digital_souls_memory.memory.ports import MemoryConflict, MemoryUnavailable
-from digital_souls_memory.memory.relations import normalize_relations
+from digital_souls_memory.memory.projection import projection_input, save_projection
+from digital_souls_memory.memory.relations import resolve_relations
 
 
 def _request(row: DictRow) -> DeletionRequest:
@@ -70,10 +72,20 @@ def _request(row: DictRow) -> DeletionRequest:
 
 
 class PostgresDeletionStore:
-    def __init__(self, url: str) -> None:
+    def __init__(
+        self,
+        url: str,
+        *,
+        delivery_timeout: timedelta,
+        conversation_surfaces: frozenset[str],
+        comment_surfaces: frozenset[str],
+    ) -> None:
         if not url.startswith(("postgresql://", "postgresql+psycopg://")):
             raise MemoryUnavailable()
         self._url = url.replace("postgresql+psycopg://", "postgresql://", 1)
+        self.delivery_timeout = delivery_timeout
+        self.conversation_surfaces = conversation_surfaces
+        self.comment_surfaces = comment_surfaces
 
     @contextmanager
     def _connection(self) -> Iterator[psycopg.Connection[DictRow]]:
@@ -153,12 +165,19 @@ class PostgresDeletionStore:
             "AND d.extraction_turn_id=g.turn_id WHERE d.turn_id=ANY(%s) "
             "UNION SELECT character_id,memory_id FROM memory_baseline_dependencies "
             "WHERE turn_id=ANY(%s) "
+            "UNION SELECT c.character_id,c.fact_id FROM memory_source_contributions c "
+            "JOIN memory_input_dependencies d ON d.character_id=c.character_id "
+            "AND d.extraction_turn_id=c.extraction_turn_id WHERE d.turn_id=ANY(%s) "
+            "UNION SELECT r.character_id,r.to_id FROM memory_candidate_relations r "
+            "JOIN memory_input_dependencies d ON d.character_id=r.character_id "
+            "AND d.extraction_turn_id=r.turn_id WHERE d.turn_id=ANY(%s) "
+            "AND r.effect IS NOT NULL AND r.type<>'derives' "
             "), effects(character_id,memory_id) AS (SELECT * FROM affected UNION "
             "SELECT r.character_id,r.to_id FROM memory_relations r JOIN effects e "
             "ON r.character_id=e.character_id AND r.from_id=e.memory_id "
             "WHERE r.type IN ('extends','updates','contradicts')) "
             "SELECT character_id,memory_id FROM effects ORDER BY character_id,memory_id",
-            (list(targets), list(targets), list(targets)),
+            (list(targets),) * 5,
         ).fetchall()
         dependent_owners = [r["character_id"] for r in dependent]
         dependent_ids = [r["memory_id"] for r in dependent]
@@ -205,6 +224,14 @@ class PostgresDeletionStore:
                 prepared.append(copy)
                 continue
             owner, identifier = copy.memory.character_id, copy.memory.id
+            withdrawn_origins = tuple(
+                r["extraction_turn_id"]
+                for r in connection.execute(
+                    "SELECT DISTINCT extraction_turn_id FROM memory_input_dependencies "
+                    "WHERE character_id=%s AND turn_id=ANY(%s)",
+                    (owner, list(targets)),
+                ).fetchall()
+            )
             baseline = connection.execute(
                 "SELECT payload,temporal_origin FROM memory_baselines "
                 "WHERE character_id=%s AND memory_id=%s",
@@ -233,17 +260,38 @@ class PostgresDeletionStore:
                 if raw["reinforcement_history"] or raw["retired"]:
                     base = replace(base, superseded_at=copy.memory.superseded_at)
             effects = []
-            for row in connection.execute(
-                "SELECT c.memory_id,c.payload,r.type FROM memory_candidates c "
+            owned = connection.execute(
+                "SELECT c.memory_id,c.payload,r.type,owned.to_id AS proposed_target "
+                "FROM memory_candidates c "
                 "JOIN memory_relations r ON r.character_id=c.character_id "
-                "AND r.from_id=c.memory_id WHERE r.character_id=%s AND r.to_id=%s "
+                "AND r.from_id=c.memory_id "
+                "JOIN memory_candidate_relations owned "
+                "ON owned.character_id=c.character_id AND owned.turn_id=c.turn_id "
+                "AND owned.from_id=r.from_id AND owned.type=r.type AND owned.effect IS NULL "
+                "WHERE r.character_id=%s AND r.to_id=%s "
                 "AND r.type IN ('updates','contradicts','extends') "
                 "AND NOT c.turn_id=ANY(%s) AND NOT EXISTS(SELECT 1 "
                 "FROM memory_input_dependencies d WHERE d.character_id=c.character_id "
                 "AND d.extraction_turn_id=c.turn_id AND d.turn_id=ANY(%s)) "
                 "ORDER BY c.payload->>'valid_from', c.memory_id",
                 (owner, identifier, list(targets), list(targets)),
-            ).fetchall():
+            ).fetchall()
+            tx = _MemoryTransaction(connection, owner)
+            history = tx.history(frozenset(r["proposed_target"] for r in owned))
+            current = tx.candidates_for_turns(frozenset(c.turn_id for c in history))
+            resolved = resolve_relations(
+                tuple(
+                    MemoryRelation(
+                        from_id=r["memory_id"], to_id=r["proposed_target"], type=r["type"]
+                    )
+                    for r in owned
+                ),
+                history,
+                current,
+            )
+            for row, relation in zip(owned, resolved, strict=True):
+                if relation.to_id != identifier:
+                    continue
                 candidate = restore_memory(
                     row["payload"],
                     copy_sources(connection, "memory_candidates", owner, row["memory_id"]),
@@ -260,7 +308,42 @@ class PostgresDeletionStore:
                         applied_at=applied_at,
                     )
                 )
-            prepared.append(replace(copy, temporal_base=base, temporal_effects=tuple(effects)))
+            for effect in _MemoryTransaction(connection, owner).relation_effects():
+                if effect.relation.to_id != identifier or effect.turn_id in (
+                    *targets,
+                    *withdrawn_origins,
+                ):
+                    continue
+                if set(effect.candidate.source_turn_ids).intersection(targets):
+                    continue
+                if effect.relation.type == "derives":
+                    continue
+                applied_at = (
+                    copy.memory.superseded_at if effect.relation.type == "contradicts" else now
+                )
+                if applied_at is None:
+                    raise MemoryValidationError("Missing contradiction application time")
+                effects.append(
+                    TemporalEffect(
+                        candidate=effect.candidate,
+                        relation_type=effect.relation.type,
+                        applied_at=applied_at,
+                    )
+                )
+            prepared.append(
+                replace(
+                    copy,
+                    temporal_base=base,
+                    temporal_effects=tuple(effects),
+                    body_source_ids=_MemoryTransaction(connection, owner).fact_sources(
+                        frozenset({identifier})
+                    )[identifier],
+                    reinforcements=_MemoryTransaction(connection, owner).source_contributions(
+                        frozenset({identifier})
+                    ),
+                    withdrawn_origins=withdrawn_origins,
+                )
+            )
         copies = prepared
         copies.sort(key=lambda c: (c.table, c.memory.character_id, c.memory.id))
         identifiers = sorted(
@@ -292,7 +375,11 @@ class PostgresDeletionStore:
             ("memory_baseline_dependencies", ("character_id", "memory_id", "turn_id")),
             ("memory_extractions", ("character_id", "turn_id")),
             ("memory_relations", ("character_id", "from_id", "to_id", "type")),
-            ("memory_representatives", ("character_id", "absorbed_id")),
+            (
+                "memory_source_contributions",
+                ("character_id", "fact_id", "extraction_turn_id", "source_turn_id"),
+            ),
+            ("memory_fact_sources", ("character_id", "memory_id", "turn_id")),
             ("memory_candidate_relations", ("character_id", "turn_id", "from_id", "to_id", "type")),
             ("verbatim_anchors", ("character_id", "anchor_id")),
             ("voice_exemplars", ("character_id", "exemplar_id")),
@@ -379,6 +466,35 @@ class PostgresDeletionStore:
                 for r in replacements
                 if r.copy.table == "derived_memories"
             }
+            affected: dict[str, frozenset[str]] = {}
+            for owner in {owner for owner, _ in projected}:
+                withdrawn_origins = {
+                    origin
+                    for copy in snapshot.copies
+                    if copy.memory.character_id == owner
+                    for origin in copy.withdrawn_origins
+                } | set(attempt.request.target_turn_ids)
+                targets = frozenset(
+                    e.relation.to_id
+                    for e in _MemoryTransaction(connection, owner).relation_effects()
+                    if e.relation.type != "derives"
+                    and (
+                        e.turn_id in withdrawn_origins
+                        or set(e.candidate.source_turn_ids).intersection(
+                            attempt.request.target_turn_ids
+                        )
+                    )
+                )
+                if targets:
+                    affected[owner] = targets
+            for owner, identifiers in affected.items():
+                tx = _MemoryTransaction(connection, owner)
+                while True:
+                    expanded = identifiers | tx.projection_neighbors(identifiers, frozenset())
+                    if expanded == identifiers:
+                        break
+                    identifiers = expanded
+                affected[owner] = identifiers
             for replacement in replacements:
                 old, value = replacement.copy.memory, replacement.value
                 table = replacement.copy.table
@@ -393,6 +509,20 @@ class PostgresDeletionStore:
                     continue
                 if table == "derived_memories":
                     _MemoryTransaction(connection, old.character_id).replace_memory(value)
+                    connection.execute(
+                        "DELETE FROM memory_fact_sources WHERE character_id=%s AND memory_id=%s",
+                        key,
+                    )
+                    body = [
+                        i
+                        for i in replacement.copy.body_source_ids
+                        if i in value.source_turn_ids and i not in attempt.request.target_turn_ids
+                    ]
+                    connection.execute(
+                        "INSERT INTO memory_fact_sources SELECT %s,%s,turn_id,position-1 "
+                        "FROM unnest(%s::text[]) WITH ORDINALITY s(turn_id,position)",
+                        (*key, body),
+                    )
                     base = replacement.copy.temporal_base
                     if base is not None:
                         origin = copy_payload(base)
@@ -438,7 +568,6 @@ class PostgresDeletionStore:
                         (Jsonb(copy_payload(value)), *key),
                     )
                     save_copy_sources(connection, table, value)
-            self._normalize_candidate_relations(connection, invalidated)
             removed: list[StoredReference] = []
             provisions = self._remove_references(
                 connection,
@@ -467,14 +596,48 @@ class PostgresDeletionStore:
                     (old.character_id, old.id),
                 )
                 removed.append(StoredReference(table=table, key=(old.character_id, old.id)))
+            for owner, identifier in invalidated:
+                connection.execute(
+                    "DELETE FROM memory_candidates WHERE character_id=%s AND memory_id=%s",
+                    (owner, identifier),
+                )
+                connection.execute(
+                    "DELETE FROM memory_generated WHERE character_id=%s AND memory_id=%s",
+                    (owner, identifier),
+                )
+                connection.execute(
+                    "DELETE FROM memory_fact_sources WHERE character_id=%s AND memory_id=%s",
+                    (owner, identifier),
+                )
             self._remove_extractions(connection, attempt.request.target_turn_ids)
             self._withdraw_index(
-                connection, attempt.request.target_turn_ids, recalculated | invalidated
+                connection,
+                attempt.request.target_turn_ids,
+                recalculated
+                | invalidated
+                | {
+                    (owner, identifier)
+                    for owner, identifiers in affected.items()
+                    for identifier in identifiers
+                },
             )
             connection.execute(
                 "SELECT public.apply_author_deletion(%s,%s)",
                 (attempt.request.command.request_id, attempt.token),
             )
+            for owner, identifiers in affected.items():
+                tx = _MemoryTransaction(connection, owner)
+                projection = projection_input(tx, identifiers)
+                evidence = read_projection_evidence(
+                    connection,
+                    projection,
+                    owner,
+                    now,
+                    delivery_timeout=self.delivery_timeout,
+                    conversation_surfaces=self.conversation_surfaces,
+                    comment_surfaces=self.comment_surfaces,
+                )
+                save_projection(tx, projection, evidence.project(projection, now))
             result = CascadeResult(
                 deleted_turn_ids=attempt.request.target_turn_ids,
                 recalculated_memories=tuple(
@@ -494,38 +657,6 @@ class PostgresDeletionStore:
             assert row is not None
             return _request(row)
 
-    def _normalize_candidate_relations(
-        self, connection: psycopg.Connection[DictRow], invalidated: set[tuple[str, str]]
-    ) -> None:
-        for owner in sorted({owner for owner, _ in invalidated}):
-            representatives = _MemoryTransaction(connection, owner).representatives()
-            targets = [identifier for character, identifier in invalidated if character == owner]
-            for relation in connection.execute(
-                "SELECT turn_id,from_id,to_id,type FROM memory_candidate_relations "
-                "WHERE character_id=%s AND to_id=ANY(%s)",
-                (owner, targets),
-            ).fetchall():
-                original = MemoryRelation(
-                    from_id=relation["from_id"], to_id=relation["to_id"], type=relation["type"]
-                )
-                (normalized,) = normalize_relations((original,), representatives)
-                connection.execute(
-                    "DELETE FROM memory_candidate_relations WHERE character_id=%s "
-                    "AND turn_id=%s AND from_id=%s AND to_id=%s AND type=%s",
-                    (owner, relation["turn_id"], original.from_id, original.to_id, original.type),
-                )
-                connection.execute(
-                    "INSERT INTO memory_candidate_relations VALUES(%s,%s,%s,%s,%s) "
-                    "ON CONFLICT DO NOTHING",
-                    (
-                        owner,
-                        relation["turn_id"],
-                        normalized.from_id,
-                        normalized.to_id,
-                        normalized.type,
-                    ),
-                )
-
     def _remove_extractions(
         self, connection: psycopg.Connection[DictRow], targets: tuple[str, ...]
     ) -> None:
@@ -536,6 +667,9 @@ class PostgresDeletionStore:
             (identifiers,),
         ).fetchall()
         for row in rows:
+            tx = _MemoryTransaction(connection, row["character_id"])
+            tx.set_source_contributions(row["extraction_turn_id"], ())
+            tx.set_relation_effects(row["extraction_turn_id"], ())
             connection.execute(
                 "UPDATE memory_extractions SET token=NULL,signature='',status='retry',"
                 "lease_until=NULL WHERE character_id=%s AND turn_id=%s",

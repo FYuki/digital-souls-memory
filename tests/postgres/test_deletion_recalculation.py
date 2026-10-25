@@ -83,6 +83,7 @@ def test_reinforced_projection_survives_when_its_original_baseline_loses_all_sou
         create_app(
             clock=lambda: RECORDED,
             recalculation_gateway=RecordingRecalculationGateway(revised),
+            conversation_surfaces=frozenset({"synthetic-chat"}),
         )
     ) as client:
         response = client.post(
