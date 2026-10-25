@@ -1,5 +1,6 @@
 """Only the migration interprets historical absorbed identifiers."""
 
+from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 
@@ -18,12 +19,206 @@ from digital_souls_memory.memory.domain import DerivedMemory, MemoryRelation
 from tests.evidence_support import OCCURRED, RECORDED, turn
 from tests.it1.test_memory_extraction import RecordingGateway
 from tests.memory_support import memory
+from tests.postgres.restatement_0013_support import (
+    legacy_context_deletion,
+    legacy_snapshot,
+    project_legacy_chain,
+    save_legacy_projection,
+)
 from tests.postgres.test_deletion import seed_evidence
 from tests.postgres.test_deletion_recalculation import make_worker
 from tests.postgres.test_memory_continuous_ingestion import publish_and_search
 from tests.postgres.test_memory_restatement import assert_consistent
 
 pytestmark = pytest.mark.postgres
+
+
+def test_upgrade_reprojects_legacy_chain_and_previously_rejected_referrer(
+    database_url: str,
+) -> None:
+    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    command.downgrade(config, "0013")
+    evidence = seed_evidence(database_url)
+    for source in ("turn-a", "turn-b", "turn-d", "turn-z"):
+        evidence.add_turn(turn(source, actor="user-a"))
+    inputs = make_worker(
+        database_url, PostgresMemoryStore(database_url), RecordingGateway()
+    ).service.inputs
+    a = replace(memory(), id="a", source_turn_ids=("turn-a",))
+    b = replace(a, id="b", source_turn_ids=("turn-b",))
+    d = replace(memory("summary"), id="d", source_turn_ids=("turn-d",))
+    z = replace(a, id="z", source_turn_ids=("turn-z",))
+    snapshot, projected = project_legacy_chain(inputs, a, b, d, z)
+    save_legacy_projection(database_url, inputs, snapshot, projected)
+    with psycopg.connect(database_url) as conn:
+        assert set(
+            conn.execute(
+                "SELECT absorbed_id,representative_id FROM memory_representatives"
+            ).fetchall()
+        ) == {("b", "a"), ("a", "z")}
+        assert conn.execute(
+            "SELECT from_id,to_id FROM memory_candidate_relations WHERE type='derives'"
+        ).fetchall() == [("d", "b")]
+        assert conn.execute(
+            "SELECT superseded_at FROM derived_memories WHERE id='d'"
+        ).fetchone() == (RECORDED,)
+        assert {
+            r[0]
+            for r in conn.execute(
+                "SELECT turn_id FROM memory_sources WHERE memory_id='z'"
+            ).fetchall()
+        } == {"turn-a", "turn-z"}
+    command.upgrade(config, "0014")
+    store = PostgresMemoryStore(database_url)
+    saved_z, saved_d = store.get_memory("char-b", "z"), store.get_memory("char-b", "d")
+    assert saved_z is not None and saved_d is not None
+    assert set(saved_z.source_turn_ids) == {"turn-a", "turn-b", "turn-z"}
+    assert saved_z.last_reinforced_at == OCCURRED
+    assert saved_d.superseded_at is None
+    with store.list_relations("char-b", "d") as relations:
+        assert tuple(relations) == (MemoryRelation(from_id="d", to_id="z", type="derives"),)
+    worker = make_worker(database_url, store, RecordingGateway())
+    assert_consistent(worker.service, database_url, {"z", "d"})
+    with TestClient(
+        create_app(
+            clock=lambda: RECORDED,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+        )
+    ) as client:
+        listed = client.get("/characters/char-b/memories").json()
+        assert {v["id"] for v in listed} == {"z", "d"}
+        assert set(next(v for v in listed if v["id"] == "z")["source_turn_ids"]) == {
+            "turn-a",
+            "turn-b",
+            "turn-z",
+        }
+
+
+def test_upgrade_keeps_recalculated_baseline_sources_despite_retry_origin(
+    database_url: str,
+) -> None:
+    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    command.downgrade(config, "0013")
+    evidence = seed_evidence(database_url)
+    evidence.add_turn(turn("turn-a", actor="user-a"))
+    evidence.add_turn(turn("question", actor="user-a"))
+    evidence.add_turn(turn("turn-b", actor="user-a", reply_to_turn_id="question"))
+    inputs = make_worker(
+        database_url, PostgresMemoryStore(database_url), RecordingGateway()
+    ).service.inputs
+    a = replace(memory(), id="a", source_turn_ids=("turn-a",))
+    b = replace(a, id="b", source_turn_ids=("turn-b",))
+    snapshot, old_evidence = legacy_snapshot(inputs, (a, b))
+    result = old_evidence.project(snapshot, RECORDED, select_representatives=True)
+    save_legacy_projection(database_url, inputs, snapshot, result)
+    revised = replace(result.memories["a"], content="残存出典からの再計算")
+    legacy_context_deletion(database_url, inputs, revised, result.memories["b"])
+    with psycopg.connect(database_url) as conn:
+        assert conn.execute("SELECT turn_id FROM turns WHERE turn_id='question'").fetchall() == []
+        assert conn.execute(
+            "SELECT status FROM memory_extractions WHERE turn_id='turn-b'"
+        ).fetchone() == ("retry",)
+        assert {
+            r[0]
+            for r in conn.execute(
+                "SELECT turn_id FROM memory_baseline_sources WHERE memory_id='a'"
+            ).fetchall()
+        } == {"turn-a", "turn-b"}
+        assert conn.execute(
+            "SELECT memory_id FROM memory_generated WHERE turn_id='turn-b'"
+        ).fetchall() == [
+            ("b",),
+        ]
+    command.upgrade(config, "0014")
+    store = PostgresMemoryStore(database_url)
+    saved = store.get_memory("char-b", "a")
+    assert saved is not None
+    assert set(saved.source_turn_ids) == {"turn-a", "turn-b"}
+    assert (saved.content, saved.last_reinforced_at, saved.valid_to, saved.superseded_at) == (
+        revised.content,
+        revised.last_reinforced_at,
+        revised.valid_to,
+        revised.superseded_at,
+    )
+    service = make_worker(database_url, store, RecordingGateway()).service
+    assert_consistent(service, database_url, {"a"})
+    with TestClient(create_app(clock=lambda: RECORDED)) as client:
+        listed = client.get("/characters/char-b/memories").json()
+        assert len(listed) == 1
+        assert set(listed[0]["source_turn_ids"]) == {"turn-a", "turn-b"}
+        assert listed[0]["content"] == revised.content
+
+
+def test_upgrade_rejects_cyclic_representatives_without_partial_conversion(
+    database_url: str,
+    rejected: Callable[[], pytest.RaisesExc[BaseException]],
+) -> None:
+    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    command.downgrade(config, "0013")
+    evidence = seed_evidence(database_url)
+    for source in ("turn-a", "turn-b"):
+        evidence.add_turn(turn(source, actor="user-a"))
+    inputs = make_worker(
+        database_url, PostgresMemoryStore(database_url), RecordingGateway()
+    ).service.inputs
+    a = replace(memory(), id="a", source_turn_ids=("turn-a",))
+    b = replace(a, id="b", source_turn_ids=("turn-b",))
+    snapshot, old_evidence = legacy_snapshot(inputs, (a, b))
+    result = old_evidence.project(snapshot, RECORDED, select_representatives=True)
+    save_legacy_projection(database_url, inputs, snapshot, result)
+    with psycopg.connect(database_url) as conn:
+        conn.execute("INSERT INTO memory_representatives VALUES('char-b','a','b')")
+        before = conn.execute("SELECT * FROM derived_memories ORDER BY id").fetchall()
+        sources = conn.execute(
+            "SELECT * FROM memory_sources ORDER BY memory_id,position"
+        ).fetchall()
+    with rejected():
+        command.upgrade(config, "0014")
+    with psycopg.connect(database_url) as conn:
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0013",)
+        assert set(
+            conn.execute(
+                "SELECT absorbed_id,representative_id FROM memory_representatives"
+            ).fetchall()
+        ) == {("a", "b"), ("b", "a")}
+        assert conn.execute("SELECT * FROM derived_memories ORDER BY id").fetchall() == before
+        assert (
+            conn.execute("SELECT * FROM memory_sources ORDER BY memory_id,position").fetchall()
+            == sources
+        )
+        assert conn.execute(
+            "SELECT to_regclass('public.memory_source_contributions')"
+        ).fetchone() == (None,)
+
+
+def test_upgrade_preserves_different_spo_extends_and_identifier_text(database_url: str) -> None:
+    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    command.downgrade(config, "0013")
+    evidence = seed_evidence(database_url)
+    for source in ("turn-b", "turn-z"):
+        evidence.add_turn(turn(source, actor="user-a"))
+    inputs = make_worker(
+        database_url, PostgresMemoryStore(database_url), RecordingGateway()
+    ).service.inputs
+    z = replace(memory(), id="z", source_turn_ids=("turn-z",))
+    b = replace(
+        z, id="b", object="tea", content="Bという文字を含むtea", source_turn_ids=("turn-b",)
+    )
+    snapshot, old_evidence = legacy_snapshot(inputs, (z, b))
+    relation = MemoryRelation(from_id="b", to_id="z", type="extends")
+    snapshot = replace(snapshot, proposed=(relation,))
+    result = old_evidence.project(snapshot, RECORDED, select_representatives=True)
+    save_legacy_projection(database_url, inputs, snapshot, result)
+    command.upgrade(config, "0014")
+    store = PostgresMemoryStore(database_url)
+    saved = store.get_memory("char-b", "b")
+    assert saved is not None and saved.content == b.content and saved.object == "tea"
+    assert saved == result.memories["b"]
+    with store.list_relations("char-b", "b") as relations:
+        assert tuple(relations) == (relation,)
+    assert_consistent(
+        make_worker(database_url, store, RecordingGateway()).service, database_url, {"z"}
+    )
 
 
 @pytest.mark.parametrize(

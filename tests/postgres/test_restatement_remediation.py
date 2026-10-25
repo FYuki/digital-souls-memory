@@ -23,9 +23,65 @@ from tests.memory_support import memory
 from tests.postgres.test_deletion import HEADERS, seed_evidence
 from tests.postgres.test_deletion import deletion_url as deletion_url
 from tests.postgres.test_deletion_recalculation import make_worker
+from tests.postgres.test_memory_continuous_ingestion import publish_and_search
 from tests.postgres.test_memory_restatement import assert_consistent
 
 pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
+
+
+@pytest.mark.parametrize("relation_type", ["updates", "contradicts"])
+def test_withdrawn_fact_reopens_target_of_another_turns_rewritten_effect(
+    database_url: str, relation_type: str
+) -> None:
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    x = replace(memory(), id="x", object="water", source_turn_ids=("turn-x",))
+    a = replace(memory(), id="a", valid_from=RECORDED)
+    for candidate in (x, a):
+        source = candidate.source_turn_ids[0]
+        evidence.add_turn(turn(source, actor="user-a"))
+        gateway.output = (candidate,)
+        worker.process("char-b", source)
+    evidence.add_turn(turn("turn-b", actor="user-a"))
+    gateway.output = ExtractionProposal(
+        memories=(replace(a, id="b", source_turn_ids=("turn-b",)),),
+        relations=(MemoryRelation(from_id="b", to_id="x", type=relation_type),),
+    )
+    worker.process("char-b", "turn-b")
+    before = store.get_memory("char-b", "x")
+    assert before is not None
+    assert before.valid_to == (RECORDED if relation_type == "updates" else None)
+    assert before.superseded_at == (RECORDED if relation_type == "contradicts" else None)
+
+    class WithdrawFact(RecordingRecalculationGateway):
+        def recalculate_local(
+            self, value: LocalOnly, *, memory_id: str, kind: str
+        ) -> DerivedMemory | None:
+            super().recalculate_local(value, memory_id=memory_id, kind=kind)
+            return x if memory_id == "x" else None
+
+    with TestClient(
+        create_app(
+            clock=lambda: RECORDED,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            recalculation_gateway=WithdrawFact(None),
+        )
+    ) as client:
+        assert publish_and_search(database_url) == {"a"}
+        response = client.post(
+            "/deletion-requests",
+            headers=HEADERS,
+            json={"request_id": "withdraw-acting-fact", "target_turn_ids": ["turn-1"]},
+        )
+        assert response.status_code == 200, response.json()
+        assert response.json()["status"] == "done"
+        assert store.get_memory("char-b", "a") is None
+        assert store.get_memory("char-b", "x") == x
+        with store.list_relations("char-b", "x") as relations:
+            assert tuple(relations) == ()
+        assert_consistent(worker.service, database_url, {"x"})
+        assert {v["id"] for v in client.get("/characters/char-b/memories").json()} == {"x"}
 
 
 class Recalculate(RecordingRecalculationGateway):

@@ -277,7 +277,9 @@ class PostgresDeletionStore:
                 (owner, identifier, list(targets), list(targets)),
             ).fetchall()
             tx = _MemoryTransaction(connection, owner)
-            history = tx.history(frozenset(r["proposed_target"] for r in owned))
+            history = tx.history(
+                frozenset(i for r in owned for i in (r["memory_id"], r["proposed_target"]))
+            )
             current = tx.candidates_for_turns(frozenset(c.turn_id for c in history))
             resolved = resolve_relations(
                 tuple(
@@ -468,6 +470,13 @@ class PostgresDeletionStore:
             }
             affected: dict[str, frozenset[str]] = {}
             for owner in {owner for owner, _ in projected}:
+                withdrawn_facts = {
+                    r.copy.memory.id
+                    for r in replacements
+                    if r.copy.table == "derived_memories"
+                    and r.copy.memory.character_id == owner
+                    and r.value is None
+                }
                 withdrawn_origins = {
                     origin
                     for copy in snapshot.copies
@@ -480,6 +489,7 @@ class PostgresDeletionStore:
                     if e.relation.type != "derives"
                     and (
                         e.turn_id in withdrawn_origins
+                        or e.relation.from_id in withdrawn_facts
                         or set(e.candidate.source_turn_ids).intersection(
                             attempt.request.target_turn_ids
                         )
@@ -847,6 +857,9 @@ class PostgresDeletionStore:
         collect_embeddings(
             connection, [r["content_digest"] for r in rows if r["content_digest"] is not None]
         )
+        affected = affected | {
+            (row["owner_id"], row["identifier"]) for row in rows if row["kind"] == "memory"
+        }
         for character, identifier in affected:
             connection.execute(
                 "INSERT INTO recall_documents(owner_id,kind,identifier) "

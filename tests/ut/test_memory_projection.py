@@ -26,6 +26,42 @@ from tests.memory_support import memory
 pytestmark = pytest.mark.ut
 
 
+def test_equivalent_id_change_moves_sources_without_leaving_them_on_retired_projection() -> None:
+    h = Harness(reports_delivery=False)
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    worker = MemoryWorker(service, h.extractor)
+    original = replace(memory(), id="a")
+    h.evidence.add_turn(turn("turn-1", actor="user-a"))
+    h.gateway.output = (original,)
+    worker.process("char-b", "turn-1")
+    h.evidence.add_turn(replace(turn("turn-b", actor="user-a"), occurred_at=RECORDED))
+    h.gateway.output = (replace(original, id="b", source_turn_ids=("turn-b",)),)
+    worker.process("char-b", "turn-b")
+    reinforced = store.get_memory("char-b", "a")
+    assert reinforced is not None and set(reinforced.source_turn_ids) == {"turn-1", "turn-b"}
+    service.requeue("turn-1")
+    current = replace(original, id="z")
+    h.gateway.output = (current,)
+    worker.process("char-b", "turn-1")
+    retired = store.get_memory("char-b", "a")
+    assert retired is not None
+    assert retired.source_turn_ids == original.source_turn_ids
+    assert retired.last_reinforced_at is None
+    assert retired.superseded_at == RECORDED
+    with store.transaction("char-b") as tx:
+        contributions = tx.source_contributions()
+        assert len(contributions) == 1
+        assert (
+            contributions[0].fact_id,
+            contributions[0].extraction_turn_id,
+            contributions[0].source_turn_id,
+            contributions[0].occurred_at,
+        ) == ("z", "turn-b", "turn-b", RECORDED)
+    service.requeue("turn-b")
+    assert store.get_memory("char-b", "z") == current
+
+
 def test_recalculated_baseline_owns_value_when_original_candidate_has_the_same_id() -> None:
     h = Harness(reports_delivery=False)
     store = FakeMemoryStore(h.evidence)

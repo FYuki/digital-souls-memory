@@ -28,6 +28,130 @@ from tests.postgres.test_memory_continuous_ingestion import LockMeasurements, pu
 pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
 
 
+@pytest.mark.parametrize("relation_type", ["updates", "contradicts", "derives"])
+@pytest.mark.parametrize("withdrawal", ["requeue", "deletion"])
+def test_equivalent_origin_id_change_preserves_foreign_contribution_and_effect(
+    database_url: str, relation_type: str, withdrawal: str
+) -> None:
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    x = replace(memory(), id="x", object="water", source_turn_ids=("turn-x",))
+    a = replace(memory(), id="a", content="Aという文字を含むcoffee", valid_from=RECORDED)
+    for candidate in (x, a):
+        source = candidate.source_turn_ids[0]
+        evidence.add_turn(turn(source, actor="user-a"))
+        gateway.output = (candidate,)
+        worker.process("char-b", source)
+    evidence.add_turn(replace(turn("turn-b", actor="user-a"), occurred_at=RECORDED))
+    gateway.output = ExtractionProposal(
+        memories=(replace(a, id="b", source_turn_ids=("turn-b",)),),
+        relations=(MemoryRelation(from_id="b", to_id="x", type=relation_type),),
+    )
+    worker.process("char-b", "turn-b")
+    before = store.get_memory("char-b", "x")
+    assert before is not None
+    assert before.valid_to == (RECORDED if relation_type == "updates" else None)
+    assert before.superseded_at == (RECORDED if relation_type == "contradicts" else None)
+    expected_before = {"a", "x"} if relation_type == "derives" else {"a"}
+    z = replace(a, id="z")
+
+    class SurvivingBodies(RecordingRecalculationGateway):
+        def recalculate_local(
+            self, value: LocalOnly, *, memory_id: str, kind: str
+        ) -> DerivedMemory:
+            super().recalculate_local(value, memory_id=memory_id, kind=kind)
+            return {"x": x, "z": z}[memory_id]
+
+    with TestClient(
+        create_app(
+            clock=lambda: RECORDED,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            recalculation_gateway=SurvivingBodies(None),
+        )
+    ) as client:
+        assert publish_and_search(database_url) == expected_before
+        assert client.post("/turns/turn-1/extractions").status_code == 202
+        gateway.output = (z,)
+        worker.process("char-b", "turn-1")
+        for origin in ("turn-x", "turn-1", "turn-b"):
+            state = store.get_extraction("char-b", origin)
+            assert state is not None and state.status == "done"
+        saved = store.get_memory("char-b", "z")
+        assert saved is not None
+        assert set(saved.source_turn_ids) == {"turn-1", "turn-b"}
+        assert saved.last_reinforced_at == RECORDED
+        assert saved.content == a.content
+        assert store.get_memory("char-b", "x") == before
+        with psycopg.connect(database_url) as conn:
+            assert conn.execute(
+                "SELECT fact_id,extraction_turn_id,source_turn_id,occurred_at "
+                "FROM memory_source_contributions"
+            ).fetchall() == [("z", "turn-b", "turn-b", RECORDED)]
+            assert conn.execute(
+                "SELECT turn_id,from_id,to_id,type,effect->>'id' "
+                "FROM memory_candidate_relations WHERE effect IS NOT NULL"
+            ).fetchall() == [("turn-b", "z", "x", relation_type, "z")]
+        with store.list_relations("char-b", "z") as relations:
+            assert tuple(relations) == (MemoryRelation(from_id="z", to_id="x", type=relation_type),)
+        expected = {"z", "x"} if relation_type == "derives" else {"z"}
+        assert_consistent(worker.service, database_url, expected)
+        assert {v["id"] for v in client.get("/characters/char-b/memories").json()} == expected
+        if withdrawal == "requeue":
+            assert client.post("/turns/turn-b/extractions").status_code == 202
+        else:
+            response = client.post(
+                "/deletion-requests",
+                headers=HEADERS,
+                json={"request_id": "delete-moved-contribution", "target_turn_ids": ["turn-b"]},
+            )
+            assert response.status_code == 200, response.json()
+            assert response.json()["status"] == "done"
+        assert store.get_memory("char-b", "z") == z
+        assert store.get_memory("char-b", "x") == x
+        with store.list_relations("char-b", "z") as relations:
+            assert tuple(relations) == ()
+        assert_consistent(worker.service, database_url, {"z", "x"})
+
+
+def test_origin_id_change_does_not_transfer_to_same_spo_from_another_turn(
+    database_url: str,
+) -> None:
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    x = replace(memory(), id="x", object="water", source_turn_ids=("turn-x",))
+    a = replace(memory(), id="a", valid_from=RECORDED)
+    for candidate in (x, a):
+        source = candidate.source_turn_ids[0]
+        evidence.add_turn(turn(source, actor="user-a"))
+        gateway.output = (candidate,)
+        worker.process("char-b", source)
+    evidence.add_turn(turn("turn-b", actor="user-a"))
+    gateway.output = ExtractionProposal(
+        memories=(replace(a, id="b", source_turn_ids=("turn-b",)),),
+        relations=(MemoryRelation(from_id="b", to_id="x", type="updates"),),
+    )
+    worker.process("char-b", "turn-b")
+    worker.service.requeue("turn-1")
+    evidence.add_turn(turn("turn-z", actor="user-a"))
+    z = replace(a, id="z", source_turn_ids=("turn-z",))
+    gateway.output = (z,)
+    worker.process("char-b", "turn-z")
+    gateway.output = ()
+    worker.process("char-b", "turn-1")
+    state = store.get_extraction("char-b", "turn-1")
+    assert state is not None and state.status == "done"
+    assert store.get_memory("char-b", "z") == z
+    with psycopg.connect(database_url) as conn:
+        assert conn.execute(
+            "SELECT fact_id,extraction_turn_id,source_turn_id FROM memory_source_contributions"
+        ).fetchall() == [("a", "turn-b", "turn-b")]
+        assert conn.execute(
+            "SELECT from_id,to_id FROM memory_candidate_relations WHERE effect IS NOT NULL"
+        ).fetchall() == [("a", "x")]
+
+
 def test_contribution_attributes_survive_reconnect_and_duplicate_is_rejected(
     database_url: str,
 ) -> None:

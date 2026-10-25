@@ -1,6 +1,26 @@
 """Replace absorbed Fact identities with reversible source contributions."""
 
+from datetime import datetime
+from typing import cast
+
+import psycopg
 from alembic import op
+from psycopg.rows import DictRow, dict_row
+
+from digital_souls_memory.adapters.embedding_cleanup import collect_embeddings
+from digital_souls_memory.adapters.postgres_memory import _MemoryTransaction
+from digital_souls_memory.adapters.recall_records import read_materials
+from digital_souls_memory.evidence.domain import can_perceive
+from digital_souls_memory.evidence.materials import material_decision
+from digital_souls_memory.memory.domain import MemoryValidationError
+from digital_souls_memory.memory.inputs import ResolvedInput, ResolvedTurn
+from digital_souls_memory.memory.projection import (
+    ProjectionEvidence,
+    extraction_origins,
+    projection_input,
+    save_projection,
+    source_ids,
+)
 
 revision: str = "0014"
 down_revision: str | None = "0013"
@@ -29,24 +49,40 @@ def upgrade() -> None:
             PRIMARY KEY(character_id,memory_id,turn_id)
         );
         ALTER TABLE memory_candidate_relations ADD COLUMN effect JSONB;
-        CREATE TEMP TABLE absorbed ON COMMIT DROP AS
-        WITH RECURSIVE links AS (
+        CREATE TEMP TABLE absorption_links ON COMMIT DROP AS
             SELECT character_id,absorbed_id,representative_id FROM memory_representatives
             UNION SELECT r.character_id,r.from_id,r.to_id FROM memory_relations r
             JOIN derived_memories a ON (a.character_id,a.id)=(r.character_id,r.from_id)
             JOIN derived_memories b ON (b.character_id,b.id)=(r.character_id,r.to_id)
             WHERE r.type='extends' AND a.kind='fact' AND b.kind='fact'
             AND (a.subject,a.predicate,a.object)=(b.subject,b.predicate,b.object)
-        ), paths AS (
-            SELECT character_id,absorbed_id,representative_id,ARRAY[absorbed_id] AS seen FROM links
+        ;
+        CREATE TEMP TABLE absorbed ON COMMIT DROP AS
+        WITH RECURSIVE paths AS (
+            SELECT character_id,absorbed_id,representative_id,ARRAY[absorbed_id] AS seen
+            FROM absorption_links
             UNION ALL
             SELECT p.character_id,p.absorbed_id,l.representative_id,p.seen||l.absorbed_id
-            FROM paths p JOIN links l ON (l.character_id,l.absorbed_id)=
+            FROM paths p JOIN absorption_links l ON (l.character_id,l.absorbed_id)=
                 (p.character_id,p.representative_id) WHERE NOT l.absorbed_id=ANY(p.seen)
         )
         SELECT DISTINCT p.character_id,p.absorbed_id,p.representative_id FROM paths p
-        WHERE NOT EXISTS(SELECT 1 FROM links l WHERE (l.character_id,l.absorbed_id)=
+        WHERE NOT EXISTS(SELECT 1 FROM absorption_links l WHERE (l.character_id,l.absorbed_id)=
             (p.character_id,p.representative_id));
+        DO $$ BEGIN
+            IF EXISTS(
+                SELECT 1 FROM absorption_links l LEFT JOIN absorbed a
+                USING(character_id,absorbed_id)
+                GROUP BY l.character_id,l.absorbed_id
+                HAVING count(DISTINCT a.representative_id)<>1
+            ) OR EXISTS(
+                SELECT 1 FROM absorbed a LEFT JOIN derived_memories m
+                ON (m.character_id,m.id)=(a.character_id,a.representative_id)
+                WHERE m.id IS NULL OR m.kind<>'fact'
+            ) THEN
+                RAISE EXCEPTION 'Cannot migrate: absorption terminal is not uniquely recoverable';
+            END IF;
+        END; $$;
         INSERT INTO memory_source_contributions
         SELECT DISTINCT a.character_id,a.representative_id,COALESCE(g.turn_id,s.turn_id),
             s.turn_id,t.occurred_at FROM absorbed a
@@ -66,10 +102,12 @@ def upgrade() -> None:
         INSERT INTO memory_fact_sources
         SELECT s.character_id,s.memory_id,s.turn_id,min(s.position)
         FROM (SELECT g.* FROM memory_generated_sources g
+                WHERE NOT EXISTS(SELECT 1 FROM memory_baselines b
+                    WHERE (b.character_id,b.memory_id)=(g.character_id,g.memory_id))
               UNION ALL SELECT b.* FROM memory_baseline_sources b
-                WHERE NOT EXISTS(SELECT 1 FROM memory_generated g
-                    WHERE (g.character_id,g.memory_id)=(b.character_id,b.memory_id))
-                AND NOT EXISTS(SELECT 1 FROM memory_source_contributions c
+                WHERE EXISTS(SELECT 1 FROM memory_baseline_dependencies d
+                    WHERE (d.character_id,d.memory_id)=(b.character_id,b.memory_id))
+                OR NOT EXISTS(SELECT 1 FROM memory_source_contributions c
                     WHERE (c.character_id,c.fact_id,c.source_turn_id)=
                         (b.character_id,b.memory_id,b.turn_id))) s
         WHERE NOT EXISTS(SELECT 1 FROM absorbed a WHERE
@@ -80,7 +118,14 @@ def upgrade() -> None:
                 (SELECT g.payload->'last_reinforced_at' FROM memory_generated g
                  WHERE (g.character_id,g.memory_id)=(b.character_id,b.memory_id)))
         WHERE EXISTS(SELECT 1 FROM memory_source_contributions c
-            WHERE (c.character_id,c.fact_id)=(b.character_id,b.memory_id));
+            WHERE (c.character_id,c.fact_id)=(b.character_id,b.memory_id))
+        AND NOT EXISTS(SELECT 1 FROM memory_baseline_dependencies d
+            WHERE (d.character_id,d.memory_id)=(b.character_id,b.memory_id));
+        UPDATE memory_baselines b SET temporal_origin=
+            b.temporal_origin || jsonb_build_object(
+                'last_reinforced_at',b.payload->'last_reinforced_at')
+        WHERE EXISTS(SELECT 1 FROM memory_baseline_dependencies d
+            WHERE (d.character_id,d.memory_id)=(b.character_id,b.memory_id));
         ALTER TABLE memory_candidate_relations
             DROP CONSTRAINT memory_candidate_relations_character_id_turn_id_fkey;
         ALTER TABLE memory_candidate_relations ADD CONSTRAINT memory_relation_origin
@@ -173,6 +218,117 @@ def upgrade() -> None:
         CREATE TRIGGER recall_contribution_receipt AFTER INSERT ON delivery_receipts
             FOR EACH ROW EXECUTE FUNCTION withdraw_recall_contribution();
     """)
+    connection = cast(psycopg.Connection[DictRow], op.get_bind().connection.driver_connection)
+    previous_factory = connection.row_factory
+    connection.row_factory = dict_row
+    try:
+        now = connection.execute("SELECT CURRENT_TIMESTAMP AS now").fetchone()
+        assert now is not None
+        for row in connection.execute("SELECT DISTINCT character_id FROM absorbed").fetchall():
+            _reproject(connection, row["character_id"], now["now"])
+    finally:
+        connection.row_factory = previous_factory
+
+
+def _reproject(connection: psycopg.Connection[DictRow], character_id: str, now: datetime) -> None:
+    tx = _MemoryTransaction(connection, character_id)
+    snapshot = projection_input(tx)
+    dependencies = connection.execute(
+        "SELECT * FROM memory_input_dependencies WHERE character_id=%s",
+        (character_id,),
+    ).fetchall()
+    baseline_dependencies = connection.execute(
+        "SELECT * FROM memory_baseline_dependencies WHERE character_id=%s",
+        (character_id,),
+    ).fetchall()
+    materials = read_materials(
+        connection,
+        tuple(source_ids(snapshot) | {d["turn_id"] for d in dependencies}),
+    )
+    texts: dict[str, str | None] = {}
+    for identifier, material in materials.items():
+        if not can_perceive(character_id, material.session, material.turn):
+            texts[identifier] = None
+            continue
+        stamps = [d for d in (*dependencies, *baseline_dependencies) if d["turn_id"] == identifier]
+        if stamps:
+            decisions = [
+                material_decision(
+                    character_id=character_id,
+                    session=material.session,
+                    turn=material.turn,
+                    actor_is_character=material.actor_is_character,
+                    receipts=material.receipt_state,
+                    now=now,
+                    delivery_timeout=d["deadline"] - material.turn.recorded_at,
+                )
+                for d in stamps
+            ]
+            available = [d.text for d in decisions if d.text is not None]
+            texts[identifier] = min(available, key=len) if available else None
+        elif (
+            not material.session.reports_delivery
+            or not material.actor_is_character
+            or material.turn.actor == character_id
+            or material.turn.kind != "utterance"
+        ):
+            texts[identifier] = material.turn.text
+        elif material.receipt_state.spoken_until is not None:
+            texts[identifier] = material.turn.text[: material.receipt_state.spoken_until]
+        else:
+            raise MemoryValidationError("Cannot migrate: missing persisted delivery deadline")
+    inputs: dict[str, ResolvedInput] = {}
+    for origin in extraction_origins(snapshot):
+        state = snapshot.states[origin]
+        if state is None or state.status != "done":
+            inputs[origin] = ResolvedInput(())
+            continue
+        primary = materials.get(origin)
+        if primary is None:
+            raise MemoryValidationError("Cannot migrate: missing extraction input")
+        resolved = []
+        for input_id in (origin, primary.turn.reply_to_turn_id):
+            if input_id is None:
+                continue
+            input_material = materials.get(input_id)
+            stamp = next(
+                (
+                    d
+                    for d in dependencies
+                    if d["extraction_turn_id"] == origin and d["turn_id"] == input_id
+                ),
+                None,
+            )
+            if input_material is None or stamp is None:
+                raise MemoryValidationError("Cannot migrate: missing persisted extraction input")
+            decision = material_decision(
+                character_id=character_id,
+                session=input_material.session,
+                turn=input_material.turn,
+                actor_is_character=input_material.actor_is_character,
+                receipts=input_material.receipt_state,
+                now=now,
+                delivery_timeout=stamp["deadline"] - input_material.turn.recorded_at,
+            )
+            resolved.append(ResolvedTurn(input_material.turn, decision, True))
+        inputs[origin] = ResolvedInput(tuple(resolved))
+        if inputs[origin].signature(snapshot.versions[origin]) != state.signature:
+            raise MemoryValidationError("Cannot migrate: extraction input cannot be restored")
+    evidence = ProjectionEvidence(
+        {identifier: m.turn for identifier, m in materials.items()}, texts, inputs
+    )
+    save_projection(tx, snapshot, evidence.project(snapshot, now))
+    documents = connection.execute(
+        "DELETE FROM recall_documents WHERE owner_id=%s AND kind='memory' RETURNING content_digest",
+        (character_id,),
+    ).fetchall()
+    collect_embeddings(connection, [r["content_digest"] for r in documents if r["content_digest"]])
+    connection.execute(
+        "INSERT INTO recall_documents(owner_id,kind,identifier) "
+        "SELECT character_id,'memory',id FROM derived_memories WHERE character_id=%s "
+        "ON CONFLICT DO NOTHING",
+        (character_id,),
+    )
 
 
 def downgrade() -> None:

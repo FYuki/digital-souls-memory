@@ -1,0 +1,317 @@
+"""Frozen projection logic from e0c82e0, used only to generate 0013 migration inputs.
+
+The legacy projection deliberately retains absorbed candidates and can leave a
+multi-hop representative and its referrer inconsistent. Do not replace it with
+the current projector: that would stop reproducing the migration source state.
+"""
+
+from dataclasses import dataclass, replace
+from datetime import datetime
+
+from digital_souls_memory.evidence.domain import Turn
+from digital_souls_memory.memory.changes import apply_temporal_effect, supersede, update_fact
+from digital_souls_memory.memory.domain import (
+    DerivedMemory,
+    ExtractionState,
+    InputDependency,
+    MemoryRelation,
+    MemoryValidationError,
+)
+from digital_souls_memory.memory.evidence import independent_evidence_count
+from digital_souls_memory.memory.inputs import ResolvedInput
+from digital_souls_memory.memory.ports import MemoryContribution
+
+
+def normalize_relations(
+    relations: tuple[MemoryRelation, ...], representatives: dict[str, str]
+) -> tuple[MemoryRelation, ...]:
+    def resolve(identifier: str) -> str:
+        seen: set[str] = set()
+        while identifier in representatives:
+            if identifier in seen:
+                raise MemoryValidationError("Cyclic representative mapping")
+            seen.add(identifier)
+            identifier = representatives[identifier]
+        return identifier
+
+    return tuple(replace(r, to_id=resolve(r.to_id)) for r in relations)
+
+
+def _dependency_order(
+    candidates: tuple[DerivedMemory, ...], proposed: tuple[MemoryRelation, ...]
+) -> tuple[DerivedMemory, ...]:
+    by_id = {v.id: v for v in candidates}
+    dependencies = {
+        v.id: [r.to_id for r in proposed if r.from_id == v.id and r.to_id in by_id]
+        for v in candidates
+    }
+    ordered: list[DerivedMemory] = []
+    done: set[str] = set()
+    visiting: set[str] = set()
+    for candidate in candidates:
+        stack = [(candidate.id, False)]
+        while stack:
+            identifier, expanded = stack.pop()
+            if identifier in done:
+                continue
+            if expanded:
+                visiting.remove(identifier)
+                done.add(identifier)
+                ordered.append(by_id[identifier])
+                continue
+            if identifier in visiting:
+                raise MemoryValidationError("Cyclic memory dependency")
+            visiting.add(identifier)
+            stack.append((identifier, True))
+            stack.extend((target, False) for target in reversed(dependencies[identifier]))
+    return tuple(ordered)
+
+
+@dataclass(frozen=True)
+class ProjectionResult:
+    memories: dict[str, DerivedMemory]
+    relations: tuple[MemoryRelation, ...]
+    representatives: dict[str, str]
+
+
+@dataclass(frozen=True)
+class ProjectionInput:
+    existing: tuple[DerivedMemory, ...]
+    baselines: tuple[DerivedMemory, ...]
+    contributions: tuple[MemoryContribution, ...]
+    states: dict[str, ExtractionState | None]
+    versions: dict[str, int]
+    proposed: tuple[MemoryRelation, ...]
+    generated: frozenset[str]
+    references: tuple[DerivedMemory, ...]
+    withdrawn_references: frozenset[str]
+    applied: tuple[MemoryRelation, ...]
+    baseline_dependencies: dict[str, tuple[InputDependency, ...]]
+    representatives: dict[str, str]
+    temporal_origins: dict[str, dict[str, datetime | None]]
+
+
+@dataclass(frozen=True)
+class ProjectionEvidence:
+    turns: dict[str, Turn]
+    texts: dict[str, str | None]
+    inputs: dict[str, ResolvedInput]
+
+    def _source_turns(self, identifiers: tuple[str, ...]) -> tuple[Turn, ...]:
+        turns = tuple(self.turns.get(identifier) for identifier in identifiers)
+        if any(v is None for v in turns):
+            raise MemoryValidationError("Missing original")
+        return tuple(v for v in turns if v is not None)
+
+    def _recount(self, value: DerivedMemory) -> DerivedMemory:
+        return replace(
+            value,
+            epistemics=replace(
+                value.epistemics,
+                independent_evidence_count=independent_evidence_count(
+                    self._source_turns(value.source_turn_ids)
+                ),
+            ),
+        )
+
+    def project(
+        self, snapshot: ProjectionInput, now: datetime, *, select_representatives: bool = False
+    ) -> ProjectionResult:
+        existing = {v.id: v for v in snapshot.existing}
+        generated = snapshot.generated
+        current_ids: set[str] = set()
+        for contribution in snapshot.contributions:
+            state = snapshot.states[contribution.turn_id]
+            resolved = self.inputs[contribution.turn_id]
+            if (
+                state is not None
+                and state.status == "done"
+                and state.signature == resolved.signature(snapshot.versions[contribution.turn_id])
+            ):
+                current_ids.add(contribution.memory.id)
+        reevaluated_targets = {
+            r.to_id
+            for r in snapshot.proposed
+            if r.from_id in current_ids and r.type in ("extends", "updates", "contradicts")
+        }
+        invalid_baselines = {
+            identifier
+            for identifier, dependencies in snapshot.baseline_dependencies.items()
+            if any(
+                (text := self.texts.get(dependency.turn_id)) is None
+                or dependency.used_end > len(text)
+                for dependency in dependencies
+            )
+        }
+        result = {
+            v.id: self._recount(
+                replace(
+                    v,
+                    valid_to=snapshot.temporal_origins[v.id]["valid_to"],
+                    superseded_at=snapshot.temporal_origins[v.id]["superseded_at"],
+                    last_reinforced_at=snapshot.temporal_origins[v.id]["last_reinforced_at"],
+                )
+                if v.id in reevaluated_targets
+                else v
+            )
+            for v in snapshot.baselines
+            if v.id not in invalid_baselines and all(self.texts.get(i) for i in v.source_turn_ids)
+        }
+        surviving_baselines = set(result)
+        synchronized_representatives = {
+            identifier: target
+            for identifier, target in snapshot.representatives.items()
+            if identifier in surviving_baselines and identifier in generated
+        }
+        result.update(
+            (v.id, v)
+            for v in snapshot.references
+            if v.id not in snapshot.withdrawn_references
+            and v.id not in invalid_baselines
+            and all(self.texts.get(i) for i in v.source_turn_ids)
+        )
+        candidates = tuple(
+            v.memory
+            for v in sorted(
+                (c for c in snapshot.contributions if c.turn_id in self.turns),
+                key=lambda c: (
+                    c.memory.valid_from,
+                    self.turns[c.turn_id].occurred_at,
+                    self.turns[c.turn_id].recorded_at,
+                    c.turn_id,
+                ),
+            )
+        )
+        proposed = snapshot.proposed
+        known = (
+            set(result)
+            | {v.memory.id for v in snapshot.contributions}
+            | generated
+            | {v.id for v in snapshot.baselines}
+            | {v.id for v in snapshot.references}
+        )
+        if any(r.to_id not in known for r in proposed):
+            raise MemoryValidationError("Relation target is absent or outside active evidence")
+        relations: list[MemoryRelation] = []
+        representatives = dict(snapshot.representatives)
+        baseline_ids = {v.id for v in snapshot.baselines}
+        for candidate in _dependency_order(candidates, proposed):
+            if candidate.id in baseline_ids:
+                # Recalculation owns the value; its surviving relations still carry effects.
+                if candidate.id not in result:
+                    continue
+                candidate = result[candidate.id]
+            if candidate.id not in current_ids:
+                continue
+            if any(not self.texts.get(i) for i in candidate.source_turn_ids):
+                continue
+            candidate = self._recount(candidate)
+            explicit = normalize_relations(
+                tuple(r for r in proposed if r.from_id == candidate.id), representatives
+            )
+            applied = normalize_relations(snapshot.applied, representatives)
+            if any(
+                r.to_id not in result
+                or (
+                    result[r.to_id].superseded_at is not None
+                    and not (r.type == "contradicts" and r in applied)
+                )
+                for r in explicit
+            ):
+                continue
+            changes = [r for r in explicit if r.type in ("updates", "extends")]
+            if len(changes) > 1:
+                raise MemoryValidationError("Ambiguous state change")
+            targeted = next(iter(changes), None)
+            if targeted is not None:
+                old = result[targeted.to_id]
+                if old.superseded_at is not None or (
+                    old.valid_to is not None
+                    and not (
+                        targeted.type == "updates"
+                        and targeted in applied
+                        and old.valid_to == candidate.valid_from
+                    )
+                ):
+                    raise MemoryValidationError("Cannot change inactive memory")
+            else:
+                old = None
+            if not explicit:
+                if candidate.id in baseline_ids:
+                    continue
+                representative = representatives.get(candidate.id)
+                old = None if representative is None else result.get(representative)
+                if old is None and select_representatives:
+                    old = next(
+                        (
+                            v
+                            for v in reversed(tuple(result.values()))
+                            if v.id != candidate.id
+                            and v.superseded_at is None
+                            and v.valid_to is None
+                            and v.kind == candidate.kind == "fact"
+                            and (v.subject, v.predicate, v.object)
+                            == (candidate.subject, candidate.predicate, candidate.object)
+                        ),
+                        None,
+                    )
+            if old is not None and (targeted is None or targeted.type == "extends"):
+                value = apply_temporal_effect(
+                    old,
+                    candidate,
+                    relation_type="extends",
+                    source_turns=self._source_turns(
+                        tuple(dict.fromkeys((*old.source_turn_ids, *candidate.source_turn_ids)))
+                    ),
+                    at=now,
+                )
+                result[old.id] = value
+                # Keep the candidate as history, without publishing a duplicate fact.
+                result[candidate.id] = supersede(candidate, at=now)
+                if old.kind == candidate.kind == "fact" and (
+                    old.subject,
+                    old.predicate,
+                    old.object,
+                ) == (candidate.subject, candidate.predicate, candidate.object):
+                    representatives[candidate.id] = old.id
+                    if candidate.id in generated:
+                        synchronized_representatives[candidate.id] = old.id
+                relations.append(MemoryRelation(from_id=candidate.id, to_id=old.id, type="extends"))
+            elif old is not None:
+                if targeted in applied:
+                    closed = apply_temporal_effect(
+                        old, candidate, relation_type="updates", source_turns=(), at=now
+                    )
+                    added = candidate
+                else:
+                    closed, added = update_fact(old, candidate)
+                result[old.id] = closed
+                result[added.id] = added
+                relations.append(MemoryRelation(from_id=added.id, to_id=old.id, type="updates"))
+            else:
+                result[candidate.id] = candidate
+            for relation in explicit:
+                if relation.type in ("derives", "contradicts"):
+                    relations.append(relation)
+                if relation.type == "contradicts":
+                    result[relation.to_id] = apply_temporal_effect(
+                        result[relation.to_id],
+                        candidate,
+                        relation_type="contradicts",
+                        source_turns=(),
+                        at=now,
+                    )
+        for identifier, value in existing.items():
+            if (
+                identifier in generated or identifier in invalid_baselines
+            ) and identifier not in result:
+                result[identifier] = supersede(value, at=now)
+        for identifier, value in tuple(result.items()):
+            previous = existing.get(identifier)
+            if previous is not None and previous.superseded_at is not None and value.superseded_at:
+                result[identifier] = replace(
+                    value, superseded_at=min(previous.superseded_at, value.superseded_at)
+                )
+        for reference in snapshot.references:
+            result.pop(reference.id, None)
+        return ProjectionResult(result, tuple(relations), synchronized_representatives)

@@ -6,11 +6,10 @@ from digital_souls_memory.memory.domain import DerivedMemory, MemoryRelation, Me
 from digital_souls_memory.memory.ports import MemoryContribution
 
 
-def resolve_relations(
-    proposed: tuple[MemoryRelation, ...],
+def equivalent_ids(
     history: tuple[MemoryContribution, ...],
     current: tuple[MemoryContribution, ...],
-) -> tuple[MemoryRelation, ...]:
+) -> dict[str, str]:
     current_ids = {v.memory.id for v in current}
     replacements: dict[str, str] = {}
     for previous in history:
@@ -34,7 +33,23 @@ def resolve_relations(
         ]
         if len(matches) == 1:
             replacements[previous.memory.id] = matches[0]
-    return tuple(replace(r, to_id=replacements.get(r.to_id, r.to_id)) for r in proposed)
+    return replacements
+
+
+def resolve_relations(
+    proposed: tuple[MemoryRelation, ...],
+    history: tuple[MemoryContribution, ...],
+    current: tuple[MemoryContribution, ...],
+) -> tuple[MemoryRelation, ...]:
+    replacements = equivalent_ids(history, current)
+    return tuple(
+        replace(
+            r,
+            from_id=replacements.get(r.from_id, r.from_id),
+            to_id=replacements.get(r.to_id, r.to_id),
+        )
+        for r in proposed
+    )
 
 
 def dependency_order(
