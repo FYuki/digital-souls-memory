@@ -9,6 +9,7 @@ from threading import Event, Thread
 from uuid import uuid4
 
 from digital_souls_memory.evidence.ports import EvidenceUnavailable
+from digital_souls_memory.memory.acceptance import accept
 from digital_souls_memory.memory.domain import DeliveryBasis, ExtractionState, MemoryValidationError
 from digital_souls_memory.memory.extraction import MemoryExtractor
 from digital_souls_memory.memory.ports import MemoryConflict, MemoryUnavailable, WorkCursor
@@ -106,6 +107,8 @@ class MemoryWorker:
             )
             affected = self.service.affected(tx, turn_id)
             tx.save_extraction(state)
+            tx.set_source_contributions(turn_id, ())
+            tx.set_relation_effects(turn_id, ())
             # Withdrawing the previous contribution precedes the fallible model call.
             self.service.rebuild(tx, affected)
         if not decision.text:
@@ -121,8 +124,11 @@ class MemoryWorker:
                     tx.save_extraction(replace(saved, status="retry", lease_until=now))
                     return
                 affected = self.service.affected(tx, turn_id)
-                tx.set_candidates(turn_id, proposal.memories, dependencies=resolved.dependencies())
-                tx.set_relations(turn_id, proposal.relations)
+                accepted = accept(tx, proposal, resolved, self.service.clock())
+                tx.set_candidates(turn_id, accepted.memories, dependencies=resolved.dependencies())
+                tx.set_source_contributions(turn_id, accepted.sources)
+                tx.set_relations(turn_id, accepted.relations)
+                tx.set_relation_effects(turn_id, accepted.effects)
                 tx.save_extraction(replace(saved, status="done", token=None, lease_until=None))
                 affected |= self.service.affected(tx, turn_id)
                 self.service.rebuild(tx, affected)

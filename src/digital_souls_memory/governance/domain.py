@@ -4,7 +4,12 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from digital_souls_memory.evidence.domain import Turn
-from digital_souls_memory.memory.domain import DerivedMemory, MemoryValidationError, nonblank
+from digital_souls_memory.memory.domain import (
+    DerivedMemory,
+    MemoryValidationError,
+    SourceContribution,
+    nonblank,
+)
 from digital_souls_memory.recall.domain import CandidateMaterial, SourceStamp
 
 
@@ -73,6 +78,9 @@ class MemoryCopy:
     origin_turn_id: str | None = None
     temporal_base: DerivedMemory | None = None
     temporal_effects: tuple[TemporalEffect, ...] = ()
+    body_source_ids: tuple[str, ...] = ()
+    reinforcements: tuple[SourceContribution, ...] = ()
+    withdrawn_origins: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.table not in (

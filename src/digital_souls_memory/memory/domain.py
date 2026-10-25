@@ -242,6 +242,22 @@ class InputDependency:
     deadline: datetime
 
 
+@dataclass(frozen=True, kw_only=True)
+class SourceContribution:
+    character_id: str
+    fact_id: str
+    extraction_turn_id: str
+    source_turn_id: str
+    occurred_at: datetime
+
+
+@dataclass(frozen=True, kw_only=True)
+class RelationEffect:
+    turn_id: str
+    relation: MemoryRelation
+    candidate: DerivedMemory
+
+
 def memory_valid_at(value: DerivedMemory, now: datetime) -> bool:
     return (
         value.valid_from <= now

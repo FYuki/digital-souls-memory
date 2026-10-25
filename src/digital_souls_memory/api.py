@@ -457,7 +457,12 @@ def create_app(
                 raise MemoryUnavailable()
             from digital_souls_memory.adapters.postgres_deletion import PostgresDeletionStore
 
-            resolved_deletion = PostgresDeletionStore(url)
+            resolved_deletion = PostgresDeletionStore(
+                url,
+                delivery_timeout=delivery_timeout,
+                conversation_surfaces=conversation_surfaces,
+                comment_surfaces=comment_surfaces,
+            )
         return DeletionService(
             resolved_deletion,
             MemoryRecalculator(

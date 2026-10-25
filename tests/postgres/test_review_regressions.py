@@ -57,7 +57,12 @@ def test_deletion_commit_checks_current_time_at_lease_boundary(
     evidence = seed_evidence(database_url)
     original = turn()
     evidence.add_turn(original)
-    store = PostgresDeletionStore(os.environ["MEMORY_DELETION_DATABASE_URL"])
+    store = PostgresDeletionStore(
+        os.environ["MEMORY_DELETION_DATABASE_URL"],
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset({"synthetic-chat"}),
+        comment_surfaces=frozenset(),
+    )
     attempt = store.begin(
         DeletionCommand(request_id="lease-boundary", target_turn_ids=(original.turn_id,)),
         principal=AuthorPrincipal(author_id="synthetic-author"),
@@ -82,7 +87,12 @@ def test_deletion_commit_rejects_only_stale_token_on_current_snapshot(
     evidence = seed_evidence(database_url)
     original = turn()
     evidence.add_turn(original)
-    store = PostgresDeletionStore(os.environ["MEMORY_DELETION_DATABASE_URL"])
+    store = PostgresDeletionStore(
+        os.environ["MEMORY_DELETION_DATABASE_URL"],
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset({"synthetic-chat"}),
+        comment_surfaces=frozenset(),
+    )
     command = DeletionCommand(request_id="stale-token", target_turn_ids=(original.turn_id,))
     principal = AuthorPrincipal(author_id="synthetic-author")
     first = store.begin(command, principal=principal, now=RECORDED)
@@ -589,7 +599,13 @@ def test_deletion_reconstructs_temporal_effects_through_baseline_rebuild_and_htt
             return super().recalculate_cloud(value, memory_id=memory_id, kind=kind)
 
     gateway = Gateway(recalculated)
-    with TestClient(create_app(clock=clock, recalculation_gateway=gateway)) as client:
+    with TestClient(
+        create_app(
+            clock=clock,
+            recalculation_gateway=gateway,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+        )
+    ) as client:
         response = client.post(
             "/deletion-requests",
             headers=HEADERS,

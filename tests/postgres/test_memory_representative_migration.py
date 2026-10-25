@@ -107,6 +107,7 @@ def test_representative_revision_roundtrip_preserves_and_resolves_existing_histo
         command.upgrade(config, "0013")
     if not existing:
         return
+    command.upgrade(config, "head")
     store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
     worker = make_worker(database_url, store, gateway)
     for target in ("b", "c"):
@@ -116,7 +117,11 @@ def test_representative_revision_roundtrip_preserves_and_resolves_existing_histo
             memories=(
                 replace(memory(), id=identifier, object=identifier, source_turn_ids=(source,)),
             ),
-            relations=(MemoryRelation(from_id=identifier, to_id=target, type="derives"),),
+            relations=(
+                MemoryRelation(
+                    from_id=identifier, to_id="a" if target == "b" else target, type="derives"
+                ),
+            ),
         )
         worker.process("char-b", source)
         state = store.get_extraction("char-b", source)

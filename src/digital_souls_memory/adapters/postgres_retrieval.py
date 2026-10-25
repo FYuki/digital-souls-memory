@@ -140,8 +140,26 @@ class PostgresRetrievalStore:
                 "SELECT DISTINCT d.* FROM relevant v JOIN memory_candidates c ON c.memory_id=v.id "
                 "AND c.character_id=%s JOIN memory_input_dependencies d ON "
                 "d.character_id=c.character_id "
-                "AND d.extraction_turn_id=c.turn_id",
-                (memory.id, memory.character_id, memory.character_id),
+                "AND d.extraction_turn_id=c.turn_id UNION "
+                "SELECT DISTINCT d.* FROM memory_input_dependencies d "
+                "WHERE d.character_id=%s AND (EXISTS(SELECT 1 "
+                "FROM memory_source_contributions c WHERE c.character_id=d.character_id "
+                "AND c.extraction_turn_id=d.extraction_turn_id AND c.fact_id=%s) "
+                "OR EXISTS(SELECT 1 FROM memory_candidate_relations r "
+                "WHERE r.character_id=d.character_id AND r.turn_id=d.extraction_turn_id "
+                "AND r.effect IS NOT NULL AND (r.from_id=%s OR r.to_id=%s) "
+                "AND EXISTS(SELECT 1 FROM memory_relations applied "
+                "WHERE applied.character_id=r.character_id AND "
+                "(applied.from_id,applied.to_id,applied.type)=(r.from_id,r.to_id,r.type))))",
+                (
+                    memory.id,
+                    memory.character_id,
+                    memory.character_id,
+                    memory.character_id,
+                    memory.id,
+                    memory.id,
+                    memory.id,
+                ),
             ).fetchall()
             for item in inputs:
                 previous = saved.get(item["turn_id"])

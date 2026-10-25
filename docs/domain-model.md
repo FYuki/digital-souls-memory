@@ -239,11 +239,25 @@ ChangeBudget は、内省が性格をどれだけ・どの頻度で・どんな�
 
 検索スコアは、意味の近さ・語彙一致・新しさ・重要度・自己関連度・信頼度の加重和とし、係数の合計を1、新しさの係数を0.1以下にします。忘却は新しさの項の減衰としてだけ表現し、原文と派生記憶は消しません。VerbatimAnchor と Commitment は減衰・再強化の対象外です。新しさの起点は occurred\_at と last\_reinforced\_at の新しいほうで、再強化は同じ内容が新しい Turn で再び話題になったときだけ行います。想起で提供しただけでは更新しません（[ADR 0012](decisions/0012-retrieval-scoring-and-recency.md)）。
 
-再強化の判定は、窓口ごとの非同期の裏処理で、派生記憶の抽出（ゲート M5 経由）時に行います。新しい Turn から記憶を抽出するときに既存の DerivedMemory と照合し、同じ内容の言い直しか補強（MemoryRelation の extends、または同一の Fact の再表明）と判定したら、その DerivedMemory を再強化します。
+再強化の判定は派生記憶の抽出ゲートM5が受理時に一度だけ行います。
+キャラのロック下で保存射影から正確なSPOが一致する現在有効なFactを検索し、
+再表明をそのFactへの出典寄与として同じトランザクションで保存します。
+別のDerivedMemoryは作らず、同じ抽出内の候補IDを参照するrelationは保存前にFactのIDへ書き換えます。
+閉鎖済み・supersededのFact、Commitment、VerbatimAnchorは対象外です。
+SPOが異なる明示extendsは再表明とは区別して保持します（[ADR 0024](decisions/0024-restatement-as-reinforcement.md)）。
 
 根拠にできるのは、そのキャラの知覚範囲（M6）のすべての Turn（キャラ自身の発話、他の参加者の発話、observation）です。キャラが応答で記憶を使い、同じ内容を再び話題にした時点も、その記憶が再び使われたタイミングとして再強化の対象にします。応答で使われたことは、キャラ発話の Turn から記憶を抽出するときに、既存記憶の同じ内容の再表明として検出します。想起 API で提供しただけで、応答に出ていない場合は更新しません。自己強化の影響は、新しさの係数を0.1以下に抑えることで小さくしています。
 
-再強化では last\_reinforced\_at をその Turn の occurred\_at に更新し、その Turn を source\_turn\_ids に追加します。処理した時刻は使わず、occurred\_at が既存の last\_reinforced\_at より古ければ時刻は更新しません。内容が更新された場合（MemoryRelation の updates：事実が変わった）は再強化ではなく、旧事実の valid\_to を閉じて新事実を追加します（P4）。
+出典寄与はキャラ・Fact・抽出元Turn・出典Turn・occurred_atを保存し、
+同じFact・抽出元・出典の組を重複させません。source_turn_idsは本体出典と残存寄与の和集合、
+last_reinforced_atは残存寄与のoccurred_atの最大値です。処理時刻は使いません。
+独立根拠数はADR 0023の規則で数え直し、ID・valid_from・出自・Trust Tierは維持します。
+全体投影・部分再構築・作者削除後の再計算は同じ保存寄与を集計し、SPOの再判定をしません。
+再抽出・requeue・retry・作者削除では抽出元に所属する寄与・relationとその時間効果を
+原子的に取り消します。再試行で寄与を足し増さず、最大時刻の寄与を取り消せば時刻も戻します。
+本体出典がすべて消えても寄与から本文を再計算できれば同じIDで存続し、
+できなければ寄与ごと取り下げ、別のFactへ移しません。
+内容の更新（updates）は旧Factのvalid_toを閉じて新版を追加します（P4）。
 
 ### 削除フロー
 

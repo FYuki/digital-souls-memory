@@ -198,7 +198,14 @@ def test_input_dependencies_follow_applied_projection_effects_only(
     class Related:
         def extract_local(self, value: LocalOnly) -> ExtractionProposal:
             return ExtractionProposal(
-                memories=(replace(baseline, id=NEW_ID, source_turn_ids=("reply",)),),
+                memories=(
+                    replace(
+                        baseline,
+                        id=NEW_ID,
+                        source_turn_ids=("reply",),
+                        object="tea" if effect == "derives" else baseline.object,
+                    ),
+                ),
                 relations=(MemoryRelation(from_id=NEW_ID, to_id=OLD_ID, type=effect),),
             )
 
@@ -245,4 +252,4 @@ def test_input_dependencies_follow_applied_projection_effects_only(
                 worker.service.rebuild(tx)
             assert store.get_memory("char-b", OLD_ID) == saved
             history = store.get_memory("char-b", NEW_ID)
-            assert history is not None and history.superseded_at is not None
+            assert history is None

@@ -5,39 +5,14 @@ import pytest
 
 from digital_souls_memory.memory.domain import (
     MemoryRelation,
-    MemoryValidationError,
     memory_valid_at,
 )
 from digital_souls_memory.memory.ports import MemoryContribution
-from digital_souls_memory.memory.relations import (
-    normalize_relations,
-    resolve_relations,
-    resolve_representative,
-)
+from digital_souls_memory.memory.relations import resolve_relations
 from tests.evidence_support import RECORDED
 from tests.memory_support import memory
 
 pytestmark = pytest.mark.ut
-
-
-def test_representative_chain_normalizes_only_relation_targets() -> None:
-    representatives = {"b": "a", "c": "b"}
-    relations = (
-        MemoryRelation(from_id="b", to_id="a", type="extends"),
-        MemoryRelation(from_id="d", to_id="c", type="updates"),
-    )
-    assert resolve_representative("c", representatives) == "a"
-    assert normalize_relations(relations, representatives) == (
-        relations[0],
-        replace(relations[1], to_id="a"),
-    )
-    assert representatives == {"b": "a", "c": "b"}
-
-
-@pytest.mark.parametrize("representatives", [{"a": "a"}, {"a": "b", "b": "a"}])
-def test_representative_cycles_are_rejected(representatives: dict[str, str]) -> None:
-    with pytest.raises(MemoryValidationError):
-        resolve_representative("a", representatives)
 
 
 @pytest.mark.parametrize(

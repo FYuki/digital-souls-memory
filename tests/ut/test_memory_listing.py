@@ -118,6 +118,6 @@ def test_postgres_listing_translates_connect_failure_and_retries_with_a_new_conn
     with pytest.raises(MemoryUnavailable):
         listing.read("char-b", RECORDED)
     snapshot, evidence = listing.read("char-b", RECORDED)
-    assert evidence.project(snapshot, RECORDED) == ProjectionResult({}, (), {})
+    assert evidence.project(snapshot, RECORDED) == ProjectionResult({}, ())
     connection.__exit__.assert_called_once()
     assert connect.call_count == 2

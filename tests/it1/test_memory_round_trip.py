@@ -171,7 +171,7 @@ def test_round_trip_duplicate_processing_and_explicit_requeue_do_not_multiply_ef
     assert len(before) == 2
     for _ in range(2):
         worker.process("char-b", "turn-1")
-        store.requeue("turn-1")
+        worker.service.requeue("turn-1")
         worker.process("char-b", "turn-1")
     assert service.active("char-b") == before
     assert len(store.values) == 2

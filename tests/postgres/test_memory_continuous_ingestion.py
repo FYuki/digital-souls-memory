@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import replace
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import perf_counter
 from typing import cast
 
@@ -155,12 +155,12 @@ def test_extraction_keeps_claim_and_revalidates_current_index_input(
     assert work.ref.memory_id in publish_and_search(app_database_url)
 
 
-def publish_and_search(url: str) -> set[str]:
+def publish_and_search(url: str, *, now: datetime = RECORDED) -> set[str]:
     index = PostgresRetrievalStore(url)
     embedding = RecordingEmbedding()
-    indexing = IndexWorker(index, embedding, space=SPACE, clock=lambda: RECORDED)
+    indexing = IndexWorker(index, embedding, space=SPACE, clock=lambda: now)
     for _ in range(3):
-        for work in index.claim(space=SPACE, now=RECORDED, limit=32):
+        for work in index.claim(space=SPACE, now=now, limit=32):
             indexing.process(work)
     query = LocalOnly(texts=("飲み物",), labels=(InputLabel("sensitive", "v1"),))
     return {
@@ -169,7 +169,7 @@ def publish_and_search(url: str) -> set[str]:
             character_id="char-b",
             query=query,
             query_vector=embedding.embed(query, purpose="query"),
-            now=RECORDED,
+            now=now,
             limit=20,
         ).candidates
         if candidate.memory is not None
@@ -252,7 +252,7 @@ class LockMeasurements:
         self.wait_seconds: list[float] = []
         self.hold_seconds: list[float] = []
         self.acquired: dict[int, float] = {}
-        self.neighbor_queries: list[tuple[str, Params | None]] = []
+        self.fact_queries: list[tuple[str, Params | None]] = []
         execute = cast(Callable[..., psycopg.Cursor[DictRow]], psycopg.Cursor.execute)
         commit = psycopg.Connection.commit
 
@@ -270,8 +270,13 @@ class LockMeasurements:
             rendered = (
                 query.as_string(cursor.connection) if isinstance(query, sql.Composable) else query
             )
-            if isinstance(rendered, str) and "relations AS NOT MATERIALIZED" in rendered:
-                self.neighbor_queries.append((rendered, params))
+            if (
+                isinstance(rendered, str)
+                and rendered.lstrip().upper().startswith(("SELECT", "WITH"))
+                and ("memory_generated" in rendered or "memory_baselines" in rendered)
+                and all(attribute in rendered for attribute in ("subject", "predicate", "object"))
+            ):
+                self.fact_queries.append((rendered, params))
             if (
                 isinstance(query, str)
                 and "pg_advisory_xact_lock" in query

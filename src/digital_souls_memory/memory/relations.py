@@ -2,26 +2,8 @@
 
 from dataclasses import replace
 
-from digital_souls_memory.memory.domain import MemoryRelation, MemoryValidationError
+from digital_souls_memory.memory.domain import DerivedMemory, MemoryRelation, MemoryValidationError
 from digital_souls_memory.memory.ports import MemoryContribution
-
-
-def resolve_representative(identifier: str, representatives: dict[str, str]) -> str:
-    seen: set[str] = set()
-    while identifier in representatives:
-        if identifier in seen:
-            raise MemoryValidationError("Cyclic representative mapping")
-        seen.add(identifier)
-        identifier = representatives[identifier]
-    return identifier
-
-
-def normalize_relations(
-    relations: tuple[MemoryRelation, ...], representatives: dict[str, str]
-) -> tuple[MemoryRelation, ...]:
-    return tuple(
-        replace(r, to_id=resolve_representative(r.to_id, representatives)) for r in relations
-    )
 
 
 def resolve_relations(
@@ -53,3 +35,33 @@ def resolve_relations(
         if len(matches) == 1:
             replacements[previous.memory.id] = matches[0]
     return tuple(replace(r, to_id=replacements.get(r.to_id, r.to_id)) for r in proposed)
+
+
+def dependency_order(
+    candidates: tuple[DerivedMemory, ...], proposed: tuple[MemoryRelation, ...]
+) -> tuple[DerivedMemory, ...]:
+    by_id = {v.id: v for v in candidates}
+    dependencies = {
+        v.id: [r.to_id for r in proposed if r.from_id == v.id and r.to_id in by_id]
+        for v in candidates
+    }
+    ordered: list[DerivedMemory] = []
+    done: set[str] = set()
+    visiting: set[str] = set()
+    for candidate in candidates:
+        stack = [(candidate.id, False)]
+        while stack:
+            identifier, expanded = stack.pop()
+            if identifier in done:
+                continue
+            if expanded:
+                visiting.remove(identifier)
+                done.add(identifier)
+                ordered.append(by_id[identifier])
+                continue
+            if identifier in visiting:
+                raise MemoryValidationError("Cyclic memory dependency")
+            visiting.add(identifier)
+            stack.append((identifier, True))
+            stack.extend((target, False) for target in reversed(dependencies[identifier]))
+    return tuple(ordered)
