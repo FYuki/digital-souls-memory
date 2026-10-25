@@ -31,6 +31,7 @@ from digital_souls_memory.memory.relations import (
 class ProjectionResult:
     memories: dict[str, DerivedMemory]
     relations: tuple[MemoryRelation, ...]
+    projected_ids: frozenset[str]
 
 
 @dataclass(frozen=True)
@@ -432,6 +433,7 @@ class ProjectionEvidence:
                 )
                 assert strengthened is not None
                 result[identifier] = strengthened
+        projected_ids = frozenset(result)
         for identifier, value in existing.items():
             if (
                 identifier in generated
@@ -449,7 +451,7 @@ class ProjectionEvidence:
                 )
         for reference in snapshot.references:
             result.pop(reference.id, None)
-        return ProjectionResult(result, tuple(relations))
+        return ProjectionResult(result, tuple(relations), projected_ids)
 
 
 def _projection_order(
@@ -526,5 +528,7 @@ def save_projection(
         else:
             tx.add_generated(value)
     tx.sync_projection_relations(
-        frozenset(v.id for v in snapshot.existing) | snapshot.generated, result.relations
+        frozenset(v.id for v in snapshot.existing) | snapshot.generated,
+        result.relations,
+        result.projected_ids,
     )

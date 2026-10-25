@@ -12,7 +12,6 @@ from digital_souls_memory.memory.domain import InputDependency, memory_valid_at
 from digital_souls_memory.memory.inputs import ResolvedTurn, input_eligible, resolve_input
 from digital_souls_memory.memory.ports import MemoryUnavailable
 from digital_souls_memory.memory.projection import (
-    ProjectionResult,
     collect_evidence,
     projection_input,
     source_ids,
@@ -118,6 +117,8 @@ def test_postgres_listing_translates_connect_failure_and_retries_with_a_new_conn
     with pytest.raises(MemoryUnavailable):
         listing.read("char-b", RECORDED)
     snapshot, evidence = listing.read("char-b", RECORDED)
-    assert evidence.project(snapshot, RECORDED) == ProjectionResult({}, ())
+    result = evidence.project(snapshot, RECORDED)
+    assert result.memories == {}
+    assert result.relations == ()
     connection.__exit__.assert_called_once()
     assert connect.call_count == 2
