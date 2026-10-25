@@ -86,6 +86,7 @@ PR #70統合後の[再測定（100件・1000件）](2026-10-25-core-st-performan
 PR #75（ADR 0024・migration 0014）統合後の[Phase 1 最終確認](2026-10-25-core-st-performance-after-r9.md)と[要約JSON](2026-10-25-core-st-performance-after-r9-summary.json)を参照。runner無変更・終了0、100件/1000件とも必達PASS。1000件p50 230.704ms / p95 253.388ms、p50目標は未達。一覧0.189505秒、累積準備120.492618秒。
 PR #78 統合後の[Phase 1 最終確認](2026-10-25-core-st-performance-after-r10.md)と[要約JSON](2026-10-25-core-st-performance-after-r10-summary.json)を参照。runner無変更・終了0、100件/1000件とも必達PASS。p50目標は両件数で未達。
 PR #81 統合後の[Phase 1 最終確認](2026-10-26-core-st-performance-after-r11.md)と[要約JSON](2026-10-26-core-st-performance-after-r11-summary.json)を参照。runner無変更・終了0、100件/1000件とも必達PASS。p50目標は両件数で未達。
+PR #84 統合後の[Phase 1 最終確認](2026-10-26-core-st-performance-after-r12.md)と[要約JSON](2026-10-26-core-st-performance-after-r12-summary.json)を参照。runner無変更・終了0、100件/1000件とも必達PASS。p50目標は両件数で未達。
 以下の過去時点のNOT RUN記録は、その時点の履歴として保持する。
 
 ## reimplement の補完結果
