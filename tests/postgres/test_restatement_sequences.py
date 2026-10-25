@@ -21,16 +21,28 @@ from tests.postgres.test_deletion_recalculation import make_worker
 from tests.postgres.test_memory_continuous_ingestion import document_states, publish_and_search
 from tests.postgres.test_restatement_remediation import Recalculate
 from tests.recall_support import RecordingEmbedding
+from tests.restatement_fakes import SequenceRecalculate
 from tests.restatement_model import Ledger, canonical, live
 from tests.restatement_sequences import (
     Operation,
     extract,
     generated_sequence,
+    metadata_reextraction_sequence,
     minimal_sequence,
     reextraction_sequence,
+    withdrawal_sequences,
 )
 
 pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
+
+
+@pytest.mark.parametrize(
+    "operations", withdrawal_sequences(), ids=["absorbed-id", "baseline-sources", "deleted-target"]
+)
+def test_withdrawal_exploration_regressions(
+    database_url: str, operations: tuple[Operation, ...]
+) -> None:
+    replay(database_url, operations)
 
 
 def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
@@ -39,12 +51,13 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
     worker = make_worker(database_url, store, gateway)
     ledger = Ledger(RECORDED)
     bodies = {v.id: v for op in operations for v in op.bodies}
+    recalculation = SequenceRecalculate(*bodies.values())
     unrelated_index: tuple[object, ...] | None = None
     with TestClient(
         create_app(
             clock=lambda: RECORDED,
             conversation_surfaces=frozenset({"synthetic-chat"}),
-            recalculation_gateway=Recalculate(*bodies.values()),
+            recalculation_gateway=recalculation,
         )
     ) as client:
         for index, op in enumerate(operations):
@@ -57,6 +70,7 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
                             actor=op.actor,
                             addressees=("user-a",) if op.actor != "user-a" else (),
                             address_mode="direct" if op.actor != "user-a" else "broadcast",
+                            reply_to_turn_id=op.reply_to_turn_id,
                         ),
                         occurred_at=op.occurred_at,
                     )
@@ -78,6 +92,19 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
                 assert state is not None and state.status == "retry", (context, state)
                 ledger.withdraw(op.origin)
             elif op.kind == "delete":
+                recalculation.outcome = op.recalculation
+                if op.recalculation == "fail":
+                    failed = client.post(
+                        "/deletion-requests",
+                        headers=HEADERS,
+                        json={"request_id": f"delete-{index}", "target_turn_ids": [op.origin]},
+                    )
+                    assert failed.status_code == 503
+                    with store.transaction("char-b") as tx:
+                        assert canonical({v.id: v for v in tx.memories()}) == ledger.saved
+                        assert set(tx.applied_relations()) == ledger.expected()[1]
+                    assert evidence.get_turn(op.origin) == ledger.turns[op.origin]
+                    recalculation.outcome = "preserve"
                 response = client.post(
                     "/deletion-requests",
                     headers=HEADERS,
@@ -85,7 +112,7 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
                 )
                 assert response.status_code == 200, (context, response.json())
                 assert response.json()["status"] == "done", context
-                ledger.delete(op.origin)
+                ledger.delete(op.origin, recalculation=recalculation.outcome)
             else:
                 raise ValueError(op)
             expected, relations = ledger.checkpoint()
@@ -99,11 +126,15 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
                 snapshot = projection_input(tx)
             assert saved == expected, (context, "saved", saved, expected)
             assert applied == relations, (context, "relations", applied, relations)
-            assert ledger.baselines.keys() <= baselines.keys(), context
-            assert baselines == {i: expected[i] for i in baselines}, (context, "baselines")
+            assert baselines == canonical(ledger.baselines), (
+                context,
+                "baselines",
+                baselines,
+                ledger.baselines,
+            )
             original_bodies = {
                 v.id: v for owner in ledger.owners.values() for v in owner.bodies
-            } | ledger.baselines
+            } | ledger.baseline_temporal
             assert {i: tuple(sorted(s)) for i, s in body_sources.items()} == {
                 i: ledger.baseline_sources[i]
                 if i in ledger.baseline_sources
@@ -184,7 +215,7 @@ def test_original_source_deletion_removes_owned_relation_and_retains_supported_f
     replay(database_url, minimal_sequence(relation_type, origin_first=True, actor="user-a")[:4])
 
 
-@pytest.mark.parametrize("seed", [0, 3, 7, 19, 86])
+@pytest.mark.parametrize("seed", [0, 3, 7, 19, 32, 86])
 def test_fixed_seed_replay_matches_independent_ledger(database_url: str, seed: int) -> None:
     replay(database_url, generated_sequence(seed))
 
@@ -192,6 +223,62 @@ def test_fixed_seed_replay_matches_independent_ledger(database_url: str, seed: i
 @pytest.mark.parametrize("seed", [0, 1, 2, 3])
 def test_reextraction_replay_matches_independent_ledger(database_url: str, seed: int) -> None:
     replay(database_url, reextraction_sequence(seed))
+
+
+@pytest.mark.parametrize("relation_type", ["derives", "updates", "contradicts"])
+@pytest.mark.parametrize("actor", ["user-a", "user-b"])
+def test_retry_after_original_source_deletion_separates_baseline_from_projection(
+    database_url: str, relation_type: str, actor: str
+) -> None:
+    base = minimal_sequence(relation_type, origin_first=True, actor=actor)
+    replay(database_url, (*base[:4], Operation("retry", "turn-b")))
+
+
+def test_metadata_reextraction_preserves_support_and_relation_until_retry(
+    database_url: str,
+) -> None:
+    replay(database_url, metadata_reextraction_sequence())
+
+
+@pytest.mark.parametrize("include_context", [False, True])
+def test_reply_evidence_count_matches_ledger(database_url: str, include_context: bool) -> None:
+    first = extract("a", "one", "coffee")
+    second = replace(extract("b", "two", "coffee"), actor="user-b", reply_to_turn_id="one")
+    third = replace(
+        extract("d", "three", "coffee"),
+        actor="user-a",
+        reply_to_turn_id="two" if include_context else "one",
+    )
+    context = first if include_context else replace(first, bodies=())
+    replay(database_url, (context, second, third))
+
+
+@pytest.mark.parametrize("outcome", ["unavailable", "fail"])
+@pytest.mark.parametrize("relation_type", ["derives", "updates", "contradicts"])
+def test_deletion_recalculation_failure_and_resend_match_ledger(
+    database_url: str, outcome: str, relation_type: str
+) -> None:
+    base = minimal_sequence(relation_type, origin_first=True, actor="user-b")
+    replay(database_url, (*base[:3], replace(base[3], recalculation=outcome)))
+
+
+def test_deleting_reply_context_withdraws_support_and_rewritten_relation(database_url: str) -> None:
+    base = minimal_sequence("derives", origin_first=True, actor="user-b")
+    support = replace(
+        base[2],
+        reply_to_turn_id="question",
+        relations=(replace(base[1].relations[0], from_id="b"),),
+    )
+    replay(
+        database_url,
+        (
+            base[0],
+            replace(base[1], relations=()),
+            Operation("extract", "question"),
+            support,
+            Operation("delete", "question"),
+        ),
+    )
 
 
 def test_origin_deletion_preserves_another_owners_relation_and_unrelated_index(

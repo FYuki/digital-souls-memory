@@ -121,6 +121,8 @@ class FakeMemoryStore:
         self.fail_commit = False
         self.requests: dict[str, int] = {}
         self.originals: dict[tuple[str, str], DerivedMemory] = {}
+        self.body_sources: dict[tuple[str, str], tuple[str, ...]] = {}
+        self.temporal_bases: dict[tuple[str, str], DerivedMemory] = {}
         self.proposed: dict[tuple[str, str], tuple[MemoryRelation, ...]] = {}
         self.dependencies: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
         self.baseline_inputs: dict[tuple[str, str], tuple[InputDependency, ...]] = {}
@@ -139,6 +141,8 @@ class FakeMemoryStore:
                 {k: set(v) for k, v in self.generated.items()},
                 list(self.relations),
                 dict(self.originals),
+                dict(self.body_sources),
+                dict(self.temporal_bases),
                 dict(self.proposed),
                 dict(self.dependencies),
                 dict(self.history),
@@ -160,6 +164,8 @@ class FakeMemoryStore:
                     self.generated,
                     self.relations,
                     self.originals,
+                    self.body_sources,
+                    self.temporal_bases,
                     self.proposed,
                     self.dependencies,
                     self.history,
@@ -252,7 +258,8 @@ class FakeMemoryTransaction:
                 "superseded_at": value.superseded_at,
                 "last_reinforced_at": value.last_reinforced_at,
             }
-            for value in self.baselines(identifiers)
+            for baseline in self.baselines(identifiers)
+            for value in (self.store.temporal_bases.get((self.character, baseline.id), baseline),)
         }
 
     def validate_candidate(self, turn_id: str, value: DerivedMemory) -> None:
@@ -337,7 +344,10 @@ class FakeMemoryTransaction:
         ]
 
     def fact_sources(self, identifiers: frozenset[str]) -> dict[str, tuple[str, ...]]:
-        return {v.id: v.source_turn_ids for v in self.baselines(identifiers)}
+        return {
+            v.id: self.store.body_sources.get((self.character, v.id), v.source_turn_ids)
+            for v in self.baselines(identifiers)
+        }
 
     def contribution_ids(self, turn_id: str) -> frozenset[str]:
         return (
@@ -507,6 +517,8 @@ class FakeMemoryTransaction:
     def add_memory(self, value: DerivedMemory) -> None:
         self._insert(value)
         self.store.originals[(self.character, value.id)] = value
+        self.store.body_sources.pop((self.character, value.id), None)
+        self.store.temporal_bases.pop((self.character, value.id), None)
 
     def _insert(self, value: DerivedMemory) -> None:
         if (self.character, value.id) in self.store.values:
@@ -516,6 +528,8 @@ class FakeMemoryTransaction:
     def replace_memory(self, value: DerivedMemory) -> None:
         self.replace_projection(value)
         self.store.originals[(self.character, value.id)] = value
+        self.store.body_sources.pop((self.character, value.id), None)
+        self.store.temporal_bases.pop((self.character, value.id), None)
 
     def replace_projection(self, value: DerivedMemory) -> None:
         self.store.values[(self.character, value.id)] = value

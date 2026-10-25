@@ -3,15 +3,18 @@
 from dataclasses import replace
 from datetime import datetime
 
+from digital_souls_memory.evidence.materials import aggregate_receipts
 from digital_souls_memory.governance.domain import (
     AuthorPrincipal,
     DeletionAttempt,
     DeletionCommand,
     DeletionRequest,
+    MemoryCopy,
     MemoryReplacement,
     TemporalEffect,
 )
-from digital_souls_memory.memory.domain import memory_valid_at
+from digital_souls_memory.memory.domain import DerivedMemory, memory_valid_at
+from digital_souls_memory.memory.extraction import LocalOnly as MemoryInput
 from digital_souls_memory.memory.projection import (
     collect_evidence,
     projection_input,
@@ -19,12 +22,27 @@ from digital_souls_memory.memory.projection import (
 )
 from digital_souls_memory.memory.relations import resolve_relations
 from digital_souls_memory.memory.use_cases import MemoryService
-from digital_souls_memory.recall.domain import EmbeddingBatch, VectorSpace
+from digital_souls_memory.recall.domain import CandidateMaterial, EmbeddingBatch, VectorSpace
 from digital_souls_memory.recall.indexing import IndexInput, IndexWork
 from digital_souls_memory.recall.inputs import LocalOnly
 from tests.deletion_support import SharedDeletionStore
 from tests.memory_fakes import FakeMemoryStore
+from tests.postgres.test_restatement_remediation import Recalculate
 from tests.recall_fixtures import candidate_for
+
+
+class SequenceRecalculate(Recalculate):
+    outcome = "preserve"
+
+    def recalculate_local(
+        self, value: MemoryInput, *, memory_id: str, kind: str
+    ) -> DerivedMemory | None:
+        if self.outcome == "fail":
+            raise RuntimeError("Synthetic recalculation failure")
+        if self.outcome == "unavailable":
+            return None
+        assert self.outcome == "preserve"
+        return super().recalculate_local(value, memory_id=memory_id, kind=kind)
 
 
 class SequenceDeletionStore(SharedDeletionStore):
@@ -46,27 +64,60 @@ class SequenceDeletionStore(SharedDeletionStore):
         if attempt.snapshot is None:
             return attempt
         targets = set(attempt.request.target_turn_ids)
+        withdrawn = targets | {
+            origin
+            for (owner, origin), dependencies in self.memories.dependencies.items()
+            if owner == "char-b" and any(d.turn_id in targets for d in dependencies)
+        }
         copies = []
         with self.memories.transaction("char-b") as tx:
-            candidates = {v.memory.id: v.memory for v in tx.candidates()}
+            affected_ids = set().union(*(tx.contribution_ids(origin) for origin in withdrawn))
+            affected_ids.update(copy.memory.id for copy in attempt.snapshot.copies)
+            while True:
+                expanded = affected_ids | {
+                    r.to_id
+                    for r in tx.applied_relations()
+                    if r.from_id in affected_ids and r.type != "derives"
+                }
+                if expanded == affected_ids:
+                    break
+                affected_ids = expanded
+            stored_copies = {
+                c.memory.id: c for c in attempt.snapshot.copies if c.table == "derived_memories"
+            }
+            stored_copies.update(
+                {
+                    v.id: MemoryCopy(table="derived_memories", memory=v)
+                    for v in tx.memories()
+                    if v.id in affected_ids and v.id not in stored_copies
+                }
+            )
+            candidates = {v.memory.id: v.memory for v in tx.history(frozenset(stored_copies))}
+            candidates.update((v.id, v) for v in tx.baselines())
+            current_ids = {
+                v.id
+                for (owner, _), values in self.memories.proposals.items()
+                if owner == "char-b"
+                for v in values
+            }
             effects = tx.relation_effects()
-            for copy in attempt.snapshot.copies:
-                if copy.table != "derived_memories":
-                    continue
-                base = self.memories.originals.get(("char-b", copy.memory.id))
+            for copy in stored_copies.values():
+                base = self.memories.temporal_bases.get(("char-b", copy.memory.id))
                 if base is None:
                     base = candidates[copy.memory.id]
+                    if copy.memory.id not in current_ids:
+                        base = replace(base, superseded_at=copy.memory.superseded_at)
                 temporal = [
                     TemporalEffect(
                         candidate=e.candidate, relation_type=e.relation.type, applied_at=now
                     )
                     for e in effects
-                    if e.turn_id not in targets
+                    if e.turn_id not in withdrawn
                     and e.relation.to_id == copy.memory.id
                     and e.relation.type != "derives"
                 ]
                 for candidate in tx.candidates():
-                    if candidate.turn_id in targets:
+                    if candidate.turn_id in withdrawn:
                         continue
                     for relation in self.memories.proposed.get(("char-b", candidate.turn_id), ()):
                         if relation.to_id == copy.memory.id and relation.type != "derives":
@@ -82,11 +133,36 @@ class SequenceDeletionStore(SharedDeletionStore):
                         copy,
                         temporal_base=base,
                         temporal_effects=tuple(temporal),
-                        body_source_ids=base.source_turn_ids,
+                        body_source_ids=self.memories.body_sources.get(
+                            ("char-b", base.id), base.source_turn_ids
+                        ),
+                        withdrawn_origins=tuple(
+                            origin
+                            for (owner, origin), dependencies in self.memories.dependencies.items()
+                            if owner == "char-b" and any(d.turn_id in targets for d in dependencies)
+                        ),
                         reinforcements=tx.source_contributions(frozenset({copy.memory.id})),
                     )
                 )
-        return replace(attempt, snapshot=replace(attempt.snapshot, copies=tuple(copies)))
+        materials = []
+        for identifier in sorted({s for c in copies for s in c.memory.source_turn_ids} - targets):
+            source = self.evidence.get_turn(identifier)
+            assert source is not None
+            session = self.evidence.get_session(source.session_id)
+            assert session is not None
+            with self.evidence.list_receipts(identifier) as receipts:
+                materials.append(
+                    CandidateMaterial(
+                        turn=source,
+                        session=session,
+                        actor_is_character=source.actor.startswith("char-"),
+                        receipt_state=aggregate_receipts(receipts),
+                    )
+                )
+        return replace(
+            attempt,
+            snapshot=replace(attempt.snapshot, copies=tuple(copies), materials=tuple(materials)),
+        )
 
     def commit(
         self,
@@ -96,6 +172,11 @@ class SequenceDeletionStore(SharedDeletionStore):
         now: datetime,
     ) -> DeletionRequest:
         targets = set(attempt.request.target_turn_ids)
+        withdrawn = targets | {
+            origin
+            for (owner, origin), dependencies in self.memories.dependencies.items()
+            if owner == "char-b" and any(d.turn_id in targets for d in dependencies)
+        }
         with self.memories.transaction("char-b") as tx:
             raw = tuple(
                 (origin, r)
@@ -115,15 +196,26 @@ class SequenceDeletionStore(SharedDeletionStore):
                     strict=True,
                 )
             )
-        removed = {r for o, r in owned if o in targets} - {r for o, r in owned if o not in targets}
+        removed = {r for o, r in owned if o in withdrawn} - {
+            r for o, r in owned if o not in withdrawn
+        }
         result = super().commit(attempt, replacements=replacements, now=now)
+        invalidated = {r.copy.memory.id for r in replacements if r.value is None}
         for replacement in replacements:
             if replacement.value is not None:
                 base = replacement.copy.temporal_base
                 assert base is not None
-                self.memories.originals[("char-b", base.id)] = replace(
-                    base, source_turn_ids=replacement.value.source_turn_ids
+                key = ("char-b", base.id)
+                self.memories.body_sources[key] = tuple(
+                    s
+                    for s in replacement.copy.body_source_ids
+                    if s in replacement.value.source_turn_ids and s not in targets
                 )
+                self.memories.temporal_bases[key] = base
+            else:
+                key = ("char-b", replacement.copy.memory.id)
+                self.memories.body_sources.pop(key, None)
+                self.memories.temporal_bases.pop(key, None)
         for mapping in (
             self.memories.proposals,
             self.memories.proposed,
@@ -133,11 +225,39 @@ class SequenceDeletionStore(SharedDeletionStore):
             self.memories.dependencies,
         ):
             for key in tuple(mapping):
-                if key[1] in targets:
+                if key[1] in withdrawn:
                     del mapping[key]
-        self.memories.relations = [(o, r) for o, r in self.memories.relations if r not in removed]
+        self.memories.proposed = {
+            key: tuple(
+                r for r in relations if r.from_id not in invalidated and r.to_id not in invalidated
+            )
+            for key, relations in self.memories.proposed.items()
+        }
+        self.memories.effects = {
+            key: tuple(
+                e
+                for e in effects
+                if e.relation.from_id not in invalidated and e.relation.to_id not in invalidated
+            )
+            for key, effects in self.memories.effects.items()
+        }
+        self.memories.proposals = {
+            key: tuple(v for v in values if v.id not in invalidated)
+            for key, values in self.memories.proposals.items()
+        }
+        self.memories.reinforcements = {
+            key: tuple(c for c in values if c.fact_id not in invalidated)
+            for key, values in self.memories.reinforcements.items()
+        }
+        self.memories.relations = [
+            (o, r)
+            for o, r in self.memories.relations
+            if r not in removed and r.from_id not in invalidated and r.to_id not in invalidated
+        ]
         self.memories.history = {
-            k: v for k, v in self.memories.history.items() if v.turn_id not in targets
+            k: v
+            for k, v in self.memories.history.items()
+            if v.turn_id not in targets and v.memory.id not in invalidated
         }
         self.memories.generated["char-b"] = {v.memory.id for v in self.memories.history.values()}
         with self.memories.transaction("char-b") as tx:

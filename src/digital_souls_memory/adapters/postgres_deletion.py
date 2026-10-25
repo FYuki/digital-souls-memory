@@ -478,6 +478,13 @@ class PostgresDeletionStore:
                 owner: frozenset(i for r in relations for i in (r.from_id, r.to_id))
                 for owner, relations in withdrawn_relations.items()
             }
+            # Removing references can enable a candidate that was never projected.
+            for replacement in replacements:
+                if replacement.copy.table == "derived_memories" and replacement.value is None:
+                    memory = replacement.copy.memory
+                    affected[memory.character_id] = affected.get(
+                        memory.character_id, frozenset()
+                    ) | {memory.id}
             for owner in {owner for owner, _ in projected}:
                 withdrawn_facts = {
                     r.copy.memory.id

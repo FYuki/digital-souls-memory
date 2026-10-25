@@ -26,6 +26,34 @@ def live(value: DerivedMemory, now: datetime) -> bool:
     )
 
 
+def semantic_attributes(value: DerivedMemory) -> tuple[object, ...]:
+    return (
+        value.character_id,
+        value.kind,
+        value.content,
+        value.source_turn_ids,
+        value.valid_from,
+        value.valid_to,
+        value.superseded_at,
+        value.last_reinforced_at,
+        value.epistemics.source_type,
+        value.epistemics.trust_tier,
+        value.epistemics.independent_evidence_count,
+        value.epistemics.contradiction_ids,
+        value.identity_links,
+        value.subject,
+        value.predicate,
+        value.object,
+        value.shared_with,
+        value.counterpart,
+        value.affection,
+        value.trust,
+        value.status,
+        value.deadline,
+        value.verbatim_turn_id,
+    )
+
+
 @dataclass
 class Owner:
     bodies: tuple[DerivedMemory, ...]
@@ -41,16 +69,34 @@ class Ledger:
     owners: dict[str, Owner] = field(default_factory=dict)
     baselines: dict[str, DerivedMemory] = field(default_factory=dict)
     baseline_sources: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    baseline_temporal: dict[str, DerivedMemory] = field(default_factory=dict)
     history: dict[str, tuple[DerivedMemory, ...]] = field(default_factory=dict)
+    candidates: dict[str, tuple[DerivedMemory, ...]] = field(default_factory=dict)
     saved: dict[str, DerivedMemory] = field(default_factory=dict)
 
     def count(self, sources: tuple[str, ...]) -> int:
         # Enumerate compatible subsets rather than use the product matching algorithm.
-        pairs = [(self.turns[i].reply_to_turn_id or i, self.turns[i].actor) for i in sources]
+        neighbors: dict[str, set[str]] = {i: set() for i in sources}
+        for identifier in sources:
+            reply = self.turns[identifier].reply_to_turn_id
+            if reply in neighbors:
+                neighbors[identifier].add(reply)
+                neighbors[reply].add(identifier)
+        components: dict[str, str] = {}
+        for identifier in sources:
+            pending = [identifier]
+            while pending:
+                current = pending.pop()
+                if current in components:
+                    continue
+                components[current] = identifier
+                pending.extend(neighbors[current] - components.keys())
+        pairs = set((components[i], self.turns[i].actor) for i in sources)
+        limit = min(len(set(components.values())), len({p[1] for p in pairs}))
         return max(
             (
                 len(group)
-                for n in range(len(pairs) + 1)
+                for n in range(limit + 1)
                 for group in combinations(pairs, n)
                 if len({p[0] for p in group}) == len(group)
                 and len({p[1] for p in group}) == len(group)
@@ -97,10 +143,13 @@ class Ledger:
         previous = self.history.get(origin, ())
         replacements: dict[str, str] = {}
         for old in previous:
-            equivalent = [v.id for v in accepted if replace(old, id=v.id) == v]
+            equivalent = [
+                v.id for v in accepted if semantic_attributes(old) == semantic_attributes(v)
+            ]
             if old.id not in {v.id for v in accepted} and len(equivalent) == 1:
                 replacements[old.id] = equivalent[0]
-                self.saved[old.id] = old
+                if old.id in self.saved:
+                    self.saved[old.id] = old
         for owner in self.owners.values():
             owner.sources = {replacements.get(i, i): s for i, s in owner.sources.items()}
             owner.relations = tuple(
@@ -115,41 +164,109 @@ class Ledger:
                 replacements.get(i, i): replace(v, id=replacements.get(i, i))
                 for i, v in owner.effects.items()
             }
-        self.history[origin] = bodies
+        self.history[origin] = tuple({v.id: v for v in (*previous, *bodies)}.values())
+        self.candidates[origin] = tuple(accepted)
 
-    def delete(self, origin: str) -> None:
+    def delete(self, origin: str, *, recalculation: str = "preserve") -> None:
         # Recalculation's synthetic gateway preserves content and chooses surviving sources.
-        before, _ = self.expected()
+        before, applied = self.expected()
+        temporal = (
+            {v.id: v for values in self.history.values() for v in values}
+            | {v.id: v for owner in self.owners.values() for v in owner.bodies}
+            | self.baseline_temporal
+        )
+        body_sources = (
+            {v.id: v.source_turn_ids for values in self.history.values() for v in values}
+            | {v.id: v.source_turn_ids for owner in self.owners.values() for v in owner.bodies}
+            | self.baseline_sources
+        )
+        dependents = {i for i, t in self.turns.items() if t.reply_to_turn_id == origin}
+        affected = {
+            identifier
+            for owner_id, owner in self.owners.items()
+            if owner_id in dependents | {origin}
+            for identifier in (
+                *owner.sources,
+                *(r.to_id for r in owner.relations if r.type != "derives"),
+            )
+        }
+        affected.update(
+            identifier
+            for identifier, baseline in self.baselines.items()
+            if origin in baseline.source_turn_ids
+        )
+        generated = {
+            v.id
+            for owner_id, values in self.history.items()
+            if owner_id in dependents | {origin}
+            for v in values
+        }
+        affected.update(generated)
+        while True:
+            expanded = affected | {
+                r.to_id for r in applied if r.from_id in affected and r.type != "derives"
+            }
+            if expanded == affected:
+                break
+            affected = expanded
         self.withdraw(origin)
+        for dependent in dependents:
+            self.withdraw(dependent)
         self.turns.pop(origin)
+        self.turns = {
+            i: replace(t, reply_to_turn_id=None) if i in dependents else t
+            for i, t in self.turns.items()
+        }
         for identifier, body in before.items():
-            if origin not in body.source_turn_ids:
+            if origin not in body.source_turn_ids and identifier not in affected:
                 continue
             remaining = tuple(i for i in body.source_turn_ids if i != origin)
-            if remaining:
+            if remaining and recalculation != "unavailable":
+                base = temporal[identifier]
+                if identifier not in self.baselines and not any(
+                    v.id == identifier for values in self.candidates.values() for v in values
+                ):
+                    base = replace(base, superseded_at=body.superseded_at)
                 self.baselines[identifier] = replace(
                     body,
                     source_turn_ids=remaining,
-                    valid_to=None,
-                    superseded_at=None,
-                    last_reinforced_at=None,
+                    valid_to=base.valid_to,
+                    superseded_at=base.superseded_at,
+                    last_reinforced_at=base.last_reinforced_at,
+                    epistemics=replace(
+                        body.epistemics, independent_evidence_count=self.count(remaining)
+                    ),
                 )
                 self.baseline_sources[identifier] = tuple(
-                    sorted(
-                        {
-                            s
-                            for owner in self.owners.values()
-                            for v in owner.bodies
-                            if v.id == identifier
-                            for s in v.source_turn_ids
-                            if s != origin
-                        }
-                    )
+                    s for s in body_sources[identifier] if s != origin
                 )
+                self.baseline_temporal[identifier] = base
             else:
                 self.baselines.pop(identifier, None)
                 self.baseline_sources.pop(identifier, None)
+                self.baseline_temporal.pop(identifier, None)
                 self.saved.pop(identifier, None)
+                for owner in self.owners.values():
+                    owner.bodies = tuple(v for v in owner.bodies if v.id != identifier)
+                    owner.sources.pop(identifier, None)
+                    owner.effects.pop(identifier, None)
+                    owner.relations = tuple(
+                        r for r in owner.relations if identifier not in (r.from_id, r.to_id)
+                    )
+                self.candidates = {
+                    o: tuple(v for v in values if v.id != identifier)
+                    for o, values in self.candidates.items()
+                }
+                self.history = {
+                    o: tuple(v for v in values if v.id != identifier)
+                    for o, values in self.history.items()
+                }
+        projected, _ = self.expected()
+        for identifier in self.baselines:
+            if (
+                origin in before[identifier].source_turn_ids or identifier in affected
+            ) and identifier in projected:
+                self.baselines[identifier] = projected[identifier]
 
     def expected(self) -> tuple[dict[str, DerivedMemory], set[MemoryRelation]]:
         bodies = dict(self.baselines)
@@ -169,7 +286,17 @@ class Ledger:
             i: replace(
                 v,
                 source_turn_ids=tuple(sorted(support[i])),
-                last_reinforced_at=max(events[i]) if events[i] else v.last_reinforced_at,
+                valid_to=self.baseline_temporal[i].valid_to if i in self.baselines else v.valid_to,
+                superseded_at=self.baseline_temporal[i].superseded_at
+                if i in self.baselines
+                else v.superseded_at,
+                last_reinforced_at=max(events[i])
+                if events[i]
+                else (
+                    self.baseline_temporal[i].last_reinforced_at
+                    if i in self.baselines
+                    else v.last_reinforced_at
+                ),
                 epistemics=replace(
                     v.epistemics, independent_evidence_count=self.count(tuple(support[i]))
                 ),
