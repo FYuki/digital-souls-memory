@@ -1,0 +1,1458 @@
+{
+  "revision": "3c151b5c7a7a737b7baa247dd4c5ccdaa705e149",
+  "runner": {
+    "status": "PASS",
+    "exit_code": 0,
+    "unchanged": true,
+    "timeouts_s": {
+      "indexing": 1800,
+      "listing_preflight": 30,
+      "recall": 30
+    },
+    "command": "docker compose -p memory-core-perf-r20-20261026 -f compose.core-st.yml -f compose.core-st.performance.yml run --no-deps --rm runner"
+  },
+  "performance": {
+    "manifest": {
+      "revision": "3c151b5c7a7a737b7baa247dd4c5ccdaa705e149",
+      "environment": "Ubuntu WSL2; Python 3.12.3; uv 0.8.22; dedicated tmpfs synthetic DB; migration 0014; loopback endpoints",
+      "hardware": "Intel Core i7-14700K, 28 logical CPUs; NVIDIA RTX 4070 Ti SUPER 16376 MiB; driver 610.88",
+      "db_image": "sha256:55949b5e0ddcbbf1a51c081e02615c81799d624e8ff52d0d1b0f08383436b12c",
+      "client_image": "sha256:1d82db0a2c7a7a14bb0af38df3fd6a20d73ae44e3dbe4316d38da8b9f535250b",
+      "db_version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit\nplpgsql|1.0\nvector|0.8.2\npg_bigm|1.2\n0014",
+      "embedding": {
+        "model_alias": "bge-m3",
+        "revision": "9eba04c5d75ba5a1595e45de734d36bef4e5cb98",
+        "sha256": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+        "dimensions": 1024,
+        "pooling": "cls",
+        "quantization": "Q8_0",
+        "query_prefix": "",
+        "passage_prefix": "",
+        "extension": "pg_bigm"
+      },
+      "reranker": {
+        "model_alias": "bge-reranker-v2-m3",
+        "revision": "3093af03b1a635e67b084b1d8c03c5f5e020fd05",
+        "sha256": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3",
+        "quantization": "Q8_0"
+      },
+      "dimensions": 1024,
+      "data_counts": [
+        100,
+        1000
+      ],
+      "input_text": "日本語",
+      "input_length": 3,
+      "candidate_limit": 200,
+      "rerank_limit": 20,
+      "result_limit": 5,
+      "token_limit": 1500,
+      "relevance_threshold": -2,
+      "repetitions": 100,
+      "warm_up": 5,
+      "concurrency": 1,
+      "cold_condition": "Models loaded; warm-up 5 per size; ready indexes; no OS/DB/GPU cache flush",
+      "period": "2026-10-26 UTC; exact timestamps recorded in performance.json",
+      "aggregation": "nearest-rank"
+    },
+    "started_at": "2026-10-26T11:53:23.613637+00:00",
+    "command": "python -m tests.st.performance /evidence/manifest.json /evidence/performance.json",
+    "mode": "real_models",
+    "status": "PASS",
+    "runs": [
+      {
+        "data_count": 100,
+        "summary": {
+          "p50_ms": 152.91806300228927,
+          "p95_ms": 171.60631499427836,
+          "required_pass": true,
+          "p95_target_pass": true,
+          "p50_target_pass": false
+        },
+        "warm_up": [
+          {
+            "elapsed_ms": 343.09160300472286,
+            "success": true,
+            "provision_id": "4b5baaa0-6ecf-421d-af71-d971a9ba1f51",
+            "error": null
+          },
+          {
+            "elapsed_ms": 110.506548997364,
+            "success": true,
+            "provision_id": "6d555872-c101-41b4-89bc-1d4e9dc08468",
+            "error": null
+          },
+          {
+            "elapsed_ms": 116.15605599945411,
+            "success": true,
+            "provision_id": "9d7fd188-03c7-4793-81b7-171101d3f069",
+            "error": null
+          },
+          {
+            "elapsed_ms": 131.25411099463236,
+            "success": true,
+            "provision_id": "42980739-7e6d-4a06-af07-ea95dd867ba0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 117.43902100715786,
+            "success": true,
+            "provision_id": "310d5a35-a2d8-4cb0-bfa2-7b3868e76edd",
+            "error": null
+          }
+        ],
+        "trials": [
+          {
+            "elapsed_ms": 114.86843699822202,
+            "success": true,
+            "provision_id": "7ab6ef2d-0297-44d7-8165-34f7dcc8f431",
+            "error": null
+          },
+          {
+            "elapsed_ms": 108.75740498886444,
+            "success": true,
+            "provision_id": "ef094259-53d4-4ce4-a359-d3c0ecc32e9e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 105.9241339971777,
+            "success": true,
+            "provision_id": "8f1f30a7-903b-4e99-baa9-a1d4e437c102",
+            "error": null
+          },
+          {
+            "elapsed_ms": 108.9974360074848,
+            "success": true,
+            "provision_id": "03a57cc2-238f-4f29-825d-bd5ac0bcd3a0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 104.29162600485142,
+            "success": true,
+            "provision_id": "0df003d4-c9bc-4ab7-957f-4b17ba6df46e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 106.06974900292698,
+            "success": true,
+            "provision_id": "18362d0f-d62f-4cf7-81a9-63bcbd5e7aff",
+            "error": null
+          },
+          {
+            "elapsed_ms": 163.71125899604522,
+            "success": true,
+            "provision_id": "64d68ed2-67ae-4468-8769-02a6eccb9ecb",
+            "error": null
+          },
+          {
+            "elapsed_ms": 120.21235199063085,
+            "success": true,
+            "provision_id": "3952f569-3e04-41a8-b121-88bb8f5dc3a8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 112.06251999828964,
+            "success": true,
+            "provision_id": "3b18d665-9db5-4e01-85ff-46df228b92af",
+            "error": null
+          },
+          {
+            "elapsed_ms": 153.78344101191033,
+            "success": true,
+            "provision_id": "90f847ac-1f7d-4fef-906a-2ee0dff3f309",
+            "error": null
+          },
+          {
+            "elapsed_ms": 134.41592500021216,
+            "success": true,
+            "provision_id": "91cba80f-f987-4044-9b74-d19d96b4a9f3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 157.37280499888584,
+            "success": true,
+            "provision_id": "88106621-4cb8-419c-9fb5-a75b8d7bfe6b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 169.15398099808954,
+            "success": true,
+            "provision_id": "8a72b320-0073-4c75-bfd7-00485f3d5aab",
+            "error": null
+          },
+          {
+            "elapsed_ms": 165.30419999617152,
+            "success": true,
+            "provision_id": "727d651d-2baa-415f-ba78-c41214cb112a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 192.9574039968429,
+            "success": true,
+            "provision_id": "5f1b66dc-3e8d-4c19-b795-94a02ccdc61e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 148.8472780038137,
+            "success": true,
+            "provision_id": "9f7c21ed-cde9-4f17-9010-ea6b07384b56",
+            "error": null
+          },
+          {
+            "elapsed_ms": 162.62535899295472,
+            "success": true,
+            "provision_id": "bffa45d6-efb9-4c7f-a7b2-936dd811b78a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 130.3444739896804,
+            "success": true,
+            "provision_id": "e8a1fd01-a049-461e-939c-5dc8710161df",
+            "error": null
+          },
+          {
+            "elapsed_ms": 139.9065959994914,
+            "success": true,
+            "provision_id": "00f59d35-d27a-4dd9-ac38-9900d0527ec7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 163.96104100567754,
+            "success": true,
+            "provision_id": "26468bc3-528b-4292-b681-9b20bd90dea2",
+            "error": null
+          },
+          {
+            "elapsed_ms": 129.52054299239535,
+            "success": true,
+            "provision_id": "053ac83a-2e5f-48fa-8c0d-88ce75350873",
+            "error": null
+          },
+          {
+            "elapsed_ms": 125.4245419986546,
+            "success": true,
+            "provision_id": "c46131c6-b87d-44b3-b13d-d4c3e97856f8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 122.31850100215524,
+            "success": true,
+            "provision_id": "423e8037-1df7-4726-99c8-ee92412cc4af",
+            "error": null
+          },
+          {
+            "elapsed_ms": 153.5912079998525,
+            "success": true,
+            "provision_id": "47bf8d73-603a-4c21-b0e8-779cb7cbcbd8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 117.50967500847764,
+            "success": true,
+            "provision_id": "3fd8d3a1-128b-47ad-9912-99e413d1afa4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 115.75713400088716,
+            "success": true,
+            "provision_id": "2f2f9fc8-7acf-4182-a26f-989c67969b78",
+            "error": null
+          },
+          {
+            "elapsed_ms": 124.81784100236837,
+            "success": true,
+            "provision_id": "3136e662-faba-4431-8601-1864ab983c7d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 117.04399199516047,
+            "success": true,
+            "provision_id": "5438c67c-fa7e-44a9-a47f-4ae33eceb786",
+            "error": null
+          },
+          {
+            "elapsed_ms": 122.10058400523849,
+            "success": true,
+            "provision_id": "eac21753-aa96-4fef-8d46-b0597ee2b2fc",
+            "error": null
+          },
+          {
+            "elapsed_ms": 129.24339999153744,
+            "success": true,
+            "provision_id": "aa99bdf9-a9ed-4f14-8cf7-b8d226d7bd43",
+            "error": null
+          },
+          {
+            "elapsed_ms": 130.787773989141,
+            "success": true,
+            "provision_id": "b9da7988-51d4-4594-9319-8067f8a86be3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 148.99691598839127,
+            "success": true,
+            "provision_id": "d89b0bce-2eb8-4e37-a71b-125ebcfa184b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 128.76754500030074,
+            "success": true,
+            "provision_id": "b87b697f-dd3e-469c-91ff-440eb1bced5a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 126.26277199888136,
+            "success": true,
+            "provision_id": "77601e03-3dab-4256-97bd-362464fbbffb",
+            "error": null
+          },
+          {
+            "elapsed_ms": 118.6596869956702,
+            "success": true,
+            "provision_id": "b7db09e3-e0ba-4342-b3a7-c1644cf0e3b7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 165.72102400823496,
+            "success": true,
+            "provision_id": "063063ae-a726-40a4-8b0e-a678d022e06d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 132.23285500134807,
+            "success": true,
+            "provision_id": "f8f994e5-95b0-41d8-83ef-95842d547431",
+            "error": null
+          },
+          {
+            "elapsed_ms": 168.37086400482804,
+            "success": true,
+            "provision_id": "69daaa67-5082-44bf-9f0c-7bec2599ddf2",
+            "error": null
+          },
+          {
+            "elapsed_ms": 171.47037701215595,
+            "success": true,
+            "provision_id": "13805787-8214-47af-aedc-07666d5d8f52",
+            "error": null
+          },
+          {
+            "elapsed_ms": 145.86468900961336,
+            "success": true,
+            "provision_id": "09dbe723-ade7-4890-83b4-d53feb808c14",
+            "error": null
+          },
+          {
+            "elapsed_ms": 168.24629101029132,
+            "success": true,
+            "provision_id": "832721eb-f2ee-410d-9bac-0512750d9171",
+            "error": null
+          },
+          {
+            "elapsed_ms": 160.45913400012068,
+            "success": true,
+            "provision_id": "88252f2f-a563-4e25-8dfd-0b352d6ac8cd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 167.18469999614172,
+            "success": true,
+            "provision_id": "621e4fe5-6633-4489-a354-dc6404954fd4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 165.74365898850374,
+            "success": true,
+            "provision_id": "81eb3723-04ec-48de-aacc-1f082a527b5d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 170.36037000070792,
+            "success": true,
+            "provision_id": "47ef8326-93b0-4ded-8d9c-33950b022f14",
+            "error": null
+          },
+          {
+            "elapsed_ms": 166.30030100350268,
+            "success": true,
+            "provision_id": "07beff29-b3f1-486b-a7d0-1a0201d88faa",
+            "error": null
+          },
+          {
+            "elapsed_ms": 159.774831001414,
+            "success": true,
+            "provision_id": "63e6a79e-e38e-4df9-801d-d81b7cdfc22e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 183.61947700032033,
+            "success": true,
+            "provision_id": "56dacfe2-4349-4eef-a6c1-d7908f3bcfcf",
+            "error": null
+          },
+          {
+            "elapsed_ms": 154.98851099982858,
+            "success": true,
+            "provision_id": "d3d984a5-8b46-4455-a343-1b603be80a74",
+            "error": null
+          },
+          {
+            "elapsed_ms": 150.63342700887006,
+            "success": true,
+            "provision_id": "89fcb23d-2491-4f0a-9788-573fbd2af9ba",
+            "error": null
+          },
+          {
+            "elapsed_ms": 150.2444139914587,
+            "success": true,
+            "provision_id": "a110705d-de4a-436b-b1ca-510fe342c679",
+            "error": null
+          },
+          {
+            "elapsed_ms": 161.16376500576735,
+            "success": true,
+            "provision_id": "87710db4-13c3-4d79-9a1f-3e41e10e5706",
+            "error": null
+          },
+          {
+            "elapsed_ms": 160.006758000236,
+            "success": true,
+            "provision_id": "6b5afca9-6fa7-4c35-b3f1-43e21d32b846",
+            "error": null
+          },
+          {
+            "elapsed_ms": 171.60631499427836,
+            "success": true,
+            "provision_id": "68b4afc1-954d-4eae-ac36-90bbc316619e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 185.46245999459643,
+            "success": true,
+            "provision_id": "1db3c406-0e33-479a-ae3e-81614655910e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 162.24261600291356,
+            "success": true,
+            "provision_id": "079b1022-e5ab-4be2-bf26-a468945681dd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 179.83530201308895,
+            "success": true,
+            "provision_id": "4674a951-30ed-4ed4-ac8c-ec3aa96d5065",
+            "error": null
+          },
+          {
+            "elapsed_ms": 154.611008008942,
+            "success": true,
+            "provision_id": "9a9bb988-8d97-4204-9f7d-0f3725029737",
+            "error": null
+          },
+          {
+            "elapsed_ms": 161.92623200186063,
+            "success": true,
+            "provision_id": "8c26888c-35ed-491f-9293-4bc0422ef60c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 156.5431289927801,
+            "success": true,
+            "provision_id": "3840add6-3854-43e8-a8ba-c5695e702dc2",
+            "error": null
+          },
+          {
+            "elapsed_ms": 149.62845499394462,
+            "success": true,
+            "provision_id": "2eed7aba-0472-4336-8430-6797d0951f8f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 162.87751198979095,
+            "success": true,
+            "provision_id": "bc0a84f6-4868-4c79-9b32-963cc2311713",
+            "error": null
+          },
+          {
+            "elapsed_ms": 166.4023359917337,
+            "success": true,
+            "provision_id": "b262fe46-5bae-44e7-8d50-92130999be0c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 158.8149879971752,
+            "success": true,
+            "provision_id": "2ee7c316-5586-4ca6-b0b3-02d593c93d6c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 168.74006799480412,
+            "success": true,
+            "provision_id": "19b4f634-ddbd-42da-a081-9959404a7d54",
+            "error": null
+          },
+          {
+            "elapsed_ms": 162.58649299561512,
+            "success": true,
+            "provision_id": "df9e8fe4-bac4-42c3-9e5d-f75e274b5efd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 151.8461529922206,
+            "success": true,
+            "provision_id": "d3b430ce-40c2-4f42-87c8-7363e30924b8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 154.70185699814465,
+            "success": true,
+            "provision_id": "a06a6aa2-3883-4563-834e-2f1f26120145",
+            "error": null
+          },
+          {
+            "elapsed_ms": 157.74513401265722,
+            "success": true,
+            "provision_id": "400031e1-2b89-494d-81b5-e53029dc0e5a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 152.3385850014165,
+            "success": true,
+            "provision_id": "afe26232-6629-43c9-bc76-541c3bfe7777",
+            "error": null
+          },
+          {
+            "elapsed_ms": 129.3885219929507,
+            "success": true,
+            "provision_id": "4c4a08f6-7820-4d2c-b518-eb60d7ce542f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 168.76284399768338,
+            "success": true,
+            "provision_id": "ba485236-d091-415d-af07-fba152d4dcb3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 166.61392700916622,
+            "success": true,
+            "provision_id": "8730db88-bbb6-4a00-beb8-7cab7d091002",
+            "error": null
+          },
+          {
+            "elapsed_ms": 152.91806300228927,
+            "success": true,
+            "provision_id": "9c3fa8ec-0ea7-4b1e-b78c-6b7585310c98",
+            "error": null
+          },
+          {
+            "elapsed_ms": 147.3121680028271,
+            "success": true,
+            "provision_id": "2433d71b-e50b-4c11-9176-35f0d0f8bd4c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 151.66650799801573,
+            "success": true,
+            "provision_id": "d03c3e4a-932f-487e-aef9-5f26c664f2d9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 112.5721670105122,
+            "success": true,
+            "provision_id": "cc4bfa71-f504-4f53-9538-5d689a977fc4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 113.23867700411938,
+            "success": true,
+            "provision_id": "fa800fa7-496b-48b3-b800-6c2324e8dfd9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 112.68719300278462,
+            "success": true,
+            "provision_id": "ae08eb4d-37fc-4da8-98d4-79e40860c5a3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 114.96172299666796,
+            "success": true,
+            "provision_id": "6d446868-0c5b-41fc-8752-6b6cac122cdd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 137.76210098876618,
+            "success": true,
+            "provision_id": "8ddd0d01-4fd6-4147-85dc-d6ec18070ce7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 120.81018499156926,
+            "success": true,
+            "provision_id": "bf222de8-5c73-4d4c-96f0-df5332621ddd",
+            "error": null
+          },
+          {
+            "elapsed_ms": 112.81052899721544,
+            "success": true,
+            "provision_id": "3469fde1-f6ee-4b00-a0ae-9c34c6d7accf",
+            "error": null
+          },
+          {
+            "elapsed_ms": 111.38056799245533,
+            "success": true,
+            "provision_id": "1425bd09-1937-40b1-b225-a3ceaba06bb9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 154.29297300579492,
+            "success": true,
+            "provision_id": "01da4656-4e0b-410f-a2d3-f18d639325d1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 122.10789100208785,
+            "success": true,
+            "provision_id": "8805c2ab-59f8-4e3a-82d6-ec544abb348f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 112.96762300480623,
+            "success": true,
+            "provision_id": "90556c40-cb60-46aa-b9ed-f69aa109e991",
+            "error": null
+          },
+          {
+            "elapsed_ms": 114.48649599333294,
+            "success": true,
+            "provision_id": "a1ddd7a8-d552-4993-b483-1d6fff471421",
+            "error": null
+          },
+          {
+            "elapsed_ms": 120.60081500385422,
+            "success": true,
+            "provision_id": "4dc727c1-e5f0-4b28-8b46-5cc9869b7f68",
+            "error": null
+          },
+          {
+            "elapsed_ms": 146.60682900284883,
+            "success": true,
+            "provision_id": "fb4ed45b-e110-48ff-a9b0-41837be2cc16",
+            "error": null
+          },
+          {
+            "elapsed_ms": 169.17518500122242,
+            "success": true,
+            "provision_id": "43e07642-8234-4adc-ae81-1710a992de90",
+            "error": null
+          },
+          {
+            "elapsed_ms": 158.12312200432643,
+            "success": true,
+            "provision_id": "6e16ebfb-2688-40f7-b201-0ebeeae74cc0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 155.18260501266923,
+            "success": true,
+            "provision_id": "958102b1-637a-4d44-9169-4e2adfe3a188",
+            "error": null
+          },
+          {
+            "elapsed_ms": 169.7123700141674,
+            "success": true,
+            "provision_id": "f77452a9-8e96-4586-833c-c92ee2120194",
+            "error": null
+          },
+          {
+            "elapsed_ms": 158.6896109947702,
+            "success": true,
+            "provision_id": "6d523755-ba20-4e6e-a73f-f5c2fe8e5e88",
+            "error": null
+          },
+          {
+            "elapsed_ms": 157.965966995107,
+            "success": true,
+            "provision_id": "d9431990-66ed-4ed0-8150-afdc368707b5",
+            "error": null
+          },
+          {
+            "elapsed_ms": 160.92849300184753,
+            "success": true,
+            "provision_id": "37ae0a46-ca99-46ae-a3f0-5596004bf45f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 185.09524800174404,
+            "success": true,
+            "provision_id": "35205a40-eda2-4ca7-98ad-a15e4e5f0871",
+            "error": null
+          },
+          {
+            "elapsed_ms": 165.91472800064366,
+            "success": true,
+            "provision_id": "a0075fbe-5cff-4e7d-bc5c-73909d0a592b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 160.16849600418936,
+            "success": true,
+            "provision_id": "6d56051f-0d3b-4ad0-9664-aa1fe31688f1",
+            "error": null
+          }
+        ]
+      },
+      {
+        "data_count": 1000,
+        "summary": {
+          "p50_ms": 222.37424500053748,
+          "p95_ms": 253.68981499923393,
+          "required_pass": true,
+          "p95_target_pass": true,
+          "p50_target_pass": false
+        },
+        "warm_up": [
+          {
+            "elapsed_ms": 514.4507769873599,
+            "success": true,
+            "provision_id": "8cdb231d-328b-4e5a-84ce-0b2bc23394b7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 210.93937699333765,
+            "success": true,
+            "provision_id": "ce3bf005-e3e9-4928-9d85-af2315951513",
+            "error": null
+          },
+          {
+            "elapsed_ms": 170.03069899510592,
+            "success": true,
+            "provision_id": "9558fffd-02ed-4d90-b084-a5ae198d7f62",
+            "error": null
+          },
+          {
+            "elapsed_ms": 189.95790400367696,
+            "success": true,
+            "provision_id": "2e8910fc-eb11-4573-8ed5-3fce80b7d86e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 203.33978500275407,
+            "success": true,
+            "provision_id": "f7e81d41-2757-46d4-99cf-c4774c5bb28b",
+            "error": null
+          }
+        ],
+        "trials": [
+          {
+            "elapsed_ms": 204.9276519974228,
+            "success": true,
+            "provision_id": "b0fab4e1-ce54-4d69-a1ca-13aad6999085",
+            "error": null
+          },
+          {
+            "elapsed_ms": 207.26834000379313,
+            "success": true,
+            "provision_id": "12ec4c57-cc58-4166-b9f1-24eeecf69db0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 190.76959900849033,
+            "success": true,
+            "provision_id": "71565f5d-ad06-4c5d-8995-06957ee111a9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 208.53232199442573,
+            "success": true,
+            "provision_id": "a8bafd0f-098b-4ef4-9940-2a3677366686",
+            "error": null
+          },
+          {
+            "elapsed_ms": 169.22826301015448,
+            "success": true,
+            "provision_id": "c95d1355-e12d-4fff-813d-01a8138e136c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 224.88339799747337,
+            "success": true,
+            "provision_id": "958eeca9-136a-4252-bcf3-ffba922cefc8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 203.84192300844006,
+            "success": true,
+            "provision_id": "ff0e19be-88a5-4fca-8014-23fd371b97ac",
+            "error": null
+          },
+          {
+            "elapsed_ms": 206.56682198750786,
+            "success": true,
+            "provision_id": "7a1efd2b-c0a1-4015-bd4b-558b92819434",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.2996179977199,
+            "success": true,
+            "provision_id": "6ef85ddc-d775-4253-b72a-e99a55f4edca",
+            "error": null
+          },
+          {
+            "elapsed_ms": 232.42431099060923,
+            "success": true,
+            "provision_id": "36a9d014-7fac-47d6-b7a3-1c8148437ab7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.2206639999058,
+            "success": true,
+            "provision_id": "f052eef0-8a81-4ecc-baf0-07911b543df8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 201.5092090005055,
+            "success": true,
+            "provision_id": "25ae7053-7d91-4eeb-bb1e-9de75db5e61d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 236.45866100559942,
+            "success": true,
+            "provision_id": "6d128a29-529b-4634-bd5e-bc36b26ca457",
+            "error": null
+          },
+          {
+            "elapsed_ms": 214.76945299946237,
+            "success": true,
+            "provision_id": "2c7f9aac-b06f-4092-9b5d-3b643decc110",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.63698699558154,
+            "success": true,
+            "provision_id": "2477de9c-1dbb-498b-af50-fc7ab7340c62",
+            "error": null
+          },
+          {
+            "elapsed_ms": 242.65195000043605,
+            "success": true,
+            "provision_id": "546ddd5d-74c9-46b1-a059-b0efda65cba6",
+            "error": null
+          },
+          {
+            "elapsed_ms": 223.1080609926721,
+            "success": true,
+            "provision_id": "f4849d37-6e35-4320-a392-f7b36650cb62",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.37925299000926,
+            "success": true,
+            "provision_id": "a1a987a2-42e4-4992-b7c4-f53b7153c19e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 220.7297630084213,
+            "success": true,
+            "provision_id": "656bb35d-c5df-4db7-b200-f985562a8b1f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 253.68981499923393,
+            "success": true,
+            "provision_id": "0dda1ad3-4013-4ef1-a59e-22e730b9e567",
+            "error": null
+          },
+          {
+            "elapsed_ms": 212.6840179989813,
+            "success": true,
+            "provision_id": "3dbbe70e-2e7d-4961-9aea-26242f1cc472",
+            "error": null
+          },
+          {
+            "elapsed_ms": 214.0755609871121,
+            "success": true,
+            "provision_id": "69deab15-4e99-4d14-97ba-02e5faab33c4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 242.77779400290456,
+            "success": true,
+            "provision_id": "1cba1c5e-2847-4e58-abc8-9b4417933870",
+            "error": null
+          },
+          {
+            "elapsed_ms": 213.45046200440265,
+            "success": true,
+            "provision_id": "b51313dc-b3d2-4f17-aeeb-a57957419477",
+            "error": null
+          },
+          {
+            "elapsed_ms": 203.5886509984266,
+            "success": true,
+            "provision_id": "401a47ea-e06c-4626-86e3-b828e66b1abe",
+            "error": null
+          },
+          {
+            "elapsed_ms": 209.49988599750213,
+            "success": true,
+            "provision_id": "f1eed041-2b03-4973-b79d-06b8e36ea62d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 230.6169619987486,
+            "success": true,
+            "provision_id": "bd5abbfc-e6d6-4c62-babe-e9b875dda627",
+            "error": null
+          },
+          {
+            "elapsed_ms": 218.23310799663886,
+            "success": true,
+            "provision_id": "a1a03095-526f-42f9-82c6-aa8e6b05dc84",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.02127599180676,
+            "success": true,
+            "provision_id": "4d557353-5cfd-428c-9a4c-e785052a92f1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 233.11892300262116,
+            "success": true,
+            "provision_id": "b729fffa-5367-4182-9b03-e6fa218ae815",
+            "error": null
+          },
+          {
+            "elapsed_ms": 204.7523429937428,
+            "success": true,
+            "provision_id": "59910d81-8353-425e-a27f-d8e9d3729d35",
+            "error": null
+          },
+          {
+            "elapsed_ms": 209.44495899311733,
+            "success": true,
+            "provision_id": "01f5fff6-3a9a-4d47-81b4-f68e94aac4a6",
+            "error": null
+          },
+          {
+            "elapsed_ms": 206.7675540019991,
+            "success": true,
+            "provision_id": "a80570db-99c7-48a3-b4f8-20f4c7677480",
+            "error": null
+          },
+          {
+            "elapsed_ms": 250.38283900357783,
+            "success": true,
+            "provision_id": "0c703385-9250-4651-b5ba-cbbf1e9db84e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 206.5797149989521,
+            "success": true,
+            "provision_id": "45d77d5c-529a-41c9-972d-ec8c96d47a2f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 215.55122100107837,
+            "success": true,
+            "provision_id": "266e5c97-321e-4604-9037-c8986c6932b0",
+            "error": null
+          },
+          {
+            "elapsed_ms": 232.60117099562194,
+            "success": true,
+            "provision_id": "bdb99742-54d4-4494-af9e-b062b021e38e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 226.51098799542524,
+            "success": true,
+            "provision_id": "6180c8a9-31cf-4890-9a98-16fc01cae11b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 219.2700169980526,
+            "success": true,
+            "provision_id": "e638fcdc-63a6-42ee-9aec-45961df297b3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 246.19438400259241,
+            "success": true,
+            "provision_id": "14af5383-54eb-4dfd-b4ee-ffe5fc865701",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.37424500053748,
+            "success": true,
+            "provision_id": "acaa87cc-5ed8-4676-8383-0e93956dd646",
+            "error": null
+          },
+          {
+            "elapsed_ms": 212.45759399607778,
+            "success": true,
+            "provision_id": "aef40df9-40cc-4785-8e34-9a1ba57eca7e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 231.795919011347,
+            "success": true,
+            "provision_id": "fb498c24-9c43-418e-9caa-728417526b91",
+            "error": null
+          },
+          {
+            "elapsed_ms": 278.23177799291443,
+            "success": true,
+            "provision_id": "f91291ec-c0aa-47c1-b164-c1db3249e4fc",
+            "error": null
+          },
+          {
+            "elapsed_ms": 221.0220639972249,
+            "success": true,
+            "provision_id": "f349f1f9-ad71-4d80-a686-38944986757e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 226.99576000741217,
+            "success": true,
+            "provision_id": "5f2fda41-c810-4737-804e-a0449719e1c4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 228.99944700475316,
+            "success": true,
+            "provision_id": "cb769ba2-a98b-41db-bf32-ced2d5904290",
+            "error": null
+          },
+          {
+            "elapsed_ms": 228.1575380038703,
+            "success": true,
+            "provision_id": "cefa2846-5b76-4c1d-9d32-ff0d92b085e4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 221.69504000339657,
+            "success": true,
+            "provision_id": "0e1f09e4-73d6-4506-bba6-4d0146a11ee8",
+            "error": null
+          },
+          {
+            "elapsed_ms": 221.76692201173864,
+            "success": true,
+            "provision_id": "0146121c-4595-4430-8482-9fcf05747255",
+            "error": null
+          },
+          {
+            "elapsed_ms": 241.5726339968387,
+            "success": true,
+            "provision_id": "fe3e47a2-7de3-400b-8f80-ee39d4cc5154",
+            "error": null
+          },
+          {
+            "elapsed_ms": 225.2332999923965,
+            "success": true,
+            "provision_id": "df3fbc06-ebb1-473f-a985-884802df3506",
+            "error": null
+          },
+          {
+            "elapsed_ms": 230.18236699863337,
+            "success": true,
+            "provision_id": "763fdf0b-a16c-41e7-b2bb-6a7b1e2164cf",
+            "error": null
+          },
+          {
+            "elapsed_ms": 264.653249992989,
+            "success": true,
+            "provision_id": "fd6be1c3-e3f1-46e3-83c7-b67f21296e08",
+            "error": null
+          },
+          {
+            "elapsed_ms": 250.00475699198432,
+            "success": true,
+            "provision_id": "a4eb4e00-17ef-4d76-bb8e-6227391b978e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 225.1528229971882,
+            "success": true,
+            "provision_id": "32056846-81a6-4d92-8cab-82906e2db225",
+            "error": null
+          },
+          {
+            "elapsed_ms": 233.74486299871933,
+            "success": true,
+            "provision_id": "c08d0abe-bfb4-4355-9d90-699fd4a72967",
+            "error": null
+          },
+          {
+            "elapsed_ms": 255.9125420084456,
+            "success": true,
+            "provision_id": "a9a4bd43-cdc2-4ce6-9c32-2f31d1f42050",
+            "error": null
+          },
+          {
+            "elapsed_ms": 239.37989799014758,
+            "success": true,
+            "provision_id": "3ec86e71-e5cf-44c2-a66b-fde58a2ae859",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.20401899539866,
+            "success": true,
+            "provision_id": "2edec040-9c3d-436f-9a90-f133179520b4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 262.4202040024102,
+            "success": true,
+            "provision_id": "6a8317d6-7096-41c8-a00f-fe2b673a060e",
+            "error": null
+          },
+          {
+            "elapsed_ms": 241.0860399977537,
+            "success": true,
+            "provision_id": "abe12121-56a8-4ada-9936-8cd415d4b282",
+            "error": null
+          },
+          {
+            "elapsed_ms": 248.2857970026089,
+            "success": true,
+            "provision_id": "3487d2e7-9840-4620-9734-8d5e0c25f06c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 258.6250650056172,
+            "success": true,
+            "provision_id": "3799f493-a4b8-4f85-b4c7-f3800734899c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.16977999312803,
+            "success": true,
+            "provision_id": "2faedc2f-a98a-433b-b01f-caa53d4194ec",
+            "error": null
+          },
+          {
+            "elapsed_ms": 215.42097300698515,
+            "success": true,
+            "provision_id": "1d5eaeb9-6589-46c4-9a13-dea05a7bd23c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 212.2188979992643,
+            "success": true,
+            "provision_id": "7520025e-b4e0-4f16-abb0-dfccc6fda1e4",
+            "error": null
+          },
+          {
+            "elapsed_ms": 247.0769490028033,
+            "success": true,
+            "provision_id": "0ae23e29-c043-41e1-af8c-37e31d4216f7",
+            "error": null
+          },
+          {
+            "elapsed_ms": 225.07433900318574,
+            "success": true,
+            "provision_id": "b6f10743-7e70-43f3-a3f0-a43b81175e38",
+            "error": null
+          },
+          {
+            "elapsed_ms": 216.72909200424328,
+            "success": true,
+            "provision_id": "5fc8d181-cb69-46e0-b240-f6be28a2ce79",
+            "error": null
+          },
+          {
+            "elapsed_ms": 240.34449299506377,
+            "success": true,
+            "provision_id": "b3cc94f8-33ec-4ed1-8f85-ec1821e2a80b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 214.65470199473202,
+            "success": true,
+            "provision_id": "4e9be76b-24d0-4285-9a3b-bf1116f416af",
+            "error": null
+          },
+          {
+            "elapsed_ms": 213.63914200628642,
+            "success": true,
+            "provision_id": "ece2168f-c51a-47c0-a4d2-ab5a2130b258",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.7647700055968,
+            "success": true,
+            "provision_id": "f571d8fe-9618-4d5e-8f1e-0a65590b89f5",
+            "error": null
+          },
+          {
+            "elapsed_ms": 245.74883699824568,
+            "success": true,
+            "provision_id": "dcb9de60-d68d-4d5e-ac71-cb7d73a17e48",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.0600500004366,
+            "success": true,
+            "provision_id": "b44d605c-5703-433a-9f53-5b23206a2a90",
+            "error": null
+          },
+          {
+            "elapsed_ms": 222.83428101218306,
+            "success": true,
+            "provision_id": "9714d560-0a6f-457d-a023-1f11bfc970fe",
+            "error": null
+          },
+          {
+            "elapsed_ms": 237.10188499535434,
+            "success": true,
+            "provision_id": "736fe889-9337-4010-b3e2-49d3e8efb2b3",
+            "error": null
+          },
+          {
+            "elapsed_ms": 232.44519899890292,
+            "success": true,
+            "provision_id": "08a2c08a-88a5-4305-96c3-3c773b76af29",
+            "error": null
+          },
+          {
+            "elapsed_ms": 220.8583500032546,
+            "success": true,
+            "provision_id": "992dd7c4-9c1f-4c8d-ad27-3904f0e5f65d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 243.75276500359178,
+            "success": true,
+            "provision_id": "d4c3d26b-75f4-4d6b-ab9f-c12260d78465",
+            "error": null
+          },
+          {
+            "elapsed_ms": 223.86333301255945,
+            "success": true,
+            "provision_id": "877a1997-dd9f-459a-81ce-8ca4dade8df9",
+            "error": null
+          },
+          {
+            "elapsed_ms": 214.84956800122745,
+            "success": true,
+            "provision_id": "43326514-dc56-4c95-89a7-273ef091449c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 228.04511099820957,
+            "success": true,
+            "provision_id": "afffe3ca-7fd1-45dc-93d5-515ff509ac5a",
+            "error": null
+          },
+          {
+            "elapsed_ms": 245.40981200698297,
+            "success": true,
+            "provision_id": "f11241c1-2e1a-41b4-8301-f691a646079f",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.28280799288768,
+            "success": true,
+            "provision_id": "c8fcb092-ce3a-4c88-8bf0-47682e7e68eb",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.48106999439187,
+            "success": true,
+            "provision_id": "d18f78e3-ea6b-4c8e-8c6d-2c3f5223f7ef",
+            "error": null
+          },
+          {
+            "elapsed_ms": 240.47716999484692,
+            "success": true,
+            "provision_id": "ab70ee4b-c61f-480d-9187-a4292c58b8c1",
+            "error": null
+          },
+          {
+            "elapsed_ms": 235.7154659985099,
+            "success": true,
+            "provision_id": "b06a06c2-1df2-4852-8388-855e65e9797d",
+            "error": null
+          },
+          {
+            "elapsed_ms": 220.43147799558938,
+            "success": true,
+            "provision_id": "7da896c9-8aaf-4c06-ac2f-58425a4333df",
+            "error": null
+          },
+          {
+            "elapsed_ms": 219.96684098849073,
+            "success": true,
+            "provision_id": "5f1661d2-090a-4a4e-b143-01e041124a61",
+            "error": null
+          },
+          {
+            "elapsed_ms": 246.456616994692,
+            "success": true,
+            "provision_id": "9dbb876c-8891-4c9b-b7b1-81c152ad7f23",
+            "error": null
+          },
+          {
+            "elapsed_ms": 214.35727299831342,
+            "success": true,
+            "provision_id": "b2125680-1bf1-4abf-bb16-895911c6620b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 227.72878500109073,
+            "success": true,
+            "provision_id": "69493a99-9737-4516-a7d8-41e14583498b",
+            "error": null
+          },
+          {
+            "elapsed_ms": 237.06228600349277,
+            "success": true,
+            "provision_id": "562ddc81-ceea-47de-a49e-413aa67b0c29",
+            "error": null
+          },
+          {
+            "elapsed_ms": 212.78230600000825,
+            "success": true,
+            "provision_id": "7109f146-f646-44fe-8517-aa2c64285428",
+            "error": null
+          },
+          {
+            "elapsed_ms": 215.06309098913334,
+            "success": true,
+            "provision_id": "06cfd72b-cb7c-4781-a60d-d6774ad0a384",
+            "error": null
+          },
+          {
+            "elapsed_ms": 250.71967901021708,
+            "success": true,
+            "provision_id": "04115204-ab56-4264-b1f1-1309413ee898",
+            "error": null
+          },
+          {
+            "elapsed_ms": 225.87023900996428,
+            "success": true,
+            "provision_id": "bc1df3dc-4671-4109-bd83-be0ab2e7599c",
+            "error": null
+          },
+          {
+            "elapsed_ms": 217.5741620012559,
+            "success": true,
+            "provision_id": "cc5eeb01-5ec0-4781-9912-223932f7bfb2",
+            "error": null
+          }
+        ]
+      }
+    ],
+    "finished_at": "2026-10-26T11:56:33.073540+00:00"
+  },
+  "list_api": {
+    "elapsed_s": 0.29444598099507857,
+    "samples_s": [
+      0.3016959840024356,
+      0.29176921700127423,
+      0.3237031409953488,
+      0.2898162720084656,
+      0.29444598099507857
+    ],
+    "median_s": 0.29444598099507857,
+    "max_s": 0.3237031409953488,
+    "count": 1000,
+    "timeout_s": 30,
+    "measurement": "MemoryClient.list_memories; full typed response; five consecutive calls after runner"
+  },
+  "preparation": {
+    "method": "Docker UTC access-log response-header boundaries; includes driver and listing preflight; excludes typed body validation; same method as PR #103",
+    "first_100_s": 14.972727,
+    "additional_900_s": 135.511745,
+    "additional_900_submission_s": 59.375393,
+    "remaining_indexing_and_listing_s": 76.136352,
+    "additional_900_start": "2026-10-26T11:53:54.112397221Z",
+    "additional_900_end": "2026-10-26T11:56:09.624142755Z",
+    "cumulative_1000_s": 150.48447199999998
+  },
+  "source_sha256": {
+    "tests/st/performance.py": "4f8fefa42bda914ffa286dea9d984f0262d9897602fef103b3310ab695545423",
+    "tests/st/support.py": "aabf7118a1782ac1545bf454b2dcd7c653e1ed0a5bd19906d82f9863531aef58",
+    "tests/st/latency.py": "4994c757d354361576ce92fc2c15d3e094bef1a99a8382921cde8989049dae7e",
+    "tools/core_st_db.py": "ae8a05fc0e0fbac1ad8b7421f851ccc0559bf3ce6e61326b9dca8c452ce9c658",
+    "compose.core-st.yml": "7f015aac3527574e102d1817c2b1b5e9175726596bf27fbbfa29169d97cdeefe",
+    "compose.core-st.performance.yml": "8ad353ded939ffd4e0b3e28948fae96dd6a2058c526d4804e9bcebe6795337e9"
+  },
+  "image_source_hashes_match": true,
+  "manifest_sha256": "1d1085e89f3908098a2ed4d663c41f01f0d06b83a6c3df7f5f097aac01afd473",
+  "model_server_image": "sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+  "model_server_arguments": [
+    "[\"--model\",\"/models/bge-m3-q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"cls\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18049\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7",
+    "[\"--model\",\"/models/bge-reranker-v2-m3-Q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"rank\",\"--reranking\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18050\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7"
+  ],
+  "quality": {
+    "ruff_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ruff_format_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PARTIAL"
+  },
+  "cleanup": {
+    "status": "NOT RUN"
+  },
+  "not_run": [
+    "10000 items",
+    "cold-start",
+    "concurrency > 1",
+    "long inputs or real data",
+    "model quality reevaluation",
+    "server setting comparison",
+    "functional ST rerun",
+    "old revision full server HTTP comparison",
+    "projection_neighbors performance in closure/deletion path"
+  ],
+  "comparison_pr103": {
+    "100": {
+      "p50_delta_ms": 16.740798004320823,
+      "p95_delta_ms": 8.750690991291776
+    },
+    "1000": {
+      "p50_delta_ms": -0.44738600263372064,
+      "p95_delta_ms": 1.4087869931245223
+    },
+    "list_api_delta_s": 0.03750510398822371,
+    "additional_900_delta_s": 17.300454999999985,
+    "cumulative_1000_delta_s": 18.464662999999973,
+    "baseline_revision": "df28f4e43fd3693073e10246ba02aa70addb40bb"
+  },
+  "verified_local_model_sha256": {
+    "embedding": "aa473d51f451a22f0fcf39ba3330c14bed38a385712b1113440f69df4047a173",
+    "reranker": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3"
+  },
+  "evidence_sha256": {
+    "build.log": "64eea8f2dc39188a74a91df67ec3a92d665de0176570b4cf2952b68e344c70aa",
+    "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
+    "embedding-start.log": "fbc106269307a8fd30ed11d35de79c8d7a0c30da2395f4dba792491cd86ce5b3",
+    "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "list-timing.json": "51acbc5ea552e5fc71fae923bfbc22891cd0dcfd677c3e2255b3ac4701777cb8",
+    "manifest-before.sha256": "a489be28051b125e2d6f54483d178bfc6932d374127e5a83cf5db95b5198448c",
+    "manifest.json": "1d1085e89f3908098a2ed4d663c41f01f0d06b83a6c3df7f5f097aac01afd473",
+    "memory.log": "f7d4358ff642ef96cb52beb6bfe275684a132e616a7d67ffe7e1e6ff355eeaba",
+    "model-digests.json": "6f2f31bd8318f308562823d20dcb950a313ccc3030866bdd2c5a81a1028ea801",
+    "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "performance.json": "dd23c7c8ce013d9ac0af2767adde6afa10d7330bfe288dd55f228aaa7379c6a5",
+    "quality.json": "7e24bd853635a28f9baf07072f3d276c70b0388742c0b97b54f0db1e9c1736e7",
+    "ready.txt": "d7d39f0df1dd2bfbc722cee1d65fd0a4183ff8aa4855cb42b41d0196a2bbae31",
+    "reranker-start.log": "5ed2a8a6d352636542ae0afb6fe46a9f2084a11646f44e226d9647a663b4dcf4",
+    "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "runner.log": "8c401c83df30974d25dd25335f15a9dba930271e5f264d3297a943eb5829a646",
+    "source-hashes.json": "926d8b9471f32d4d3fc28f630c2e6702a4dbed135c2327b80921444cdce2b497",
+    "start.log": "5cef316408a3d82ecf145c6a5c2374fd05e745299cdc7e826824b51ff4b6a755",
+    "sync.log": "afbdcfa637f870ea59607cb992b26d09aaef993731a2c5784a26890a68a7aa80"
+  }
+}
