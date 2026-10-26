@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.adapters.postgres_retrieval import PostgresRetrievalStore
 from digital_souls_memory.api import create_app
-from digital_souls_memory.memory.domain import ExtractionProposal, MemoryRelation
+from digital_souls_memory.memory.domain import DerivedMemory, ExtractionProposal, MemoryRelation
 from digital_souls_memory.memory.projection import collect_evidence, projection_input
 from digital_souls_memory.memory.use_cases import MemoryService
 from digital_souls_memory.recall.inputs import InputLabel, LocalOnly
@@ -29,6 +29,8 @@ from tests.restatement_sequences import (
     coexisting_relations_sequence,
     duplicate_fact_sequence,
     effect_reextraction_sequence,
+    extends_reply_deletion_sequence,
+    extends_target_retry_deletion_sequence,
     extract,
     fresh_metadata,
     generated_sequence,
@@ -40,6 +42,18 @@ from tests.restatement_sequences import (
 )
 
 pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
+
+
+def test_extends_history_survives_reply_context_deletion(database_url: str) -> None:
+    saved = replay(database_url, extends_reply_deletion_sequence())
+    assert saved["d"].superseded_at == RECORDED
+
+
+def test_unapplied_extends_does_not_reinforce_retried_then_deleted_target(
+    database_url: str,
+) -> None:
+    saved = replay(database_url, extends_target_retry_deletion_sequence())
+    assert saved["c"].last_reinforced_at is None
 
 
 @pytest.mark.parametrize("same_target", [False, True])
@@ -215,7 +229,7 @@ def test_withdrawal_exploration_regressions(
     replay(database_url, operations)
 
 
-def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
+def replay(database_url: str, operations: tuple[Operation, ...]) -> dict[str, DerivedMemory]:
     evidence = seed_evidence(database_url)
     store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
     worker = make_worker(database_url, store, gateway)
@@ -377,6 +391,9 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
                 ), context
                 if "unrelated" in active:
                     unrelated_index = document_states(database_url)["unrelated"]
+
+    with store.transaction("char-b") as tx:
+        return {v.id: v for v in tx.memories()}
 
 
 @pytest.mark.parametrize("relation_type", ["derives", "updates", "contradicts"])

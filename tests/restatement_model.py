@@ -317,8 +317,11 @@ class Ledger:
                 remaining = ()
             if remaining and recalculation != "unavailable":
                 base = temporal[identifier]
-                if identifier not in self.baselines and not any(
-                    v.id == identifier for values in self.candidates.values() for v in values
+                if identifier not in self.baselines and (
+                    any(r.from_id == identifier and r.type == "extends" for r in applied)
+                    or not any(
+                        v.id == identifier for values in self.candidates.values() for v in values
+                    )
                 ):
                     base = replace(base, superseded_at=body.superseded_at)
                 self.baselines[identifier] = replace(
@@ -347,7 +350,7 @@ class Ledger:
                         continue
                     candidates = {v.id: v for v in owner.bodies}
                     for relation, candidate in (
-                        *((r, candidates[r.from_id]) for r in owner.relations),
+                        *((r, candidates[r.from_id]) for r in owner.relations if r in applied),
                         *owner.effects,
                     ):
                         if relation.to_id == identifier and relation.type == "extends":

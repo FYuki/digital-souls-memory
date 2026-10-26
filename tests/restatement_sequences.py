@@ -55,6 +55,32 @@ def extract(identifier: str, origin: str, object_value: str) -> Operation:
     )
 
 
+def extends_reply_deletion_sequence() -> tuple[Operation, ...]:
+    target = extract("c", "target-source", "water")
+    reply = replace(
+        extract("d", "reply-source", "coffee"),
+        occurred_at=OCCURRED + timedelta(minutes=2),
+        reply_to_turn_id=target.origin,
+        relations=(MemoryRelation(from_id="d", to_id="c", type="extends"),),
+    )
+    return (target, reply, Operation("delete", target.origin))
+
+
+def extends_target_retry_deletion_sequence() -> tuple[Operation, ...]:
+    target = extract("c", "target-source", "water")
+    extension = replace(
+        extract("d", "extension-source", "coffee"),
+        occurred_at=OCCURRED + timedelta(minutes=2),
+        relations=(MemoryRelation(from_id="d", to_id="c", type="extends"),),
+    )
+    return (
+        target,
+        extension,
+        Operation("retry", target.origin),
+        Operation("delete", target.origin),
+    )
+
+
 def revived_fact_sequence() -> tuple[Operation, ...]:
     x = extract("x", "source-x", "coffee")
     y = replace(
