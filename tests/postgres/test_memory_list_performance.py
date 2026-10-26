@@ -120,6 +120,8 @@ def test_http_list_candidate_lookup_avoids_correlated_work_at_one_thousand_memor
     execute = cast(Callable[..., psycopg.Cursor[DictRow]], psycopg.Cursor.execute)
     queries: list[tuple[str, Params | None]] = []
     durations: list[float] = []
+    all_queries: list[tuple[str, Params | None]] = []
+    all_durations: list[float] = []
 
     def observed_execute(
         cursor: psycopg.Cursor[DictRow],
@@ -140,9 +142,12 @@ def test_http_list_candidate_lookup_avoids_correlated_work_at_one_thousand_memor
         )
         started = perf_counter()
         result = execute(cursor, query, params, prepare=prepare, binary=binary)
+        elapsed = perf_counter() - started
+        all_queries.append((str(rendered), params))
+        all_durations.append(elapsed)
         if target:
             queries.append((cast(str, rendered), params))
-            durations.append(perf_counter() - started)
+            durations.append(elapsed)
         return result
 
     observations: dict[int, dict[str, int | float]] = {}
@@ -154,10 +159,14 @@ def test_http_list_candidate_lookup_avoids_correlated_work_at_one_thousand_memor
         assert client.get("/characters/char-b/memories").status_code == 200
         samples: list[float] = []
         counts: list[int] = []
+        all_samples: list[float] = []
+        all_counts: list[int] = []
         http_times: list[float] = []
         for _ in range(3):
             queries.clear()
             durations.clear()
+            all_queries.clear()
+            all_durations.clear()
             with monkeypatch.context() as patch:
                 patch.setattr(psycopg.Cursor, "execute", observed_execute)
                 started = perf_counter()
@@ -169,6 +178,8 @@ def test_http_list_candidate_lookup_avoids_correlated_work_at_one_thousand_memor
             assert queries, "The HTTP request must exercise the production candidate lookup"
             samples.append(sum(durations))
             counts.append(len(queries))
+            all_samples.append(sum(all_durations))
+            all_counts.append(len(all_queries))
         plans = explain_queries(app_database_url, queries)
         repeated_subplans[count] = [
             cast(dict[str, object], node)
@@ -180,6 +191,8 @@ def test_http_list_candidate_lookup_avoids_correlated_work_at_one_thousand_memor
         observations[count] = {
             "queries": max(counts),
             "sql_seconds": median(samples),
+            "all_queries": max(all_counts),
+            "all_sql_seconds": median(all_samples),
             "http_seconds": median(http_times),
             "correlated_loops": max(
                 (cast(int, node["Actual Loops"]) for node in repeated_subplans[count]), default=0
@@ -190,6 +203,21 @@ def test_http_list_candidate_lookup_avoids_correlated_work_at_one_thousand_memor
         }
         record_property(f"candidate_lookup_{count}", observations[count])
         record_property(f"candidate_lookup_plans_{count}", plans)
+        candidate_plans = explain_queries(
+            app_database_url,
+            [
+                (query, params)
+                for query, params in all_queries
+                if query.lstrip().upper().startswith(("SELECT", "WITH"))
+                and "FROM memory_candidates c " in query
+                and "memory_extractions" in query
+            ],
+        )
+        record_property(f"candidate_plans_{count}", candidate_plans)
+        record_property(
+            f"all_sql_timings_{count}",
+            list(zip((query for query, _ in all_queries), all_durations, strict=True)),
+        )
         print(f"candidate-lookup count={count}: {observations[count]}")
     assert observations[1000]["queries"] <= observations[100]["queries"], observations
     # Reject proportional latency growth; the 10ms allowance absorbs sub-ms timer noise.
@@ -197,6 +225,11 @@ def test_http_list_candidate_lookup_avoids_correlated_work_at_one_thousand_memor
         observations
     )
     assert not any(repeated_subplans.values()), repeated_subplans
+    assert observations[1000]["all_queries"] <= observations[100]["all_queries"], observations
+    # Detect the reported ~840ms regression with headroom for CI scheduling noise.
+    assert observations[1000]["all_sql_seconds"] <= (
+        5 * observations[100]["all_sql_seconds"] + 0.050
+    ), observations
 
 
 class ListDatabaseMeasurements:
