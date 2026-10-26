@@ -9,11 +9,13 @@ import psycopg
 import pytest
 from psycopg import sql
 from psycopg.abc import Params, Query
-from psycopg.rows import DictRow
+from psycopg.rows import DictRow, dict_row
 
+from digital_souls_memory.adapters.memory_records import restore_memory
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.memory.domain import ExtractionProposal, MemoryRelation
+from digital_souls_memory.memory.ports import MemoryContribution
 from digital_souls_memory.memory.relations import equivalent_ids
 from tests.evidence_support import RECORDED, session, turn
 from tests.it1.test_memory_extraction import RecordingGateway
@@ -28,6 +30,90 @@ from tests.postgres.test_memory_fact_lookup import explain_queries, plan_nodes
 from tests.postgres.test_recall_indexing import register_characters
 
 pytestmark = pytest.mark.postgres
+
+
+def test_selected_candidates_match_previous_query_and_preserve_complete_values(
+    database_url: str,
+) -> None:
+    register_characters()
+    evidence = PostgresEvidenceStore(database_url)
+    evidence.add_session(session(reports_delivery=False))
+    for origin in ("turn-1", "other-origin", "unfinished", "source-a", "source-z"):
+        evidence.add_turn(turn(origin, actor="user-a"))
+    worker = extraction_worker(database_url)
+    worker.process("char-b", "turn-1")
+    store = worker.service.store
+    state = store.get_extraction("char-b", "turn-1")
+    assert state is not None and state.status == "done", state
+    base = replace(memory("summary"), id="z", source_turn_ids=("source-z", "source-a"))
+    later_record = replace(base, id="a", recorded_at=base.recorded_at + timedelta(seconds=1))
+    later_valid = replace(base, id="b", valid_from=base.valid_from + timedelta(seconds=1))
+    tied = replace(base, id="y")
+    unfinished = replace(base, id="not-done")
+    with store.transaction("char-b") as tx:
+        tx.set_candidates("turn-1", (later_record, tied, base), dependencies=())
+        tx.save_extraction(replace(state, turn_id="other-origin"))
+        tx.set_candidates("other-origin", (later_valid,), dependencies=())
+        tx.save_extraction(replace(state, turn_id="unfinished", status="retry"))
+        tx.set_candidates("unfinished", (unfinished,), dependencies=())
+    with store.transaction("char-c") as tx:
+        for origin in ("turn-1", "unfinished"):
+            tx.save_extraction(replace(state, character_id="char-c", turn_id=origin))
+        tx.set_candidates(
+            "turn-1",
+            (replace(base, character_id="char-c", content="別キャラの本文"),),
+            dependencies=(),
+        )
+    complete = (
+        MemoryContribution("turn-1", tied),
+        MemoryContribution("turn-1", base),
+        MemoryContribution("turn-1", later_record),
+        MemoryContribution("other-origin", later_valid),
+    )
+    for selected in (
+        None,
+        frozenset(),
+        frozenset({"absent"}),
+        frozenset({"z", "b", "not-done", "absent"}),
+        frozenset({"z", "y", "a", "b", "not-done"}),
+    ):
+        identifiers = None if selected is None else list(selected)
+        # The previous SQL is an independent oracle, never a production fallback.
+        with psycopg.connect(database_url, row_factory=dict_row) as connection:
+            rows = connection.execute(
+                "SELECT c.turn_id,c.memory_id,c.payload FROM memory_candidates c "
+                "JOIN memory_extractions e USING(character_id,turn_id) "
+                "WHERE c.character_id=%s AND e.status='done' "
+                "AND (%s::text[] IS NULL OR c.memory_id=ANY(%s))",
+                ("char-b", identifiers, identifiers),
+            ).fetchall()
+            sources = connection.execute(
+                "SELECT memory_id,turn_id FROM memory_candidate_sources "
+                "WHERE character_id=%s ORDER BY memory_id,position",
+                ("char-b",),
+            ).fetchall()
+        previous = tuple(
+            sorted(
+                (
+                    MemoryContribution(
+                        row["turn_id"],
+                        restore_memory(
+                            row["payload"],
+                            tuple(
+                                s["turn_id"] for s in sources if s["memory_id"] == row["memory_id"]
+                            ),
+                        ),
+                    )
+                    for row in rows
+                ),
+                key=lambda v: (v.memory.valid_from, v.memory.recorded_at, v.memory.id),
+            )
+        )
+        expected = tuple(v for v in complete if selected is None or v.memory.id in selected)
+        assert previous == expected
+        with store.transaction("char-b") as tx:
+            actual = tx.candidates(selected)
+        assert actual == previous
 
 
 @pytest.mark.parametrize("kind", ["fact", "summary"])

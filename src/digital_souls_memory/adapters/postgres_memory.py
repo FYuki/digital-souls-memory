@@ -665,13 +665,20 @@ class _MemoryTransaction:
     def candidates(
         self, identifiers: frozenset[str] | None = None
     ) -> tuple[MemoryContribution, ...]:
-        selected = None if identifiers is None else list(identifiers)
+        selected_join = (
+            sql.SQL("")
+            if identifiers is None
+            else sql.SQL(
+                "JOIN unnest(%s::text[]) selected(memory_id) ON selected.memory_id=c.memory_id "
+            )
+        )
         rows = self.connection.execute(
-            "SELECT c.turn_id,c.memory_id,c.payload FROM memory_candidates c "
-            "JOIN memory_extractions e "
-            "USING(character_id,turn_id) WHERE c.character_id=%s AND e.status='done' "
-            "AND (%s::text[] IS NULL OR c.memory_id=ANY(%s))",
-            (self.character_id, selected, selected),
+            sql.SQL(
+                "SELECT c.turn_id,c.memory_id,c.payload FROM memory_candidates c "
+                "JOIN memory_extractions e USING(character_id,turn_id) "
+                "{}WHERE c.character_id=%s AND e.status='done'"
+            ).format(selected_join),
+            (self.character_id,) if identifiers is None else (list(identifiers), self.character_id),
         ).fetchall()
         sources = self._source_map("memory_candidate_sources", [r["memory_id"] for r in rows])
         values = [
