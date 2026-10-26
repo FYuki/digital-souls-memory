@@ -1,8 +1,10 @@
 """Direct contracts of the independent ledger, generator and relation withdrawal selection."""
 
+from collections.abc import Iterable, Set
 from dataclasses import replace
 from datetime import timedelta
-from typing import cast
+from random import Random
+from typing import TypeVar, cast
 from unittest.mock import MagicMock
 
 import psycopg
@@ -10,6 +12,14 @@ import pytest
 from psycopg.rows import DictRow
 
 from digital_souls_memory.adapters.postgres_deletion import PostgresDeletionStore
+from digital_souls_memory.governance.domain import (
+    DeletionAttempt,
+    DeletionCommand,
+    DeletionRequest,
+    DeletionSnapshot,
+    MemoryCopy,
+    MemoryReplacement,
+)
 from digital_souls_memory.memory.domain import DerivedMemory, MemoryRelation
 from digital_souls_memory.memory.ports import MemoryContribution
 from tests.evidence_support import RECORDED, turn
@@ -17,7 +27,9 @@ from tests.restatement_model import Ledger, canonical, live, semantic_attributes
 from tests.restatement_sequences import (
     ObservationMismatch,
     Operation,
+    _advance_ledger,
     compare,
+    continue_sequence,
     event_times,
     extract,
     fresh_metadata,
@@ -31,6 +43,324 @@ from tests.restatement_sequences import (
 )
 
 pytestmark = pytest.mark.ut
+
+T = TypeVar("T")
+
+
+@pytest.mark.parametrize(
+    "condition",
+    [
+        "accepted",
+        "missing",
+        "inaccessible",
+        "receipt",
+        "range",
+        "deadline",
+        "basis",
+        "retry",
+        "dependencies",
+    ],
+)
+def test_deletion_validates_saved_input_without_reclassifying_surface(condition: str) -> None:
+    from digital_souls_memory.adapters.postgres_projection_evidence import _accepted_origins
+    from digital_souls_memory.memory.projection import collect_evidence, projection_input
+    from digital_souls_memory.memory.use_cases import MemoryService
+    from digital_souls_memory.memory.worker import MemoryWorker
+    from tests.it1.test_memory_extraction import Harness
+    from tests.memory_fakes import FakeMemoryStore
+    from tests.memory_support import memory
+
+    h = Harness(reports_delivery=False)
+    h.evidence.add_turn(turn(actor="user-a"))
+    store = FakeMemoryStore(h.evidence)
+    service = MemoryService(store, h.extractor.inputs, lambda: h.now)
+    MemoryWorker(service, h.extractor).process("char-b", "turn-1")
+    resolved = h.extractor.inputs.resolve("char-b", ("turn-1",))
+    dependencies = {"turn-1": list(resolved.dependencies())}
+    values = {v.turn.turn_id: replace(v, eligible=False) for v in resolved.turns}
+    with store.transaction("char-b") as tx:
+        snapshot = projection_input(tx)
+    value = values["turn-1"]
+    decision = value.decision
+    assert decision is not None and decision.text is not None
+    if condition == "missing":
+        values.clear()
+    elif condition == "inaccessible":
+        values["turn-1"] = replace(value, decision=None)
+    elif condition == "receipt":
+        values["turn-1"] = replace(value, decision=replace(decision, receipt_version=1))
+    elif condition == "range":
+        values["turn-1"] = replace(value, decision=replace(decision, text=decision.text[:-1]))
+    elif condition == "deadline":
+        values["turn-1"] = replace(
+            value, decision=replace(decision, deadline=decision.deadline + timedelta(seconds=1))
+        )
+    elif condition == "basis":
+        values["turn-1"] = replace(value, decision=replace(decision, basis="pending"))
+    elif condition == "retry":
+        state = snapshot.states["turn-1"]
+        assert state is not None
+        snapshot = replace(snapshot, states={"turn-1": replace(state, status="retry")})
+    elif condition == "dependencies":
+        dependencies.clear()
+    valid = _accepted_origins(snapshot, values, dependencies)
+    assert valid == (frozenset({"turn-1"}) if condition == "accepted" else frozenset())
+    evidence = collect_evidence(snapshot, "char-b", service.inputs)
+    inputs = {
+        "turn-1": replace(resolved, turns=tuple(replace(v, eligible=False) for v in resolved.turns))
+    }
+    evidence = replace(evidence, inputs=inputs)
+    assert evidence.project(snapshot, h.now).projected_ids == frozenset()
+    projected = replace(evidence, validated_origins=valid).project(snapshot, h.now)
+    assert projected.projected_ids == (frozenset({memory().id}) if valid else frozenset())
+
+
+def test_generator_ledger_tracks_retry_reextraction_and_failed_deletion_retry() -> None:
+    ledger = Ledger(RECORDED)
+    base = minimal_sequence("derives", origin_first=True, actor="user-b")
+    for op in base[:3]:
+        _advance_ledger(ledger, op)
+    source = ledger.turns["turn-b"]
+    _advance_ledger(ledger, Operation("retry", "turn-b"))
+    assert ledger.saved["a"].source_turn_ids == ("turn-1",)
+    _advance_ledger(ledger, replace(base[2], occurred_at=RECORDED))
+    assert ledger.turns["turn-b"] == source
+    _advance_ledger(ledger, Operation("delete", "turn-1", recalculation="fail"))
+    assert "turn-1" not in ledger.turns
+    assert ledger.saved["a"].source_turn_ids == ("turn-b",)
+
+
+def test_ledger_deletion_removes_relations_to_invalidated_historical_ids() -> None:
+    ledger = Ledger(RECORDED)
+    base = minimal_sequence("extends", origin_first=True, actor="user-b")
+    renamed = replace(base[0], bodies=(fresh_metadata(base[0].bodies[0], identifier="renamed"),))
+    for op in (*base[:2], renamed):
+        _advance_ledger(ledger, op)
+    assert ledger.expected()[1] == {MemoryRelation(from_id="a", to_id="renamed", type="extends")}
+    _advance_ledger(ledger, Operation("delete", "turn-c"))
+    assert ledger.expected()[1] == set()
+    assert ledger.saved["a"].superseded_at is None
+    assert ledger.saved["renamed"].superseded_at == RECORDED
+
+
+def test_ledger_withdraws_reply_contribution_when_its_context_is_deleted() -> None:
+    ledger = Ledger(RECORDED)
+    root = extract("a", "root", "coffee")
+    reply = replace(extract("b", "reply", "coffee"), reply_to_turn_id="root")
+    for op in (root, reply, Operation("delete", "root")):
+        _advance_ledger(ledger, op)
+    assert ledger.saved == {}
+
+
+def test_ledger_extends_keeps_the_latest_surviving_event_time() -> None:
+    ledger = Ledger(RECORDED)
+    root = extract("c", "root", "water")
+    newer = replace(extract("a", "newer", "coffee"), occurred_at=RECORDED)
+    older = extract("b", "older", "tea")
+    for op in (root, newer, older):
+        if op is not root:
+            op = replace(
+                op, relations=(MemoryRelation(from_id=op.bodies[0].id, to_id="c", type="extends"),)
+            )
+        _advance_ledger(ledger, op)
+    assert ledger.saved["c"].last_reinforced_at == RECORDED
+
+
+def test_ledger_recalculated_saved_history_drops_withdrawn_reinforcement_time() -> None:
+    ledger = Ledger(RECORDED)
+    for op in (
+        extract("a", "root", "coffee"),
+        extract("b", "support", "coffee"),
+        Operation("retry", "root"),
+        Operation("retry", "support"),
+        Operation("delete", "root"),
+    ):
+        _advance_ledger(ledger, op)
+    assert ledger.saved["a"].source_turn_ids == ("support",)
+    assert ledger.saved["a"].last_reinforced_at is None
+
+
+def test_ledger_withdraws_last_contribution_before_applying_extends() -> None:
+    ledger = Ledger(RECORDED)
+    base = minimal_sequence("extends", origin_first=True, actor="user-b")
+    support = replace(extract("b", "support", "water"), reply_to_turn_id="turn-1")
+    for op in (*base[:2], support, Operation("delete", "turn-c"), Operation("delete", "support")):
+        _advance_ledger(ledger, op)
+    assert "c" not in ledger.saved
+    assert ledger.saved["a"].superseded_at is None
+
+
+@pytest.mark.parametrize("count", [5_000, 10_000, 20_000])
+def test_deletion_collects_withdrawn_ids_with_linear_copy_work(
+    monkeypatch: pytest.MonkeyPatch, count: int
+) -> None:
+    from digital_souls_memory.adapters import postgres_deletion
+
+    copied = 0
+
+    class MeasuredFrozenSet(frozenset[str]):
+        def __new__(cls, values: Iterable[str] = ()) -> "MeasuredFrozenSet":
+            nonlocal copied
+            result = super().__new__(cls, values)
+            copied += len(result)
+            return result
+
+        def __or__(self, other: Set[T]) -> frozenset[str | T]:
+            nonlocal copied
+            copied += len(self) + len(other)
+            result = super().__or__(other)
+            # Keep observing subsequent unions, including copies of previous results.
+            return MeasuredFrozenSet(cast(Iterable[str], result))
+
+    class Collected(Exception):
+        pass
+
+    template = extract("a", "origin", "coffee").bodies[0]
+    copies = tuple(
+        MemoryCopy(
+            table="derived_memories",
+            memory=replace(template, id=f"fact-{n}", character_id=f"char-{n % 2}"),
+        )
+        for n in range(count)
+    )
+    snapshot = DeletionSnapshot(
+        target_turn_ids=("origin",),
+        copies=copies,
+        materials=(),
+        references=(),
+        fingerprint="synthetic",
+        observed_at=RECORDED,
+    )
+    request = DeletionRequest(
+        command=DeletionCommand(request_id="synthetic", target_turn_ids=("origin",)),
+        requested_by="synthetic-author",
+        target_turn_ids=("origin",),
+        status="running",
+        cascade_result=None,
+        error=None,
+        requested_at=RECORDED,
+        completed_at=None,
+    )
+    attempt = DeletionAttempt(request=request, token="synthetic-token", snapshot=snapshot)
+    connection = MagicMock()
+    connection.execute.return_value.fetchone.return_value = {
+        "status": "running",
+        "token": attempt.token,
+        "lease_until": RECORDED + timedelta(minutes=5),
+        "requested_by": request.requested_by,
+        "target_turn_ids": request.target_turn_ids,
+    }
+    store = PostgresDeletionStore(
+        "postgresql://synthetic",
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset(),
+        comment_surfaces=frozenset(),
+    )
+    connection_context = MagicMock()
+    connection_context.__enter__.return_value = connection
+    monkeypatch.setattr(store, "_connection", lambda: connection_context)
+    monkeypatch.setattr(store, "_snapshot", lambda *args: snapshot)
+    monkeypatch.setattr(store, "_withdrawn_relations", lambda *args: {})
+    monkeypatch.setattr(postgres_deletion, "_request", lambda row: request)
+    monkeypatch.setattr(postgres_deletion, "frozenset", MeasuredFrozenSet, raising=False)
+    closures: dict[str, frozenset[str]] = {}
+
+    def transaction(conn: object, owner: str) -> MagicMock:
+        tx = MagicMock()
+        tx.relation_effects.return_value = ()
+
+        def neighbors(ids: frozenset[str], excluded: frozenset[str]) -> frozenset[str]:
+            closures[owner] = ids
+            return frozenset()
+
+        tx.projection_neighbors.side_effect = neighbors
+        return tx
+
+    monkeypatch.setattr(postgres_deletion, "_MemoryTransaction", transaction)
+    monkeypatch.setattr(store, "_remove_references", MagicMock(side_effect=Collected))
+    with pytest.raises(Collected):
+        store.commit(
+            attempt,
+            replacements=tuple(MemoryReplacement(copy=c, value=None) for c in copies),
+            now=RECORDED,
+        )
+    assert closures == {
+        owner: frozenset(c.memory.id for c in copies if c.memory.character_id == owner)
+        for owner in ("char-0", "char-1")
+    }
+    assert copied <= count * 12, (count, copied)
+
+
+def test_ledger_deleted_extends_source_never_returns_from_saved_history() -> None:
+    ledger = Ledger(RECORDED)
+    for op in minimal_sequence("extends", origin_first=True, actor="user-a")[:2]:
+        ledger.turns[op.origin] = turn(op.origin, actor=op.actor)
+        ledger.extract(op.origin, op.bodies, op.relations)
+        ledger.checkpoint()
+    assert set(ledger.saved["c"].source_turn_ids) == {"turn-c", "turn-1"}
+    ledger.delete("turn-c")
+    for values, _ in (ledger.expected(), ledger.checkpoint(), ledger.expected()):
+        assert values["c"].source_turn_ids == ("turn-1",)
+        assert values["c"].epistemics.independent_evidence_count == 1
+        assert values["c"].superseded_at == RECORDED
+    assert ledger.saved["c"].source_turn_ids == ("turn-1",)
+
+
+@pytest.mark.parametrize("outcome", ["unavailable", "fail"])
+def test_recalculation_records_invocation_before_none_or_failure(outcome: str) -> None:
+    from digital_souls_memory.memory.ports import MemoryUnavailable
+    from tests.restatement_fakes import SequenceRecalculate
+    from tests.ut.test_deletion_recalculation import material, recalculate
+
+    original = replace(
+        extract("c", "turn-1", "water").bodies[0], source_turn_ids=("turn-1", "turn-2")
+    )
+    gateway = SequenceRecalculate(original)
+    gateway.outcome = outcome
+    if outcome == "fail":
+        with pytest.raises(MemoryUnavailable):
+            recalculate(original, gateway, (material(),))
+    else:
+        assert recalculate(original, gateway, (material(),)).value is None
+    assert [(identifier, kind) for _, identifier, kind in gateway.calls] == [("c", "fact")]
+
+
+@pytest.mark.parametrize("relation_type", ["extends", "derives"])
+def test_continuation_generates_relations_to_existing_different_facts(relation_type: str) -> None:
+    prefix = (extract("c", "turn-c", "water"),)
+    witnessed = False
+    for seed in range(32):
+        sequence = continue_sequence(prefix, Random(seed), steps=40)
+        assert valid_sequence(sequence)
+        bodies = {v.id: v for op in sequence for v in op.bodies}
+        witnessed |= any(
+            r.type == relation_type
+            and (bodies[r.from_id].subject, bodies[r.from_id].predicate, bodies[r.from_id].object)
+            != (bodies[r.to_id].subject, bodies[r.to_id].predicate, bodies[r.to_id].object)
+            for op in sequence[len(prefix) :]
+            for r in op.relations
+        )
+    assert witnessed
+
+
+@pytest.mark.parametrize("outcome", ["unavailable", "fail"])
+def test_continuation_generates_deletion_recalculation_outcomes(outcome: str) -> None:
+    prefix = minimal_sequence("derives", origin_first=True, actor="user-b")[:3]
+    sequences = [continue_sequence(prefix, Random(seed), steps=40) for seed in range(32)]
+    assert all(valid_sequence(sequence) for sequence in sequences)
+    assert any(
+        op.kind == "delete" and op.recalculation == outcome
+        for sequence in sequences
+        for op in sequence[len(prefix) :]
+    )
+
+
+def test_validation_accepts_distinct_candidate_ids_from_distinct_origins() -> None:
+    assert valid_sequence((extract("a", "turn-1", "coffee"), extract("b", "turn-b", "tea")))
+
+
+def test_validation_rejects_candidate_id_reused_by_another_origin() -> None:
+    assert not valid_sequence((extract("a", "turn-1", "coffee"), extract("a", "turn-b", "tea")))
 
 
 @pytest.mark.parametrize(

@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 from random import Random
 
 from digital_souls_memory.memory.domain import DerivedMemory, MemoryRelation
-from tests.evidence_support import OCCURRED
+from tests.evidence_support import OCCURRED, RECORDED, turn
 from tests.memory_support import memory
+from tests.restatement_model import Ledger, live
 
 
 class ObservationMismatch(AssertionError):
@@ -16,6 +17,10 @@ class ObservationMismatch(AssertionError):
         super().__init__(
             f"{context}\nboundary={boundary}\nactual={actual!r}\nexpected={expected!r}"
         )
+
+
+class RecalculationNotInvoked(Exception):
+    """A replay candidate no longer reaches its requested failure injection."""
 
 
 def compare(boundary: str, context: str, actual: object, expected: object) -> None:
@@ -120,6 +125,7 @@ def generated_sequence(seed: int) -> tuple[Operation, ...]:
 def continue_sequence(
     operations: tuple[Operation, ...], rng: Random, *, steps: int
 ) -> tuple[Operation, ...]:
+    ledger = Ledger(RECORDED)
     current: dict[str, Operation] = {}
     for op in operations:
         if op.kind == "extract":
@@ -130,6 +136,7 @@ def continue_sequence(
                 i: replace(v, reply_to_turn_id=None) if v.reply_to_turn_id == op.origin else v
                 for i, v in current.items()
             }
+        _advance_ledger(ledger, op)
     sequence = list(operations)
     while len(sequence) < steps:
         index = len(sequence)
@@ -140,6 +147,22 @@ def continue_sequence(
         )
         if action == "extract":
             op = extract(f"candidate-{index}", f"origin-{index}", f"synthetic-{index}")
+            active = tuple(v for v in ledger.expected()[0].values() if live(v, RECORDED))
+            if active:
+                target = rng.choice(active)
+                if rng.randrange(3) == 0:
+                    op = replace(op, bodies=(replace(op.bodies[0], object=target.object),))
+                elif rng.randrange(2):
+                    op = replace(
+                        op,
+                        relations=(
+                            MemoryRelation(
+                                from_id=op.bodies[0].id,
+                                to_id=target.id,
+                                type=rng.choice(("extends", "derives")),
+                            ),
+                        ),
+                    )
             op = replace(
                 op,
                 actor=rng.choice(("user-a", "user-b")),
@@ -165,7 +188,7 @@ def continue_sequence(
                 replacements = {
                     v.id: new.id for v, new in zip(previous.bodies, renamed, strict=True)
                 }
-                available = {v.id for operation in current.values() for v in operation.bodies}
+                available = {v.id for v in ledger.expected()[0].values() if live(v, RECORDED)}
                 op = replace(
                     previous,
                     bodies=renamed,
@@ -181,7 +204,33 @@ def continue_sequence(
                 )
                 current[origin] = op
             elif action == "delete":
-                op = Operation("delete", origin)
+                withdrawn = {origin} | {
+                    i for i, source in ledger.turns.items() if source.reply_to_turn_id == origin
+                }
+                available_sources = {
+                    v.id: set(ledger.baseline_sources.get(v.id, v.source_turn_ids)) - {origin}
+                    for v in (
+                        *ledger.baselines.values(),
+                        *(v for o in ledger.owners.values() for v in o.bodies),
+                    )
+                }
+                for owner_id, owner in ledger.owners.items():
+                    if owner_id not in withdrawn:
+                        for identifier, sources in owner.sources.items():
+                            available_sources.setdefault(identifier, set()).update(
+                                set(sources) - {origin}
+                            )
+                invokes = any(
+                    origin in v.source_turn_ids and available_sources.get(v.id)
+                    for v in ledger.expected()[0].values()
+                )
+                op = Operation(
+                    "delete",
+                    origin,
+                    recalculation=rng.choice(("preserve", "unavailable", "fail"))
+                    if invokes
+                    else "preserve",
+                )
                 current.pop(origin)
                 current = {
                     i: replace(v, reply_to_turn_id=None) if v.reply_to_turn_id == origin else v
@@ -190,7 +239,29 @@ def continue_sequence(
             else:
                 op = Operation("retry", origin)
         sequence.append(op)
+        _advance_ledger(ledger, op)
     return tuple(sequence)
+
+
+def _advance_ledger(ledger: Ledger, op: Operation) -> None:
+    if op.kind == "extract":
+        ledger.turns.setdefault(
+            op.origin,
+            replace(
+                turn(op.origin, actor=op.actor, reply_to_turn_id=op.reply_to_turn_id),
+                occurred_at=op.occurred_at,
+            ),
+        )
+        ledger.extract(op.origin, op.bodies, op.relations)
+    elif op.kind == "retry":
+        ledger.withdraw(op.origin)
+    elif op.kind == "delete":
+        ledger.delete(
+            op.origin, recalculation="preserve" if op.recalculation == "fail" else op.recalculation
+        )
+    else:
+        raise ValueError(op)
+    ledger.checkpoint()
 
 
 def fresh_metadata(value: DerivedMemory, *, identifier: str) -> DerivedMemory:

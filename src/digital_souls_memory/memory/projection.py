@@ -170,6 +170,7 @@ class ProjectionEvidence:
     turns: dict[str, Turn]
     texts: dict[str, str | None]
     inputs: dict[str, ResolvedInput]
+    validated_origins: frozenset[str] | None = None
 
     def _source_turns(self, identifiers: tuple[str, ...]) -> tuple[Turn, ...]:
         turns = tuple(self.turns.get(identifier) for identifier in identifiers)
@@ -191,29 +192,27 @@ class ProjectionEvidence:
     def project(self, snapshot: ProjectionInput, now: datetime) -> ProjectionResult:
         existing = {v.id: v for v in snapshot.existing}
         generated = snapshot.generated
-        current_origins = {
-            origin
-            for origin in extraction_origins(snapshot)
-            if (state := snapshot.states[origin]) is not None
-            and state.status == "done"
-            and state.signature == self.inputs[origin].signature(snapshot.versions[origin])
-        }
+        current_origins = (
+            set(self.validated_origins)
+            if self.validated_origins is not None
+            else {
+                origin
+                for origin in extraction_origins(snapshot)
+                if (state := snapshot.states[origin]) is not None
+                and state.status == "done"
+                and state.signature == self.inputs[origin].signature(snapshot.versions[origin])
+            }
+        )
         migrated_origins = {
             c.extraction_turn_id
             for c in snapshot.reinforcements
             if snapshot.states[c.extraction_turn_id] is None
         }
-        current_origins |= migrated_origins
         current_ids: set[str] = set()
         for contribution in snapshot.contributions:
-            state = snapshot.states[contribution.turn_id]
-            resolved = self.inputs[contribution.turn_id]
-            if (
-                state is not None
-                and state.status == "done"
-                and state.signature == resolved.signature(snapshot.versions[contribution.turn_id])
-            ):
+            if contribution.turn_id in current_origins:
                 current_ids.add(contribution.memory.id)
+        current_origins |= migrated_origins
         invalid_baselines = {
             identifier
             for identifier, dependencies in snapshot.baseline_dependencies.items()

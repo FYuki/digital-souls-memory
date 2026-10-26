@@ -38,8 +38,10 @@ class SequenceRecalculate(Recalculate):
         self, value: MemoryInput, *, memory_id: str, kind: str
     ) -> DerivedMemory | None:
         if self.outcome == "fail":
+            self.calls.append((value, memory_id, kind))
             raise RuntimeError("Synthetic recalculation failure")
         if self.outcome == "unavailable":
+            self.calls.append((value, memory_id, kind))
             return None
         assert self.outcome == "preserve"
         return super().recalculate_local(value, memory_id=memory_id, kind=kind)
@@ -120,6 +122,12 @@ class SequenceDeletionStore(SharedDeletionStore):
                     if candidate.turn_id in withdrawn:
                         continue
                     for relation in self.memories.proposed.get(("char-b", candidate.turn_id), ()):
+                        history = tx.history(frozenset({relation.from_id, relation.to_id}))
+                        current = tx.candidates_for_turns(
+                            frozenset(c.turn_id for c in history),
+                            history_ids=frozenset(c.memory.id for c in history),
+                        )
+                        (relation,) = resolve_relations((relation,), history, current)
                         if relation.to_id == copy.memory.id and relation.type != "derives":
                             temporal.append(
                                 TemporalEffect(
@@ -266,6 +274,10 @@ class SequenceDeletionStore(SharedDeletionStore):
                 snapshot, now
             )
             save_projection(tx, snapshot, projected)
+            for replacement in replacements:
+                identifier = replacement.copy.memory.id
+                if replacement.value is not None and identifier in projected.memories:
+                    self.memories.originals[("char-b", identifier)] = projected.memories[identifier]
         return result
 
 
@@ -289,6 +301,7 @@ class SequenceIndexStore:
                 space=space,
             )
             for v in current.values()
+            if v.id not in self.published
         )[:limit]
 
     def load(self, work: IndexWork, *, now: datetime) -> IndexInput | None:
