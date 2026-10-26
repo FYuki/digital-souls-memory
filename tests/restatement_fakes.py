@@ -73,6 +73,7 @@ class SequenceDeletionStore(SharedDeletionStore):
         }
         copies = []
         with self.memories.transaction("char-b") as tx:
+            applied = set(tx.applied_relations())
             affected_ids = set().union(*(tx.contribution_ids(origin) for origin in withdrawn))
             affected_ids.update(copy.memory.id for copy in attempt.snapshot.copies)
             while True:
@@ -107,7 +108,9 @@ class SequenceDeletionStore(SharedDeletionStore):
                 base = self.memories.temporal_bases.get(("char-b", copy.memory.id))
                 if base is None:
                     base = candidates[copy.memory.id]
-                    if copy.memory.id not in current_ids:
+                    if copy.memory.id not in current_ids or any(
+                        r.from_id == copy.memory.id and r.type == "extends" for r in applied
+                    ):
                         base = replace(base, superseded_at=copy.memory.superseded_at)
                 temporal = [
                     TemporalEffect(
@@ -128,7 +131,11 @@ class SequenceDeletionStore(SharedDeletionStore):
                             history_ids=frozenset(c.memory.id for c in history),
                         )
                         (relation,) = resolve_relations((relation,), history, current)
-                        if relation.to_id == copy.memory.id and relation.type != "derives":
+                        if (
+                            relation in applied
+                            and relation.to_id == copy.memory.id
+                            and relation.type != "derives"
+                        ):
                             temporal.append(
                                 TemporalEffect(
                                     candidate=candidate.memory,

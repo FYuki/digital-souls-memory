@@ -34,6 +34,8 @@ from tests.restatement_sequences import (
     duplicate_fact_sequence,
     effect_reextraction_sequence,
     event_times,
+    extends_reply_deletion_sequence,
+    extends_target_retry_deletion_sequence,
     extract,
     fresh_metadata,
     generated_sequence,
@@ -49,6 +51,31 @@ from tests.restatement_sequences import (
 pytestmark = pytest.mark.ut
 
 T = TypeVar("T")
+
+
+def test_ledger_preserves_extends_history_after_reply_context_deletion() -> None:
+    ledger = Ledger(RECORDED)
+    operations = extends_reply_deletion_sequence()
+    _advance_ledger(ledger, operations[0])
+    _advance_ledger(ledger, operations[1])
+    assert ledger.saved["d"].superseded_at == RECORDED
+    assert ledger.saved["c"].last_reinforced_at == operations[1].occurred_at
+    _advance_ledger(ledger, operations[2])
+    assert ledger.saved["d"].source_turn_ids == ("reply-source",)
+    assert ledger.saved["d"].superseded_at == RECORDED
+
+
+def test_ledger_excludes_unapplied_extends_time_after_target_retry_and_deletion() -> None:
+    ledger = Ledger(RECORDED)
+    operations = extends_target_retry_deletion_sequence()
+    for op in operations[:2]:
+        _advance_ledger(ledger, op)
+    assert ledger.saved["c"].last_reinforced_at == operations[1].occurred_at
+    _advance_ledger(ledger, operations[2])
+    assert ledger.expected()[1] == set()
+    _advance_ledger(ledger, operations[3])
+    assert ledger.saved["c"].source_turn_ids == ("extension-source",)
+    assert ledger.saved["c"].last_reinforced_at is None
 
 
 def test_ledger_keeps_rewritten_effect_after_reextraction_and_source_deletion() -> None:

@@ -9,7 +9,7 @@ import pytest
 from digital_souls_memory.governance.domain import AuthorPrincipal, DeletionCommand
 from digital_souls_memory.governance.recalculation import MemoryRecalculator
 from digital_souls_memory.governance.use_cases import DeletionService
-from digital_souls_memory.memory.domain import ExtractionProposal
+from digital_souls_memory.memory.domain import DerivedMemory, ExtractionProposal
 from digital_souls_memory.memory.ports import MemoryUnavailable
 from digital_souls_memory.memory.projection import collect_evidence, projection_input
 from digital_souls_memory.recall.worker import IndexWorker
@@ -29,6 +29,8 @@ from tests.restatement_sequences import (
     continue_sequence,
     duplicate_fact_sequence,
     effect_reextraction_sequence,
+    extends_reply_deletion_sequence,
+    extends_target_retry_deletion_sequence,
     extract,
     fresh_metadata,
     generated_sequence,
@@ -42,6 +44,16 @@ from tests.restatement_sequences import (
 )
 
 pytestmark = pytest.mark.it1
+
+
+def test_extends_history_survives_reply_context_deletion() -> None:
+    saved = replay(extends_reply_deletion_sequence())
+    assert saved["d"].superseded_at == RECORDED
+
+
+def test_unapplied_extends_does_not_reinforce_retried_then_deleted_target() -> None:
+    saved = replay(extends_target_retry_deletion_sequence())
+    assert saved["c"].last_reinforced_at is None
 
 
 @pytest.mark.parametrize("same_target", [False, True])
@@ -195,7 +207,7 @@ def test_shrinking_does_not_swallow_unrelated_failure(
         owner.test_generated_extraction_and_retry_match_independent_ledger(5)
 
 
-def replay(operations: tuple[Operation, ...]) -> None:
+def replay(operations: tuple[Operation, ...]) -> dict[str, DerivedMemory]:
     h, store, service, worker = setup_worker()
     ledger = Ledger(RECORDED)
     recalculation = SequenceRecalculate(*(v for op in operations for v in op.bodies))
@@ -299,6 +311,9 @@ def replay(operations: tuple[Operation, ...]) -> None:
             ),
             active,
         )
+
+    with store.transaction("char-b") as tx:
+        return {v.id: v for v in tx.memories()}
 
 
 @pytest.mark.parametrize("seed", range(128))
