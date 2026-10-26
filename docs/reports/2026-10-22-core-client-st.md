@@ -72,6 +72,8 @@ memory-core-st-1792644139-2を明示して手動downで全て除去した。
 
 ## 実モデル性能
 
+PR #107 統合後の[Phase 1 最終確認・一覧API5回計測](2026-10-26-core-st-performance-after-r20.md)と[要約JSON](2026-10-26-core-st-performance-after-r20-summary.json)を参照。runner無変更・終了0、両件数の必達PASS。一覧APIのPR #103比較と目標達否を記録。
+
 **前回FAIL（[実モデル性能レポート](2026-10-22-core-st-performance.md)）**。親が引き継いだ実GPU・実モデルHTTP STでは、
 合成データ100件・warm-up 5回を除く100回すべて成功応答だが、p50 **3,089.064ms** / p95 **3,350.914ms**。
 必達p95 ≤600ms、目標p95 ≤300ms / p50 ≤150msのすべてに未達。1000件は準備中断により **NOT RUN**。
