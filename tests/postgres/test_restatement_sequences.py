@@ -25,16 +25,71 @@ from tests.restatement_fakes import SequenceRecalculate
 from tests.restatement_model import Ledger, canonical, live
 from tests.restatement_sequences import (
     Operation,
+    ambiguity_reproduction_sequence,
+    coexisting_relations_sequence,
+    duplicate_fact_sequence,
+    effect_reextraction_sequence,
     extract,
     fresh_metadata,
     generated_sequence,
     metadata_reextraction_sequence,
     minimal_sequence,
     reextraction_sequence,
+    revived_fact_sequence,
     withdrawal_sequences,
 )
 
 pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
+
+
+@pytest.mark.parametrize("same_target", [False, True])
+@pytest.mark.parametrize("effects_only", [False, True])
+def test_coexisting_relation_evidence_matches_all_paths(
+    database_url: str, same_target: bool, effects_only: bool
+) -> None:
+    replay(
+        database_url,
+        coexisting_relations_sequence(same_target=same_target, effects_only=effects_only),
+    )
+
+
+def test_distinct_candidate_temporal_effects_match_all_paths(database_url: str) -> None:
+    replay(database_url, coexisting_relations_sequence(same_target=False, temporal=True))
+
+
+def test_surviving_owner_retains_same_edge_after_original_author_deletion(
+    database_url: str,
+) -> None:
+    operations = coexisting_relations_sequence(same_target=True)
+    replay(
+        database_url,
+        tuple(
+            replace(
+                op, relations=(MemoryRelation(from_id=op.bodies[0].id, to_id="x", type="derives"),)
+            )
+            if op.kind == "extract" and op.origin in {"support", "support-2"}
+            else op
+            for op in operations
+        ),
+    )
+
+
+def test_rewritten_effect_survives_reextraction_and_source_deletion(database_url: str) -> None:
+    replay(database_url, effect_reextraction_sequence())
+
+
+def test_revived_fact_selection_matches_all_projection_and_index_paths(database_url: str) -> None:
+    replay(database_url, revived_fact_sequence())
+
+
+def test_duplicate_candidates_match_all_projection_and_index_paths(database_url: str) -> None:
+    replay(database_url, duplicate_fact_sequence())
+
+
+def test_seed_175_fixed_reproduction_matches_all_projection_and_index_paths(
+    database_url: str,
+) -> None:
+    replay(database_url, ambiguity_reproduction_sequence())
 
 
 def test_deleting_original_extends_target_rebuilds_surviving_fact_before_recall(

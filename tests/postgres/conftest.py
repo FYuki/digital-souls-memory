@@ -28,7 +28,7 @@ def database_url(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
             if connection.execute("SELECT to_regclass('public.derived_memories')").fetchone() != (
                 None,
             ):
-                connection.execute("TRUNCATE derived_memories CASCADE")
+                connection.execute("TRUNCATE derived_memories, memory_candidate_relations CASCADE")
         # Remove derived references before truncating the append-only evidence tables.
         command.downgrade(config, "0005")
         with psycopg.connect(url, autocommit=True, connect_timeout=5) as connection:

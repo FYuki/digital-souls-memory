@@ -328,15 +328,14 @@ class FakeMemoryTransaction:
             history_ids=frozenset(c.memory.id for c in history),
         )
         resolved = resolve_relations(tuple(e.relation for e in effects), history, current)
-        return tuple(
-            replace(e, relation=r, candidate=replace(e.candidate, id=r.from_id))
-            for e, r in zip(effects, resolved, strict=True)
-        )
+        return tuple(replace(e, relation=r) for e, r in zip(effects, resolved, strict=True))
 
     def set_relation_effects(self, turn_id: str, values: tuple[RelationEffect, ...]) -> None:
         old = tuple(e for e in self.relation_effects() if e.turn_id == turn_id)
         self.store.effects[(self.character, turn_id)] = values
-        supported = {e.relation for e in self.relation_effects()}
+        supported = {e.relation for e in self.relation_effects()} | set(
+            self.proposed_relations(include_inactive=True)
+        )
         self.store.relations = [
             (owner, r)
             for owner, r in self.store.relations

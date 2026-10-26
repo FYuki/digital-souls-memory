@@ -114,7 +114,7 @@ def save_legacy_projection(
                 conn.execute(
                     "INSERT INTO memory_input_dependencies(character_id,extraction_turn_id,"
                     "turn_id,basis,receipt_version,available_end,used_end,deadline) "
-                    "VALUES('char-b',%s,%s,%s,%s,%s,%s,%s)",
+                    "VALUES('char-b',%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING",
                     (
                         candidate.turn_id,
                         dependency.turn_id,

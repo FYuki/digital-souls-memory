@@ -33,6 +33,49 @@ from tests.postgres.test_memory_restatement import assert_consistent
 pytestmark = pytest.mark.postgres
 
 
+@pytest.mark.parametrize("same_target", [False, True])
+def test_upgrade_preserves_normal_relation_and_absorbed_candidate_effect(
+    database_url: str, same_target: bool
+) -> None:
+    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    command.downgrade(config, "0013")
+    evidence = seed_evidence(database_url)
+    for source in ("turn-a", "turn-b", "turn-x", "turn-y"):
+        evidence.add_turn(turn(source, actor="user-a"))
+    inputs = make_worker(
+        database_url, PostgresMemoryStore(database_url), RecordingGateway()
+    ).service.inputs
+    a = replace(memory(), id="a", source_turn_ids=("turn-a",))
+    b = replace(a, id="b")
+    x = replace(a, id="x", object="water", source_turn_ids=("turn-x",))
+    y = replace(a, id="y", object="juice", source_turn_ids=("turn-y",))
+    snapshot, old_evidence = legacy_snapshot(inputs, (x, y, a, b))
+    snapshot = replace(
+        snapshot,
+        proposed=(
+            MemoryRelation(from_id="a", to_id="x", type="derives"),
+            MemoryRelation(from_id="b", to_id="x" if same_target else "y", type="derives"),
+            MemoryRelation(from_id="b", to_id="a", type="extends"),
+        ),
+    )
+    result = old_evidence.project(snapshot, RECORDED, select_representatives=True)
+    assert result.representatives == {"b": "a"}
+    save_legacy_projection(database_url, inputs, snapshot, result)
+    command.upgrade(config, "0014")
+    store = PostgresMemoryStore(database_url)
+    with store.transaction("char-b") as tx:
+        effects = [v for v in tx.relation_effects() if v.relation.type == "derives"]
+        assert len(effects) == 1
+        assert effects[0].candidate == b
+        assert effects[0].relation == MemoryRelation(
+            from_id="a", to_id="x" if same_target else "y", type="derives"
+        )
+        assert MemoryRelation(from_id="a", to_id="x", type="derives") in tx.proposed_relations()
+    assert_consistent(
+        make_worker(database_url, store, RecordingGateway()).service, database_url, {"a", "x", "y"}
+    )
+
+
 def test_upgrade_reprojects_legacy_chain_and_previously_rejected_referrer(
     database_url: str,
 ) -> None:

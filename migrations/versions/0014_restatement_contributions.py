@@ -42,7 +42,7 @@ def upgrade() -> None:
             occurred_at TIMESTAMPTZ NOT NULL,
             PRIMARY KEY(character_id,fact_id,extraction_turn_id,source_turn_id),
             FOREIGN KEY(character_id,fact_id) REFERENCES derived_memories(character_id,id)
-                ON DELETE CASCADE
+                ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
         );
         CREATE INDEX memory_contribution_origin
             ON memory_source_contributions(character_id,extraction_turn_id,fact_id);
@@ -53,6 +53,13 @@ def upgrade() -> None:
             PRIMARY KEY(character_id,memory_id,turn_id)
         );
         ALTER TABLE memory_candidate_relations ADD COLUMN effect JSONB;
+        ALTER TABLE memory_candidate_relations ADD COLUMN candidate_id TEXT
+            GENERATED ALWAYS AS (CASE WHEN effect IS NULL THEN from_id
+                ELSE effect->>'id' END) STORED NOT NULL;
+        ALTER TABLE memory_candidate_relations
+            DROP CONSTRAINT memory_candidate_relations_pkey;
+        ALTER TABLE memory_candidate_relations ADD PRIMARY KEY
+            (character_id,turn_id,from_id,to_id,type,candidate_id);
         CREATE TEMP TABLE absorption_links ON COMMIT DROP AS
             SELECT character_id,absorbed_id,representative_id FROM memory_representatives
             UNION SELECT r.character_id,r.from_id,r.to_id FROM memory_relations r
@@ -147,7 +154,7 @@ def upgrade() -> None:
             COALESCE(t.representative_id,r.to_id) AS to_id,r.type,
             CASE WHEN f.absorbed_id IS NULL THEN r.effect ELSE
                 COALESCE(g.payload,b.payload) || jsonb_build_object(
-                    'id',f.representative_id,'source_turn_ids',
+                    'id',r.from_id,'source_turn_ids',
                     COALESCE(
                         (SELECT jsonb_agg(s.turn_id ORDER BY s.position)
                          FROM memory_generated_sources s
@@ -163,12 +170,13 @@ def upgrade() -> None:
         LEFT JOIN memory_generated g ON (g.character_id,g.memory_id)=(r.character_id,r.from_id)
         LEFT JOIN memory_baselines b ON (b.character_id,b.memory_id)=(r.character_id,r.from_id);
         DELETE FROM memory_candidate_relations;
-        INSERT INTO memory_candidate_relations
-            SELECT * FROM rewritten_candidates WHERE from_id<>to_id ON CONFLICT DO NOTHING;
+        INSERT INTO memory_candidate_relations(character_id,turn_id,from_id,to_id,type,effect)
+            SELECT character_id,turn_id,from_id,to_id,type,effect
+            FROM rewritten_candidates WHERE from_id<>to_id ON CONFLICT DO NOTHING;
         INSERT INTO memory_candidate_relations(character_id,turn_id,from_id,to_id,type,effect)
         SELECT r.character_id,COALESCE(g.turn_id,src.origin),r.from_id,r.to_id,r.type,
             COALESCE(g.payload,b.payload) || jsonb_build_object(
-                'id',r.from_id,'source_turn_ids',src.sources)
+                'id',r.original_from,'source_turn_ids',src.sources)
         FROM rewritten_relations r
         JOIN absorbed a ON (a.character_id,a.absorbed_id)=(r.character_id,r.original_from)
         LEFT JOIN memory_generated g
@@ -345,7 +353,12 @@ def downgrade() -> None:
         DROP INDEX memory_generated_turn,memory_candidates_turn;
         DROP TRIGGER recall_contribution_receipt ON delivery_receipts;
         DROP FUNCTION withdraw_recall_contribution();
+        ALTER TABLE memory_candidate_relations
+            DROP CONSTRAINT memory_candidate_relations_pkey;
+        ALTER TABLE memory_candidate_relations DROP COLUMN candidate_id;
         ALTER TABLE memory_candidate_relations DROP COLUMN effect;
+        ALTER TABLE memory_candidate_relations ADD PRIMARY KEY
+            (character_id,turn_id,from_id,to_id,type);
         ALTER TABLE memory_candidate_relations DROP CONSTRAINT memory_relation_origin;
         ALTER TABLE memory_candidate_relations
             ADD CONSTRAINT memory_candidate_relations_character_id_turn_id_fkey

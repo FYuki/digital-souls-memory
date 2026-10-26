@@ -213,9 +213,7 @@ class _MemoryTransaction:
         self, identifiers: frozenset[str] | None = None
     ) -> tuple[RelationEffect, ...]:
         return tuple(
-            replace(
-                effect, relation=relation, candidate=replace(effect.candidate, id=relation.from_id)
-            )
+            replace(effect, relation=relation)
             for effect, relation in self._resolved_relation_effects(identifiers)
         )
 
@@ -226,7 +224,8 @@ class _MemoryTransaction:
         rows = self.connection.execute(
             "SELECT turn_id,from_id,to_id,type,effect FROM memory_candidate_relations "
             "WHERE character_id=%s AND effect IS NOT NULL "
-            "AND (%s::text[] IS NULL OR from_id=ANY(%s)) ORDER BY turn_id,from_id,to_id,type",
+            "AND (%s::text[] IS NULL OR from_id=ANY(%s)) "
+            "ORDER BY turn_id,from_id,to_id,type,candidate_id",
             (self.character_id, selected, selected),
         ).fetchall()
         effects = tuple(
@@ -610,19 +609,20 @@ class _MemoryTransaction:
                 previous.from_id,
                 previous.to_id,
                 previous.type,
+                effect.candidate.id,
             )
             self.connection.execute(
                 "INSERT INTO memory_candidate_relations "
                 "(character_id,turn_id,from_id,to_id,type,effect) "
-                "SELECT character_id,turn_id,%s,%s,type,"
-                "effect || jsonb_build_object('id',%s::text) "
+                "SELECT character_id,turn_id,%s,%s,type,effect "
                 "FROM memory_candidate_relations WHERE character_id=%s AND turn_id=%s "
-                "AND from_id=%s AND to_id=%s AND type=%s ON CONFLICT DO NOTHING",
-                (resolved.from_id, resolved.to_id, resolved.from_id, *key),
+                "AND from_id=%s AND to_id=%s AND type=%s AND candidate_id=%s "
+                "ON CONFLICT DO NOTHING",
+                (resolved.from_id, resolved.to_id, *key),
             )
             self.connection.execute(
                 "DELETE FROM memory_candidate_relations WHERE character_id=%s AND turn_id=%s "
-                "AND from_id=%s AND to_id=%s AND type=%s",
+                "AND from_id=%s AND to_id=%s AND type=%s AND candidate_id=%s",
                 key,
             )
         existing = self.applied_relations(identifiers)
@@ -712,7 +712,8 @@ class _MemoryTransaction:
 
     def set_relations(self, turn_id: str, values: tuple[MemoryRelation, ...]) -> None:
         self.connection.execute(
-            "DELETE FROM memory_candidate_relations WHERE character_id=%s AND turn_id=%s",
+            "DELETE FROM memory_candidate_relations WHERE character_id=%s AND turn_id=%s "
+            "AND effect IS NULL",
             (self.character_id, turn_id),
         )
         for value in values:

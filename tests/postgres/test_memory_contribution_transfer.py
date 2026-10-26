@@ -188,7 +188,7 @@ def test_unprojected_equivalent_preserves_independent_candidates_and_consistency
                 "FROM memory_candidate_relations "
                 "WHERE character_id='char-b' AND effect IS NOT NULL"
             ).fetchall()
-            assert all(row == ("turn-b", "a", "x", "updates", "a") for row in effects)
+            assert all(row == ("turn-b", "a", "x", "updates", "b") for row in effects)
         expected = {"x", "d", "summary", "key"}
         assert_consistent(worker.service, database_url, expected)
         if restatement:
@@ -262,7 +262,7 @@ def test_unprojected_equivalent_target_does_not_receive_restatement_effect(
             "SELECT from_id,to_id,effect->>'id' FROM memory_candidate_relations "
             "WHERE character_id='char-b' AND effect IS NOT NULL"
         ).fetchall()
-        assert all(row == ("a", "x", "a") for row in effects)
+        assert all(row == ("a", "x", "b") for row in effects)
     assert_consistent(worker.service, database_url, {"a", "d", "summary"})
 
 
@@ -372,7 +372,7 @@ def test_dependency_revival_recovers_stranded_contribution_and_effect(
                 "FROM memory_candidate_relations "
                 "WHERE character_id='char-b' AND effect IS NOT NULL"
             ).fetchall()
-            assert effects == [("turn-b", "a", "x", "updates", "a")]
+            assert effects == [("turn-b", "a", "x", "updates", "b")]
         expected = {"x", "d", "summary", "key"}
         assert_consistent(worker.service, database_url, expected)
         assert_recalled_values(database_url, {"x": x})
@@ -405,7 +405,7 @@ def test_dependency_revival_recovers_stranded_contribution_and_effect(
                 "SELECT turn_id,from_id,to_id,type,effect->>'id' "
                 "FROM memory_candidate_relations "
                 "WHERE character_id='char-b' AND effect IS NOT NULL"
-            ).fetchall() == [("turn-b", "z", "x", "updates", "z")]
+            ).fetchall() == [("turn-b", "z", "x", "updates", "b")]
         assert_consistent(worker.service, database_url, {"c", "d", "z", "summary", "key"})
         assert_recalled_values(database_url, {"z": revived})
         if origin_first:
