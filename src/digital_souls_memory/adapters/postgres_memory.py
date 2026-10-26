@@ -327,19 +327,26 @@ class _MemoryTransaction:
     def candidates_for_turns(
         self, turn_ids: frozenset[str], *, history_ids: frozenset[str] | None = None
     ) -> tuple[MemoryContribution, ...]:
-        selected = None if history_ids is None else list(history_ids)
-        rows = self.connection.execute(
-            "SELECT c.memory_id FROM memory_candidates c "
-            "WHERE c.character_id=%s AND c.turn_id=ANY(%s) "
-            "AND (%s::text[] IS NULL OR EXISTS (SELECT 1 FROM memory_generated h "
-            "WHERE h.character_id=c.character_id AND h.turn_id=c.turn_id "
-            "AND h.memory_id=ANY(%s) AND (h.memory_id=c.memory_id OR "
-            "(h.payload->'kind'=c.payload->'kind' AND h.payload->'content'=c.payload->'content' "
-            "AND h.payload->'subject' IS NOT DISTINCT FROM c.payload->'subject' "
-            "AND h.payload->'predicate' IS NOT DISTINCT FROM c.payload->'predicate' "
-            "AND h.payload->'object' IS NOT DISTINCT FROM c.payload->'object'))))",
-            (self.character_id, list(turn_ids), selected, selected),
-        ).fetchall()
+        if history_ids is None:
+            rows = self.connection.execute(
+                "SELECT memory_id FROM memory_candidates WHERE character_id=%s AND turn_id=ANY(%s)",
+                (self.character_id, list(turn_ids)),
+            ).fetchall()
+        else:
+            rows = self.connection.execute(
+                "SELECT DISTINCT c.memory_id FROM memory_candidates c "
+                "JOIN memory_generated h "
+                "ON h.character_id=c.character_id AND h.turn_id=c.turn_id "
+                "AND (h.memory_id=c.memory_id OR "
+                "(h.payload->'kind'=c.payload->'kind' "
+                "AND h.payload->'content'=c.payload->'content' "
+                "AND h.payload->'subject' IS NOT DISTINCT FROM c.payload->'subject' "
+                "AND h.payload->'predicate' IS NOT DISTINCT FROM c.payload->'predicate' "
+                "AND h.payload->'object' IS NOT DISTINCT FROM c.payload->'object')) "
+                "JOIN unnest(%s::text[]) selected(memory_id) ON selected.memory_id=h.memory_id "
+                "WHERE c.character_id=%s AND c.turn_id=ANY(%s)",
+                (list(history_ids), self.character_id, list(turn_ids)),
+            ).fetchall()
         return self.candidates(frozenset(r["memory_id"] for r in rows))
 
     def projection_neighbors(

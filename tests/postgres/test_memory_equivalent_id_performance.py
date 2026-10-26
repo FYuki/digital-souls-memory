@@ -12,6 +12,7 @@ from psycopg.abc import Params, Query
 from psycopg.rows import DictRow
 
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
+from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.memory.domain import ExtractionProposal, MemoryRelation
 from digital_souls_memory.memory.relations import equivalent_ids
 from tests.evidence_support import RECORDED, session, turn
@@ -27,6 +28,128 @@ from tests.postgres.test_memory_fact_lookup import explain_queries, plan_nodes
 from tests.postgres.test_recall_indexing import register_characters
 
 pytestmark = pytest.mark.postgres
+
+
+@pytest.mark.parametrize("kind", ["fact", "summary"])
+def test_filtered_candidate_set_matches_previous_query_at_join_boundaries(
+    database_url: str, kind: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    register_characters()
+    evidence = PostgresEvidenceStore(database_url)
+    evidence.add_session(session(reports_delivery=False))
+    for origin in ("turn-1", "other-origin", "unfinished"):
+        evidence.add_turn(turn(origin, actor="user-a"))
+    worker = extraction_worker(database_url)
+    worker.process("char-b", "turn-1")
+    store = PostgresMemoryStore(database_url)
+    state = store.get_extraction("char-b", "turn-1")
+    assert state is not None and state.status == "done"
+    base = replace(memory(kind), id="old", content="一致する本文")
+    ambiguous = replace(base, id="ambiguous-old", content="曖昧な本文")
+    coarse = replace(base, id="coarse-old", content="必要条件だけ一致")
+    retained = replace(base, id="retained", content="現在も同じID")
+    duplicate = replace(base, id="duplicate-old")
+    cross_turn = replace(base, id="cross-turn-old", content="別Turnだけの履歴")
+    cross_character = replace(base, id="cross-character-old", content="別キャラだけの履歴")
+    current = (
+        replace(base, id="new"),
+        replace(ambiguous, id="ambiguous-a"),
+        replace(ambiguous, id="ambiguous-b"),
+        replace(coarse, id="coarse-new", valid_to=RECORDED),
+        retained,
+        replace(base, id="different-content", content="別内容"),
+        replace(base, id="different-kind", kind="key" if kind == "summary" else "preference"),
+        replace(base, id="different-subject", subject="another-subject"),
+        replace(base, id="different-predicate", predicate="another-predicate"),
+        replace(base, id="different-object", object="another-object"),
+        replace(cross_turn, id="cross-turn-candidate"),
+        replace(cross_character, id="cross-character-candidate"),
+        replace(base, id="unselected-history", content="指定外の履歴"),
+    )
+    with store.transaction("char-b") as tx:
+        tx.set_candidates("turn-1", (base, ambiguous, coarse, retained, duplicate), dependencies=())
+        tx.set_candidates("turn-1", current, dependencies=())
+        tx.save_extraction(replace(state, turn_id="other-origin"))
+        tx.set_candidates("other-origin", (cross_turn,), dependencies=())
+        tx.save_extraction(replace(state, turn_id="unfinished", status="retry"))
+        tx.set_candidates("unfinished", (replace(base, id="not-done"),), dependencies=())
+    with store.transaction("char-c") as tx:
+        tx.save_extraction(replace(state, character_id="char-c"))
+        tx.set_candidates(
+            "turn-1", (replace(cross_character, character_id="char-c"),), dependencies=()
+        )
+    selected_history = frozenset(
+        v.id for v in (base, ambiguous, coarse, retained, duplicate, cross_turn, cross_character)
+    )
+    # Preserve the old predicate as an independent comparison, not a production fallback.
+    with psycopg.connect(database_url) as connection:
+        connection.execute(
+            "DELETE FROM memory_generated WHERE character_id='char-b' "
+            "AND memory_id='unselected-history'"
+        )
+        rows = connection.execute(
+            "SELECT c.memory_id FROM memory_candidates c "
+            "WHERE c.character_id=%s AND c.turn_id=ANY(%s) "
+            "AND (%s::text[] IS NULL OR EXISTS (SELECT 1 FROM memory_generated h "
+            "WHERE h.character_id=c.character_id AND h.turn_id=c.turn_id "
+            "AND h.memory_id=ANY(%s) AND (h.memory_id=c.memory_id OR "
+            "(h.payload->'kind'=c.payload->'kind' AND h.payload->'content'=c.payload->'content' "
+            "AND h.payload->'subject' IS NOT DISTINCT FROM c.payload->'subject' "
+            "AND h.payload->'predicate' IS NOT DISTINCT FROM c.payload->'predicate' "
+            "AND h.payload->'object' IS NOT DISTINCT FROM c.payload->'object'))))",
+            ("char-b", ["turn-1"], list(selected_history), list(selected_history)),
+        ).fetchall()
+    expected = {"new", "ambiguous-a", "ambiguous-b", "coarse-new", "retained"}
+    assert {r[0] for r in rows} == expected
+    returned_rows: list[int] = []
+    execute = cast(Callable[..., psycopg.Cursor[DictRow]], psycopg.Cursor.execute)
+
+    def observed_execute(
+        cursor: psycopg.Cursor[DictRow],
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> psycopg.Cursor[DictRow]:
+        result = execute(cursor, query, params, prepare=prepare, binary=binary)
+        rendered = (
+            query.as_string(cursor.connection) if isinstance(query, sql.Composable) else query
+        )
+        if isinstance(rendered, str) and all(
+            table in rendered for table in ("memory_candidates", "memory_generated")
+        ):
+            returned_rows.append(cursor.rowcount)
+        return result
+
+    with store.transaction("char-b") as tx:
+        with monkeypatch.context() as patch:
+            patch.setattr(psycopg.Cursor, "execute", observed_execute)
+            values = tx.candidates_for_turns(frozenset({"turn-1"}), history_ids=selected_history)
+        assert returned_rows == [len(expected)]
+        assert {v.memory.id for v in values} == expected
+        assert len(values) == len(expected)
+        assert tuple(v.memory for v in values) == tuple(
+            sorted(
+                (v for v in current if v.id in expected),
+                key=lambda v: (v.valid_from, v.recorded_at, v.id),
+            )
+        )
+        assert equivalent_ids(tx.history(selected_history), values) == {
+            "old": "new",
+            "duplicate-old": "new",
+        }
+        for origins, history in (
+            (frozenset(), selected_history),
+            (frozenset({"turn-1"}), frozenset()),
+            (frozenset({"turn-1"}), frozenset({"absent"})),
+            (frozenset({"unfinished"}), frozenset({"not-done"})),
+        ):
+            assert tx.candidates_for_turns(origins, history_ids=history) == ()
+        assert {v.memory.id for v in tx.candidates_for_turns(frozenset({"turn-1"}))} == {
+            v.id for v in current
+        }
+        assert tx.candidates_for_turns(frozenset({"unfinished"})) == ()
 
 
 @pytest.mark.parametrize("case", ["equivalent", "ambiguous", "current"])
