@@ -1392,10 +1392,71 @@
     "[\"--model\",\"/models/bge-reranker-v2-m3-Q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"rank\",\"--reranking\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18050\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7"
   ],
   "quality": {
-    "status": "NOT RUN"
+    "ruff_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ruff_format_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "lock": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "shell": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "compose": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "package": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PASS",
+    "test_counts": {
+      "ut": 1208,
+      "it1": 1137,
+      "postgres": 823
+    },
+    "skip_xfail_xpass": 0,
+    "disposable_database_cleanup": {
+      "status": "PASS",
+      "container": "memory-pg-elISj8dm",
+      "container_remaining": false,
+      "socket_directory_remaining": false
+    }
   },
   "cleanup": {
-    "status": "NOT RUN"
+    "status": "PASS",
+    "project": "memory-core-perf-r18-20261026",
+    "containers": [],
+    "networks": [],
+    "volumes": [],
+    "model_containers": []
   },
   "not_run": [
     "10000 items",
@@ -1427,23 +1488,47 @@
     "reranker": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3"
   },
   "evidence_sha256": {
-    "build.log": "2bced5158a319fdc581681a58a76c74e4ea3d97ee65e661ad5e7689240cfecfb",
+    "build-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "build.log": "70aee33610ed7b7e03359962f6bc07d91d89e5e13b70516cc380acf11512021b",
+    "cleanup-models.log": "38a142551d5f85f3c6f0d9fafeb212cd08b6c96780a64cb8e374c0ac4e4055dd",
+    "cleanup-st.log": "9080c88e7d1abfd5cccd4da7c2370bb9309cd20961915e4bb5f102d00bb1a246",
+    "cleanup.json": "0fa74ed7e04934c0a33826d7ccd5a63ba938b96ccb78732620bfef6771fc164c",
+    "compose-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "compose.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
     "embedding-start.log": "fdd1e8e779f5157c7214254196b9574626acdbf4d3c642856c19630ffc6248be",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "it1-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "it1.log": "ce7f3e520332d64772d95a2b9b59ef6c5564bada5537f672a7f479cf055d6e35",
     "list-timing.json": "91b246615372cf3efd6c38b4d03eccb4fb4873b1ae38b100c991f0a4473164da",
+    "lock-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "lock.log": "321f0b607da3e9134cfcf1529e067a07da87a9737f26f661d4b9d2228950f006",
     "manifest-before.sha256": "f2b0cdff3ac74c74cd79a6f42bfa2771f2a748018047bb3efa14fc6776868feb",
     "manifest.json": "ef43a727ac6f4c3a79d88215e35e70aeac3c8a15124eba8ffb800cf0e8a58cab",
     "memory.log": "8efb2ca22aadaaa924d98859947ed6f9db4aa0a0eaebb0cf20be7a590a80b4ad",
     "model-digests.json": "6f2f31bd8318f308562823d20dcb950a313ccc3030866bdd2c5a81a1028ea801",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "mypy.log": "3adfda9ee552433e47e3220b3a5316b3c7e195dec5e669938ac553a7f7bf6d71",
+    "package.log": "91cd213381a26cbb6889098b4d95006322b42e6d9fefb297979326d79f260c3c",
     "performance.json": "4ed61c4b1acaee48407e9a9b53790be672b0f72efb71ff88c57c74a79a95d245",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "61234f877bb0e934185a14464a8d676f4f0873e99922a2f35a3c308dd69f85de",
+    "quality.json": "57d1827a1b92e65fe2597f178c95ea6cc8245298f29ccf3837fa0b856d59903d",
     "ready.txt": "40867f9cb75b2b2870ef726a1622d1b496cab174d48cbfeb7dba382a96e60809",
     "reranker-start.log": "d7a903a355a8ebd46c970f3a821a039a5b2fc0b0fbcc1e1ad7d075992d96c666",
+    "ruff_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_check.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    "ruff_format_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_format_check.log": "052421aab453b9c0087aea55ba6398d3ed1325ff894fc2cdfa61e9c4c66cb127",
     "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "runner.log": "1e91775b916b3ed42fb51ad8e85fcdfe39b5e49a11cbefb220aec6fabacff600",
+    "shell-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "shell.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "source-hashes.json": "926d8b9471f32d4d3fc28f630c2e6702a4dbed135c2327b80921444cdce2b497",
     "start.log": "98a93440152806afcce7f2f38b4655b503e65d627ebd919804bff567a7f0f7b7",
-    "sync.log": "6eb1bfb93808adc67abb6f87e59a0dea6f244ecbdf1b70963cd6f391b3c57866"
+    "sync.log": "6eb1bfb93808adc67abb6f87e59a0dea6f244ecbdf1b70963cd6f391b3c57866",
+    "ut-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ut.log": "b224d25a7a0a75cd2d212a35228a99daafbbb48eae69585bdc755da9bdb14238"
   }
 }

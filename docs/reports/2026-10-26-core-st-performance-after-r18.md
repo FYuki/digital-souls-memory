@@ -68,7 +68,7 @@ PR #94 の中央値は0.650912秒、PR #85 の単回は0.267094秒。
 - 隔離 worktree `/tmp/wt-perf-r18`、branch `test/phase1-performance-st-after-r18`。
   main checkout は変更せず、コミット対象は報告2ファイルと既存レポートのリンクのみ。
 - 正本4資料を確認。runner / support / latency / DB初期化 / Compose は一時変更なし。
-  wrapper、mount差し替え、overrideはなし。外側の収集scriptは起動・記録・終了後診断のみ。
+  wrapper、mount差し替え、overrideはなし。外側の収集scriptは起動・記録・終了後の一覧測定のみ。
   索引待ち1800秒、一覧事前確認30秒、想起30秒は既定値のまま。
 - runner SHA-256 `4f8fefa42bda914ffa286dea9d984f0262d9897602fef103b3310ab695545423`。
   主要4ファイルの実 image hash とホストが一致し、実行後も無変更。manifestも事前/事後hash一致。
@@ -86,13 +86,25 @@ PR #94 の中央値は0.650912秒、PR #85 の単回は0.267094秒。
 - 合成Turn、入力「日本語」3文字。抽出fake、embedding/検索/reranker/tokenizerは実構成。
   candidate_limit200 / rerank_limit20 / result_limit5 / token_limit1500 / 閾値-2。
   モデルロード済み・索引ready・warm-up後、OS/DB/GPUキャッシュ消去なし。
-  SQL診断と品質検査は性能計測後に分離。
+  品質検査は性能計測後に実施。SQL診断は今回は未実施。
 
 ## 検証・cleanup・未実施
 
-ruff check / ruff format --check: **PASS**（終了0、319 files）。その他の必須品質検査は **NOT RUN**。Draft PR 作成後に実施する。
+- ruff_check: **PASS**（終了0）
+- ruff_format_check: **PASS**（終了0）
+- mypy: **PASS**（終了0）
+- ut: **PASS**（終了0）
+- it1: **PASS**（終了0）
+- postgres: **PASS**（終了0）
+- lock: **PASS**（終了0）
+- shell: **PASS**（終了0）
+- compose: **PASS**（終了0）
+- build: **PASS**（終了0）
+- package: **PASS**（終了0）
 
-cleanup: **NOT RUN**。今回起動した専用 project とモデル2台のみ、証跡回収後に削除する。
+追加品質試験は Draft PR 作成後に実施。UT1208件 / IT1 1137件 / PostgreSQL823件、skip/xfail/xpassなし。
+
+cleanup: **PASS**。今回起動した `memory-core-perf-r18-20261026` と `memory-core-perf-r18-embedding` / `memory-core-perf-r18-reranker` を停止・削除。専用 container / network / volume とモデル container の残存0を各コマンドの終了0で確認。追加品質試験用DB containerと一時socketも削除を確認。他プロジェクトには操作していない。
 
 生証跡は `/tmp/core-st-performance-after-r18-20261026`、hashは要約JSON。
 秘密・利用者ホーム絶対パス・モデル本体はコミットしない。製品コード修正・mergeはしない。
