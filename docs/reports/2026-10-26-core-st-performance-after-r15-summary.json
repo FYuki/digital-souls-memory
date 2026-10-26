@@ -1392,7 +1392,51 @@
     "[\"--model\",\"/models/bge-reranker-v2-m3-Q8_0.gguf\",\"--host\",\"0.0.0.0\",\"--port\",\"8080\",\"--ctx-size\",\"2048\",\"--batch-size\",\"2048\",\"--ubatch-size\",\"2048\",\"--parallel\",\"1\",\"--n-gpu-layers\",\"99\",\"--threads\",\"8\",\"--threads-batch\",\"8\",\"--cache-ram\",\"0\",\"--embeddings\",\"--pooling\",\"rank\",\"--reranking\"] {\"8080/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"18050\"}]} sha256:69019445c94c970496c8f6d6447214b837508162dfe1152768942c51237e3ab7"
   ],
   "quality": {
-    "status": "NOT RUN"
+    "ruff_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ruff_format_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "lock": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "shell": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "compose": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "package": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PASS"
   },
   "cleanup": {
     "status": "PASS",
@@ -1400,7 +1444,14 @@
     "containers": [],
     "networks": [],
     "volumes": [],
-    "model_containers": []
+    "model_containers": [],
+    "quality_database": [
+      {
+        "container": "memory-pg-m7fEBCy9",
+        "remaining": [],
+        "fixture_exists": false
+      }
+    ]
   },
   "not_run": [
     "10000 items",
@@ -11062,7 +11113,7 @@
     "build.log": "70aee33610ed7b7e03359962f6bc07d91d89e5e13b70516cc380acf11512021b",
     "cleanup-models.log": "99a064b4c38f0177bb14483406ef58bc2f0bab7a38a64925306787caac65e172",
     "cleanup-st.log": "ebe383da6b372daf3477f7914134d6ef5a2e6c26420786904862dcbdc509dcd8",
-    "cleanup.json": "33934eddd7f48829dd3c82959a862d4dfdec346eb8f90e0284e823d91e9fcaec",
+    "cleanup.json": "2dffb7d9773d2ef2cf7457c4d1bfa393acf4440d16ef15c14838f1969c7b6496",
     "compose-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "compose.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
@@ -11086,8 +11137,12 @@
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
     "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "mypy.log": "3adfda9ee552433e47e3220b3a5316b3c7e195dec5e669938ac553a7f7bf6d71",
+    "package.log": "24f74ed3848b738470c039e3653807d1b9a647616381c0f9e844d27d7433291c",
     "performance.json": "e0e207ab752054e252225616a71b8925f0baac79b86be642a1341e51d880dddc",
-    "postgres.log": "f0cc00bf0a430b1a31f0f4f8c3f95327b31e75978710bac40f03c13af26e7c1c",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "3b9eb214af776ab585686532b9ff570f31881d38e4ddf53ea5c2300badb1e2fa",
+    "quality-db.json": "5a1aa9134520cf3d671f2d061c10c6d31f30e8d9f5efbf4999a2b6e39fe79cff",
+    "quality.json": "57d1827a1b92e65fe2597f178c95ea6cc8245298f29ccf3837fa0b856d59903d",
     "ready.txt": "9517ec435c026f65d16987a18968457c41f6bf7b8683effe8ff084efd5b0eef3",
     "reranker-start.log": "b7ebffe636c401bc8d8b6683565c5e1db8358300d9a94a67b6bd5aed70a3e794",
     "ruff_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",

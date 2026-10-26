@@ -157,9 +157,21 @@ SQL案全文とEXPLAINは要約JSONに収録。既存turn索引は利用済み�
 
 ## 検証・cleanup・未実施
 
-ruff check / ruff format --check: **PASS**（終了0、319 files）。その他の必須品質検査は **NOT RUN**。Draft PR 作成後に実施する。
+- ruff_check: **PASS**（終了0）
+- ruff_format_check: **PASS**（終了0）
+- mypy: **PASS**（終了0）
+- ut: **PASS**（終了0）
+- it1: **PASS**（終了0）
+- postgres: **PASS**（終了0）
+- lock: **PASS**（終了0）
+- shell: **PASS**（終了0）
+- compose: **PASS**（終了0）
+- build: **PASS**（終了0）
+- package: **PASS**（終了0）
 
-cleanup: **PASS**。今回起動した `memory-core-perf-r15-20261026` と `memory-core-perf-r15-embedding` / `memory-core-perf-r15-reranker` を停止・削除。専用 container / network / volume とモデル container の残存0を各コマンドの終了0で確認。他プロジェクトには操作していない。
+追加品質試験は Draft PR 作成後に実施。UT1151件 / IT1 1114件 / PostgreSQL796件、skip/xfail/xpassなし。
+
+cleanup: **PASS**。今回起動した `memory-core-perf-r15-20261026` と `memory-core-perf-r15-embedding` / `memory-core-perf-r15-reranker` を停止・削除。専用 container / network / volume とモデル container の残存0を各コマンドの終了0で確認。追加品質試験用DB containerと一時socketも削除を確認。他プロジェクトには操作していない。
 
 生証跡は `/tmp/core-st-performance-after-r15-20261026`、hashは要約JSON。
 秘密・利用者ホーム絶対パス・モデル本体はコミットしない。製品コード修正・mergeはしない。
