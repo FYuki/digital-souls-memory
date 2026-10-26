@@ -15,6 +15,7 @@ AIキャラクターの一貫性と成長を支える記憶サービスです。
 - 調査資料
   - [長期記憶と内省における原文の重要性](docs/research/raw-vs-summary-memory.md)
   - [内省と長期記憶の相互作用（認知科学からの設計）](docs/research/reflection-and-memory-cognitive-science.md)
+  - [Phase 1のOSS採用再評価（Hindsight追加・動作確認付き）](docs/research/phase1-oss-reassessment.md)
 
 ## 構成の概要
 

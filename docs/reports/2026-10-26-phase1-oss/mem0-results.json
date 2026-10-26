@@ -1,0 +1,51 @@
+{
+  "candidate": "mem0",
+  "models": "fixture embeddings; infer=False forbids LLM; infer=True uses fixture extraction",
+  "observations": [
+    {
+      "test": "infer_false_preserves_verbatim",
+      "execution": "PASS",
+      "phase1": "MATCH: exact text storage"
+    },
+    {
+      "test": "source_ids_metadata_roundtrip",
+      "execution": "PASS",
+      "phase1": "PARTIAL: metadata only, no FK"
+    },
+    {
+      "test": "same_text_creates_new_uuid",
+      "execution": "PASS",
+      "phase1": "ALLOWED: duplicate raw registration is not itself an adoption failure"
+    },
+    {
+      "test": "delete_removes_target",
+      "execution": "PASS",
+      "phase1": "MATCH: direct target deletion"
+    },
+    {
+      "test": "delete_history_still_contains_text",
+      "execution": "PASS",
+      "phase1": "GAP: privacy erasure requires history purge"
+    },
+    {
+      "test": "related_metadata_does_not_cascade",
+      "execution": "PASS",
+      "phase1": "GAP: source-aware cascade must be implemented"
+    },
+    {
+      "test": "get_by_id_has_no_caller_scope",
+      "execution": "PASS",
+      "phase1": "PARTIAL: explicit authorization outside SDK required"
+    },
+    {
+      "test": "canonical_extraction_skips_same_fact_duplicate",
+      "execution": "PASS",
+      "phase1": "MATCH mechanism: equal extracted fact hashes suppress duplicate writes"
+    },
+    {
+      "test": "skipped_mention_does_not_merge_source_metadata",
+      "execution": "PASS",
+      "phase1": "PARTIAL: one fact exists; later source provenance is not automatically combined"
+    }
+  ]
+}

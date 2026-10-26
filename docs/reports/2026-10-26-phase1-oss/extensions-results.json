@@ -1,0 +1,78 @@
+{
+  "models": "none",
+  "scope": "native pure-module behavior; full UI/runtime NOT RUN",
+  "observations": [
+    {
+      "candidate": "smart-memory",
+      "test": "parser_has_provenance_and_supersession_fields",
+      "execution": "PASS",
+      "phase1": "PARTIAL: graph/provenance fields exist; pipeline must supply valid source references"
+    },
+    {
+      "candidate": "smart-memory",
+      "test": "parser_does_not_invent_source_ids",
+      "execution": "PASS",
+      "phase1": "MATCH at parser layer only; source assignment reviewed separately in longterm.js"
+    },
+    {
+      "candidate": "smart-memory",
+      "test": "reconciliation_treats_repeated_fact_as_one",
+      "execution": "PASS",
+      "phase1": "MATCH mechanism: native reconciliation collapses same fact into one entry"
+    },
+    {
+      "candidate": "smart-memory",
+      "test": "reconciliation_keeps_distinct_fact",
+      "execution": "PASS",
+      "phase1": "MATCH control: unrelated statements are not collapsed by the deterministic fixture"
+    },
+    {
+      "candidate": "charmemory",
+      "test": "memory_bullet_and_chat_roundtrip",
+      "execution": "PASS",
+      "phase1": "MATCH: character/chat memory text persists"
+    },
+    {
+      "candidate": "charmemory",
+      "test": "turn_level_source_metadata_not_in_native_format",
+      "execution": "PASS",
+      "phase1": "GAP: native serializer preserves chat/date/bullets, not Turn-level provenance"
+    },
+    {
+      "candidate": "charmemory",
+      "test": "native_consolidation_accepts_one_fact_from_multiple_mentions",
+      "execution": "PASS",
+      "phase1": "PARTIAL: native map/reduce consolidation; merge output is a model fixture, not semantic quality proof"
+    },
+    {
+      "candidate": "letta-code",
+      "test": "legacy_read_only_identity_rejects_agent_edit",
+      "execution": "PASS",
+      "phase1": "PARTIAL: an explicit identity protection mechanism exists; caller must use it"
+    },
+    {
+      "candidate": "letta-code",
+      "test": "agent_cannot_remove_legacy_read_only_flag",
+      "execution": "PASS",
+      "phase1": "MATCH at legacy content-validator layer; full runtime enforcement not tested"
+    },
+    {
+      "candidate": "openvault-unkarelian",
+      "test": "source_message_ids_and_witnesses_are_retained",
+      "execution": "PASS",
+      "phase1": "PARTIAL: provenance/witness fields exist; references cover the whole extraction batch"
+    },
+    {
+      "candidate": "openvault-unkarelian",
+      "test": "source_assignment_is_batch_not_claim_level",
+      "execution": "PASS",
+      "phase1": "GAP: does not itself prove which individual Turn supports the claim"
+    },
+    {
+      "candidate": "openvault-unkarelian",
+      "test": "parser_keeps_duplicate_extractor_outputs",
+      "execution": "PASS",
+      "phase1": "ALLOWED at ingest; no separate native fact-consolidation mechanism was found in this candidate"
+    }
+  ]
+}

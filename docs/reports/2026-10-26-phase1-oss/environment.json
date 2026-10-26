@@ -1,0 +1,34 @@
+{
+  "as_of": "2026-10-26",
+  "python": "Python 3.12.3",
+  "node": "v24.15.0",
+  "requirements_base": "4c8493916fa8350cd610a97b68351a5a14f22a92",
+  "models": "No real LLM, embedding model, or GPU. Deterministic fixture providers only.",
+  "images": {
+    "postgres": {
+      "id": "sha256:52000025fc027d9c9ca22ba99e4c4e0409efb9a23e773ab096a43da81a648454",
+      "reference": "memory-retrieval-postgres@sha256:52000025fc027d9c9ca22ba99e4c4e0409efb9a23e773ab096a43da81a648454",
+      "version": "18.6"
+    },
+    "neo4j": {
+      "id": "sha256:f1e52d4dc6da122468c4a3c1050a4f5e117f6d3268625237c34d49166f0d6082",
+      "reference": "neo4j:5.26-community",
+      "version": "5.26.32"
+    }
+  },
+  "execution_results": {
+    "runner": "PASS",
+    "hindsight_observations": 12,
+    "graphiti_scenarios": 2,
+    "mem0_observations": 9,
+    "pure_module_observations": 12,
+    "smart_memory_parser_assertions": "25/25 PASS",
+    "observation_groups": 35
+  },
+  "limits": [
+    "Observation PASS is not Phase 1 acceptance PASS.",
+    "Real model quality and end-to-end p95 are NOT RUN.",
+    "Source-checkout commit pin is in tools/research/phase1_oss/sources.lock.json."
+  ],
+  "evaluation_requirement": "Repeated mentions of the same fact can be unified; temporary ingestion duplicates and asynchronous consolidation are allowed. Reinforcement scoring/time is excluded."
+}

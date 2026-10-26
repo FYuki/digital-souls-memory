@@ -1,0 +1,30 @@
+{
+  "candidate": "graphiti",
+  "models": "fixture LLM and embeddings; real Neo4j",
+  "observations": [
+    {
+      "execution": "PASS",
+      "fixture_llm_failure": false,
+      "shared_edge_keeps_remaining_source": true,
+      "exact_duplicate_reuses_one_fact": true,
+      "paraphrase_with_fixture_verdict_reuses_one_fact": true,
+      "unsupported_edge_deleted": true,
+      "summary_rebuilt": true,
+      "delete_raises_on_rebuild_failure": null,
+      "old_summary_survives_rebuild_failure": false,
+      "low_level_episode_metadata_roundtrip": false
+    },
+    {
+      "execution": "PASS",
+      "fixture_llm_failure": true,
+      "shared_edge_keeps_remaining_source": true,
+      "exact_duplicate_reuses_one_fact": true,
+      "paraphrase_with_fixture_verdict_reuses_one_fact": true,
+      "unsupported_edge_deleted": true,
+      "summary_rebuilt": false,
+      "delete_raises_on_rebuild_failure": false,
+      "old_summary_survives_rebuild_failure": true,
+      "low_level_episode_metadata_roundtrip": false
+    }
+  ]
+}

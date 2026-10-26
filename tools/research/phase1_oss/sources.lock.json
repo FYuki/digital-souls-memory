@@ -1,0 +1,49 @@
+{
+  "as_of": "2026-10-26",
+  "requirements_base": "4c8493916fa8350cd610a97b68351a5a14f22a92",
+  "sources": {
+    "hindsight": {
+      "url": "https://github.com/vectorize-io/hindsight.git",
+      "commit": "f29ba70c825094c839daaf27b2b5a564de46fb4e"
+    },
+    "graphiti": {
+      "url": "https://github.com/getzep/graphiti.git",
+      "commit": "5c27edfa8d3e0f49b2571bcebb4261bcc89ee037"
+    },
+    "mem0": {
+      "url": "https://github.com/mem0ai/mem0.git",
+      "commit": "2c81af3bbe27d9bccb09c772d583df9e9be72ee5"
+    },
+    "letta-code": {
+      "url": "https://github.com/letta-ai/letta-code.git",
+      "commit": "1fb6ea4d30942ef9220b096ba7f4185f18184fc1"
+    },
+    "smart-memory": {
+      "url": "https://github.com/senjinthedragon/Smart-Memory.git",
+      "commit": "a7f6c8e67efb0442921d060e048b40fab00caa07"
+    },
+    "charmemory": {
+      "url": "https://github.com/bal-spec/sillytavern-character-memory.git",
+      "commit": "35fcf22bf0a5b4273fd19e06a2ff82d0ed520ab3"
+    },
+    "openvault": {
+      "url": "https://github.com/unkarelian/openvault.git",
+      "commit": "7138733193407de4e70e297a056fccff4eb1be1c"
+    }
+  },
+  "unavailable_historical_source": {
+    "url": "https://github.com/7n1m4/vault",
+    "status": "404",
+    "note": "同名のunkarelian/openvaultと同一である根拠なし"
+  },
+  "evaluation_scope": {
+    "same_fact_multiple_mentions": "Must have a mechanism to treat repeated mentions as one fact",
+    "temporary_ingestion_duplicates_allowed": true,
+    "asynchronous_unification_allowed": true,
+    "excluded": [
+      "reinforcement scoring",
+      "last_reinforced_at compatibility",
+      "reinforcement timestamp rollback"
+    ]
+  }
+}

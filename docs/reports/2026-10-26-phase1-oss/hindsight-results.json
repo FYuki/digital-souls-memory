@@ -1,0 +1,67 @@
+{
+  "candidate": "hindsight",
+  "bank": "phase1-synthetic-99d5894a4e35",
+  "models": "fixture embeddings; chunks mode; real PostgreSQL",
+  "observations": [
+    {
+      "test": "chunks_mode_stores_original_japanese",
+      "execution": "PASS",
+      "phase1": "MATCH: source document retained"
+    },
+    {
+      "test": "same_document_same_text_idempotent",
+      "execution": "PASS",
+      "phase1": "MATCH: document-level deduplication"
+    },
+    {
+      "test": "recall_can_return_original_chunks",
+      "execution": "PASS",
+      "phase1": "MATCH: explicit source-chunk retrieval"
+    },
+    {
+      "test": "strict_tag_excludes_untagged",
+      "execution": "PASS",
+      "phase1": "MATCH with adapter: use strict scope"
+    },
+    {
+      "test": "default_any_includes_untagged",
+      "execution": "PASS",
+      "phase1": "GAP: default tags are not a perception boundary"
+    },
+    {
+      "test": "same_document_replaces_original_by_default",
+      "execution": "PASS",
+      "phase1": "GAP: append-only Turn protection must wrap retain"
+    },
+    {
+      "test": "multiple_mentions_share_one_observation",
+      "execution": "PASS",
+      "phase1": "MATCH mechanism: native dedup folds a new mention into one existing observation"
+    },
+    {
+      "test": "unified_fact_keeps_both_sources_and_raw_mentions",
+      "execution": "PASS",
+      "phase1": "MATCH mechanism: raw mentions may coexist while the fact view is unified"
+    },
+    {
+      "test": "delete_document_removes_source",
+      "execution": "PASS",
+      "phase1": "MATCH: document and native fact removal"
+    },
+    {
+      "test": "source_delete_invalidates_shared_observation",
+      "execution": "PASS",
+      "phase1": "MATCH: stale shared observation removed synchronously"
+    },
+    {
+      "test": "source_delete_keeps_and_requeues_other_fact",
+      "execution": "PASS",
+      "phase1": "PARTIAL: surviving fact preserved; observation recomputation queued, not completed"
+    },
+    {
+      "test": "deleted_document_id_can_be_recreated",
+      "execution": "PASS",
+      "phase1": "GAP: application tombstone/retry guard required"
+    }
+  ]
+}

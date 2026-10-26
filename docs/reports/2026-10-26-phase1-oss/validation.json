@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-10-26T11:11:42.257023+00:00",
+  "scope": "Research documentation and standalone probes; product src/tests/migrations unchanged",
+  "native_probes": {
+    "status": "PASS",
+    "programs": 4,
+    "observation_groups": 35,
+    "smart_memory_parser_assertions": 25,
+    "real_models": "NOT RUN"
+  },
+  "product_regression": {
+    "ut": {
+      "status": "PASS",
+      "passed": 1210
+    },
+    "it1": {
+      "status": "PASS",
+      "passed": 1139
+    },
+    "postgres": {
+      "status": "PASS",
+      "passed": 825,
+      "seconds": 1017.15
+    },
+    "it2": {
+      "status": "NOT RUN"
+    },
+    "st": {
+      "status": "NOT RUN"
+    }
+  },
+  "checks": {
+    "ruff": "PASS",
+    "ruff_format": "PASS",
+    "mypy": "PASS",
+    "uv_lock_check": "PASS",
+    "wheel_build": "PASS",
+    "independent_hashed_install_and_import": "PASS",
+    "shell_and_javascript_syntax": "PASS",
+    "local_report_links": "PASS",
+    "diff_check": "PASS"
+  },
+  "initial_attempts": {
+    "it1": "Interrupted sandboxed run; full rerun outside sandbox passed",
+    "postgres": "Interrupted run with 204 tests passed is not counted as a suite PASS; full rerun passed"
+  },
+  "cleanup": "Research PostgreSQL and Neo4j containers removed by runner; product test wrapper removes its own PostgreSQL",
+  "limitations": [
+    "Fixture semantic judgments test the mechanism, not actual model accuracy.",
+    "No whole-Phase-1 OSS acceptance or real-model p95 measurement.",
+    "Reinforcement scoring/time/rollback excluded by user instruction."
+  ]
+}
