@@ -474,17 +474,15 @@ class PostgresDeletionStore:
             withdrawn_relations = self._withdrawn_relations(
                 connection, attempt.request.target_turn_ids
             )
-            affected: dict[str, frozenset[str]] = {
-                owner: frozenset(i for r in relations for i in (r.from_id, r.to_id))
+            collected: dict[str, set[str]] = {
+                owner: {i for r in relations for i in (r.from_id, r.to_id)}
                 for owner, relations in withdrawn_relations.items()
             }
-            # Removing references can enable a candidate that was never projected.
+            # Surviving recalculations can also change which candidates are projected.
             for replacement in replacements:
-                if replacement.copy.table == "derived_memories" and replacement.value is None:
+                if replacement.copy.table == "derived_memories":
                     memory = replacement.copy.memory
-                    affected[memory.character_id] = affected.get(
-                        memory.character_id, frozenset()
-                    ) | {memory.id}
+                    collected.setdefault(memory.character_id, set()).add(memory.id)
             for owner in {owner for owner, _ in projected}:
                 withdrawn_facts = {
                     r.copy.memory.id
@@ -499,7 +497,7 @@ class PostgresDeletionStore:
                     if copy.memory.character_id == owner
                     for origin in copy.withdrawn_origins
                 } | set(attempt.request.target_turn_ids)
-                targets = frozenset(
+                targets = {
                     e.relation.to_id
                     for e in _MemoryTransaction(connection, owner).relation_effects()
                     if e.relation.type != "derives"
@@ -510,9 +508,10 @@ class PostgresDeletionStore:
                             attempt.request.target_turn_ids
                         )
                     )
-                )
+                }
                 if targets:
-                    affected[owner] = affected.get(owner, frozenset()) | targets
+                    collected.setdefault(owner, set()).update(targets)
+            affected = {owner: frozenset(ids) for owner, ids in collected.items()}
             for owner, identifiers in affected.items():
                 tx = _MemoryTransaction(connection, owner)
                 while True:
@@ -669,8 +668,18 @@ class PostgresDeletionStore:
                     delivery_timeout=self.delivery_timeout,
                     conversation_surfaces=self.conversation_surfaces,
                     comment_surfaces=self.comment_surfaces,
+                    preserve_accepted_inputs=True,
                 )
-                save_projection(tx, projection, evidence.project(projection, now))
+                final = evidence.project(projection, now)
+                save_projection(tx, projection, final)
+                for identifier, value in final.memories.items():
+                    if (owner, identifier) in recalculated:
+                        connection.execute(
+                            "UPDATE memory_baselines SET payload=%s "
+                            "WHERE character_id=%s AND memory_id=%s",
+                            (Jsonb(copy_payload(value)), owner, identifier),
+                        )
+                        save_copy_sources(connection, "memory_baselines", value)
             result = CascadeResult(
                 deleted_turn_ids=attempt.request.target_turn_ids,
                 recalculated_memories=tuple(

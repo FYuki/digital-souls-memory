@@ -7,6 +7,7 @@ from psycopg.rows import DictRow
 
 from digital_souls_memory.evidence.domain import Session, Turn, can_perceive
 from digital_souls_memory.evidence.materials import ReceiptState, material_decision
+from digital_souls_memory.memory.domain import InputDependency
 from digital_souls_memory.memory.inputs import ResolvedTurn, input_eligible, resolve_input
 from digital_souls_memory.memory.projection import (
     ProjectionEvidence,
@@ -25,6 +26,7 @@ def read_projection_evidence(
     delivery_timeout: timedelta,
     conversation_surfaces: frozenset[str],
     comment_surfaces: frozenset[str],
+    preserve_accepted_inputs: bool = False,
 ) -> ProjectionEvidence:
     origins = extraction_origins(snapshot)
     rows = connection.execute(
@@ -79,6 +81,19 @@ def read_projection_evidence(
                 comment_surfaces=comment_surfaces,
             ),
         )
+    validated_origins = None
+    if preserve_accepted_inputs:
+        dependencies: dict[str, list[InputDependency]] = {}
+        for row in connection.execute(
+            "SELECT extraction_turn_id,turn_id,basis,receipt_version,"
+            "available_end,used_end,deadline "
+            "FROM memory_input_dependencies WHERE character_id=%s AND extraction_turn_id=ANY(%s)",
+            (character_id, list(origins)),
+        ).fetchall():
+            payload = dict(row)
+            origin = payload.pop("extraction_turn_id")
+            dependencies.setdefault(origin, []).append(InputDependency(**payload))
+        validated_origins = _accepted_origins(snapshot, values, dependencies)
     return ProjectionEvidence(
         {identifier: value.turn for identifier, value in values.items()},
         {
@@ -86,4 +101,33 @@ def read_projection_evidence(
             for identifier, value in values.items()
         },
         {origin: resolve_input((origin,), values) for origin in origins},
+        validated_origins,
+    )
+
+
+def _accepted_origins(
+    snapshot: ProjectionInput,
+    values: dict[str, ResolvedTurn],
+    dependencies: dict[str, list[InputDependency]],
+) -> frozenset[str]:
+    # Acceptance is already persisted. Deletion verifies its materials, not the
+    # deleting process's classification of extraction surfaces.
+    return frozenset(
+        origin
+        for origin in extraction_origins(snapshot)
+        if (state := snapshot.states[origin]) is not None
+        and state.status == "done"
+        and origin in dependencies
+        and any(d.turn_id == origin for d in dependencies[origin])
+        and all(
+            (value := values.get(d.turn_id)) is not None
+            and (decision := value.decision) is not None
+            and decision.text is not None
+            and decision.basis == d.basis
+            and decision.receipt_version == d.receipt_version
+            and decision.deadline == d.deadline
+            and len(decision.text) == d.available_end
+            and d.used_end <= len(decision.text)
+            for d in dependencies[origin]
+        )
     )

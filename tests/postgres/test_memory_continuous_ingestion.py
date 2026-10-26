@@ -155,12 +155,12 @@ def test_extraction_keeps_claim_and_revalidates_current_index_input(
     assert work.ref.memory_id in publish_and_search(app_database_url)
 
 
-def publish_and_search(url: str, *, now: datetime = RECORDED) -> set[str]:
+def publish_and_search(url: str, *, now: datetime = RECORDED, limit: int = 20) -> set[str]:
     index = PostgresRetrievalStore(url)
     embedding = RecordingEmbedding()
     indexing = IndexWorker(index, embedding, space=SPACE, clock=lambda: now)
-    for _ in range(3):
-        for work in index.claim(space=SPACE, now=now, limit=32):
+    while works := index.claim(space=SPACE, now=now, limit=32):
+        for work in works:
             indexing.process(work)
     query = LocalOnly(texts=("飲み物",), labels=(InputLabel("sensitive", "v1"),))
     return {
@@ -170,7 +170,7 @@ def publish_and_search(url: str, *, now: datetime = RECORDED) -> set[str]:
             query=query,
             query_vector=embedding.embed(query, purpose="query"),
             now=now,
-            limit=20,
+            limit=limit,
         ).candidates
         if candidate.memory is not None
     }

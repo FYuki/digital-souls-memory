@@ -26,6 +26,7 @@ from tests.restatement_model import Ledger, canonical, live
 from tests.restatement_sequences import (
     Operation,
     extract,
+    fresh_metadata,
     generated_sequence,
     metadata_reextraction_sequence,
     minimal_sequence,
@@ -34,6 +35,120 @@ from tests.restatement_sequences import (
 )
 
 pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
+
+
+def test_deleting_original_extends_target_rebuilds_surviving_fact_before_recall(
+    database_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    operations = minimal_sequence("extends", origin_first=True, actor="user-a")[:2]
+    unrelated = extract("unrelated", "turn-unrelated", "unrelated")
+    for op in (unrelated, *operations):
+        evidence.add_turn(turn(op.origin, actor=op.actor))
+        gateway.output = ExtractionProposal(memories=op.bodies, relations=op.relations)
+        worker.process("char-b", op.origin)
+        state = store.get_extraction("char-b", op.origin)
+        assert state is not None and state.status == "done"
+    assert publish_and_search(database_url) == {"c", "unrelated"}
+    previous_index = document_states(database_url)["unrelated"]
+    before = store.get_memory("char-b", "c")
+    assert before is not None and before.superseded_at is None
+    assert set(before.source_turn_ids) == {"turn-c", "turn-1"}
+    recalculation = Recalculate(*(v for op in operations for v in op.bodies))
+    with TestClient(
+        create_app(
+            clock=lambda: RECORDED,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            recalculation_gateway=recalculation,
+        )
+    ) as client:
+        response = client.post(
+            "/deletion-requests",
+            headers=HEADERS,
+            json={"request_id": "delete-target", "target_turn_ids": ["turn-c"]},
+        )
+    assert response.status_code == 200 and response.json()["status"] == "done"
+    assert response.json()["cascade_result"]["invalidated_memories"] == []
+    assert any(identifier == "c" for _, identifier, _ in recalculation.calls)
+    assert evidence.get_turn("turn-c") is None
+    # Read committed state before any full projection can repair it.
+    with store.transaction("char-b") as tx:
+        saved = canonical({v.id: v for v in tx.memories()})
+        baselines = {v.id: v for v in tx.baselines()}
+        body_sources = tx.fact_sources(frozenset({"c"}))
+        temporal = tx.temporal_origins(frozenset({"c"}))
+        snapshot = projection_input(tx)
+    after = saved["c"]
+    assert after.id == before.id
+    assert after.source_turn_ids == ("turn-1",)
+    assert after.epistemics.independent_evidence_count == 1
+    assert after.superseded_at == RECORDED
+    assert baselines["c"] == after
+    assert body_sources == {"c": ()}
+    original = operations[0].bodies[0]
+    assert temporal == {
+        "c": {
+            name: getattr(original, name)
+            for name in ("valid_to", "superseded_at", "last_reinforced_at")
+        }
+    }
+    assert saved["unrelated"] == unrelated.bodies[0]
+    assert document_states(database_url)["unrelated"] == previous_index
+    full = collect_evidence(snapshot, "char-b", worker.service.inputs).project(snapshot, RECORDED)
+    assert canonical(full.memories) == saved
+
+    def unexpected_projection(*args: object, **kwargs: object) -> None:
+        pytest.fail("Recall must consume persisted state")
+
+    monkeypatch.setattr(MemoryService, "active", unexpected_projection)
+    monkeypatch.setattr(MemoryService, "rebuild", unexpected_projection)
+    assert publish_and_search(database_url) == {"unrelated"}
+    assert document_states(database_url)["unrelated"] == previous_index
+
+
+def test_original_extends_target_deletion_matches_corrected_ledger(database_url: str) -> None:
+    base = minimal_sequence("extends", origin_first=True, actor="user-a")
+    replay(database_url, (*base[:2], Operation("delete", "turn-c")))
+
+
+def test_reextracted_extends_target_deletion_matches_ledger(database_url: str) -> None:
+    base = minimal_sequence("extends", origin_first=True, actor="user-b")
+    renamed = replace(base[0], bodies=(fresh_metadata(base[0].bodies[0], identifier="renamed"),))
+    replay(database_url, (*base[:2], renamed, Operation("delete", "turn-c")))
+
+
+def test_context_deletion_after_retry_of_extended_fact_matches_ledger(database_url: str) -> None:
+    target = extract("target", "target-source", "water")
+    derived = replace(
+        extract("derived", "derived-source", "coffee"),
+        relations=(MemoryRelation(from_id="derived", to_id="target", type="derives"),),
+    )
+    extended = replace(
+        extract("extended", "extended-source", "tea"),
+        reply_to_turn_id="context",
+        relations=(MemoryRelation(from_id="extended", to_id="derived", type="extends"),),
+    )
+    replay(
+        database_url,
+        (
+            extract("context-root", "root", "root"),
+            replace(extract("context", "context", "context"), reply_to_turn_id="root"),
+            target,
+            derived,
+            extended,
+            Operation("retry", "derived-source"),
+            Operation("delete", "context"),
+        ),
+    )
+
+
+def test_twenty_one_independent_facts_match_all_search_results(database_url: str) -> None:
+    replay(
+        database_url,
+        tuple(extract(f"fact-{n}", f"source-{n}", f"object-{n}") for n in range(21)),
+    )
 
 
 @pytest.mark.parametrize(
@@ -175,7 +290,7 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
                     query=query,
                     query_vector=RecordingEmbedding().embed(query, purpose="query"),
                     now=RECORDED,
-                    limit=20,
+                    limit=max(20, len(active)),
                 )
                 for candidate in result.candidates:
                     if candidate.memory is not None:
@@ -185,13 +300,15 @@ def replay(database_url: str, operations: tuple[Operation, ...]) -> None:
                         }, context
                 if unrelated_index is not None:
                     assert document_states(database_url)["unrelated"] == unrelated_index, context
-                assert publish_and_search(database_url) == set(active), context
+                assert publish_and_search(database_url, limit=max(20, len(active))) == set(
+                    active
+                ), context
                 published = PostgresRetrievalStore(database_url).search(
                     character_id="char-b",
                     query=query,
                     query_vector=RecordingEmbedding().embed(query, purpose="query"),
                     now=RECORDED,
-                    limit=20,
+                    limit=max(20, len(active)),
                 )
                 assert (
                     canonical(
