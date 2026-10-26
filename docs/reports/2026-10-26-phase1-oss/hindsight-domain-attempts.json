@@ -1,0 +1,148 @@
+{
+  "recorded_at": "2026-10-26T12:08:01.947529+00:00",
+  "scope": "引き継いだ合成probeのログから復元した試行記録。終了コードの別記録はなく、statusはログとJSONの観測実行から判定。",
+  "attempts": [
+    {
+      "log": "domain-run-1.log",
+      "log_sha256": "fa86280043172a0a6861efc136929b9e5d61658e1edc9b4d33e65f6d435cfa4d",
+      "counts": {
+        "output": "/tmp/phase1-oss-reassessment/hindsight-domain-results.json",
+        "execution": {
+          "PASS": 1,
+          "FAIL": 1
+        },
+        "assertions": {
+          "PASS": 1,
+          "NOT RUN": 1
+        }
+      },
+      "final_result": false,
+      "status": "FAIL",
+      "reason": "workerがdrainせずAssertionErrorで中断。cleanupメソッド不足のエラーも記録。後続でfixture／drainを調整。"
+    },
+    {
+      "log": "domain-run-2.log",
+      "log_sha256": "10b56dbc2098aa75191898a0f127339af21668c993e0f8bb3dda32c9d25186ad",
+      "counts": {
+        "output": "/tmp/phase1-oss-reassessment/hindsight-domain-results.json",
+        "execution": {
+          "PASS": 27
+        },
+        "assertions": {
+          "PASS": 21,
+          "FAIL": 6
+        }
+      },
+      "final_result": false,
+      "status": "PASS",
+      "reason": "観測実行が完了した試行。条件判定FAILはcounts.assertionsに別記。fixture・試験範囲の変更中のため最終試行と同一条件の再現回数には数えない。"
+    },
+    {
+      "log": "domain-run-3.log",
+      "log_sha256": "49a123e57f822033af6126df4cdbae70413480c2ae298e22b250ea738f79ca37",
+      "counts": {
+        "output": "/tmp/phase1-oss-reassessment/hindsight-domain-results.json",
+        "execution": {
+          "PASS": 27
+        },
+        "assertions": {
+          "PASS": 21,
+          "FAIL": 6
+        }
+      },
+      "final_result": false,
+      "status": "PASS",
+      "reason": "観測実行が完了した試行。条件判定FAILはcounts.assertionsに別記。fixture・試験範囲の変更中のため最終試行と同一条件の再現回数には数えない。"
+    },
+    {
+      "log": "domain-run-4.log",
+      "log_sha256": "b67045303bd212c677577598c8aaced24bb3fde09250bb3c5c872dd14da3424f",
+      "counts": {
+        "output": "/tmp/phase1-oss-reassessment/hindsight-domain-results.json",
+        "execution": {
+          "PASS": 29
+        },
+        "assertions": {
+          "PASS": 24,
+          "FAIL": 5
+        }
+      },
+      "final_result": false,
+      "status": "PASS",
+      "reason": "観測実行が完了した試行。条件判定FAILはcounts.assertionsに別記。fixture・試験範囲の変更中のため最終試行と同一条件の再現回数には数えない。"
+    },
+    {
+      "log": "domain-run-5.log",
+      "log_sha256": "1e92097a9a47eb50b05638da0f82a3d3a4b575d09a94da93003694dfd48d3a5e",
+      "counts": {
+        "output": "/tmp/phase1-oss-reassessment/hindsight-domain-results.json",
+        "execution": {
+          "PASS": 30
+        },
+        "assertions": {
+          "PASS": 25,
+          "FAIL": 5
+        }
+      },
+      "final_result": false,
+      "status": "PASS",
+      "reason": "観測実行が完了した試行。条件判定FAILはcounts.assertionsに別記。fixture・試験範囲の変更中のため最終試行と同一条件の再現回数には数えない。"
+    },
+    {
+      "log": "domain-run-final.log",
+      "log_sha256": "17026c74a8626663f12cec5ed5516875922bbbc14adf34818a38def30ff5601e",
+      "counts": null,
+      "final_result": false,
+      "status": "FAIL",
+      "reason": "指定したPostgreSQLイメージをローカルで解決できず、Docker起動前に失敗。新しいJSONは生成していない。"
+    },
+    {
+      "log": "domain-run-final-2.log",
+      "log_sha256": "edd2daaaabc7375ace618dca383d5591298a859adc02f9ec485bbf1b1621f926",
+      "counts": {
+        "output": "/tmp/phase1-oss-reassessment/hindsight-domain-results.json",
+        "execution": {
+          "PASS": 30
+        },
+        "assertions": {
+          "PASS": 25,
+          "FAIL": 5
+        }
+      },
+      "final_result": false,
+      "status": "PASS",
+      "reason": "観測実行が完了した試行。条件判定FAILはcounts.assertionsに別記。fixture・試験範囲の変更中のため最終試行と同一条件の再現回数には数えない。"
+    },
+    {
+      "log": "domain-run-scope-detail.log",
+      "log_sha256": "29352d5ef561529efe589a34c530962fe7616beb2efaeee54283499c11f6c462",
+      "counts": {
+        "output": "/tmp/phase1-oss-reassessment/hindsight-domain-results.json",
+        "execution": {
+          "PASS": 33
+        },
+        "assertions": {
+          "PASS": 27,
+          "FAIL": 6
+        }
+      },
+      "final_result": true,
+      "status": "PASS",
+      "reason": "観測実行が完了した試行。条件判定FAILはcounts.assertionsに別記。fixture・試験範囲の変更中のため最終試行と同一条件の再現回数には数えない。"
+    },
+    {
+      "log": "domain-run-resumed.log",
+      "log_sha256": "84ed74734fa2b17db520903bf176245c38fe77334467833e533888499b801a64",
+      "counts": null,
+      "final_result": false,
+      "status": "FAIL",
+      "exit_code": 125,
+      "reason": "再開後の任意再実行は固定PostgreSQLイメージがローカルに存在せず、Docker起動で失敗。probe本体はNOT RUN。コンテナも新しいJSONも作っていない。",
+      "error": "docker: Error response from daemon: No such image: sha256:2c8eb6e2ae7d7736b0689b6711b0d871af3f90906f6b4d6a20139179da614cd9"
+    }
+  ],
+  "final_result": "hindsight-domain-results.json",
+  "final_result_sha256": "17519e5d6e0b1c8b31a3e7e3a800498aa5a3940a974c17836f6687831c3cd497",
+  "resume_probe_rerun": "NOT RUN（runner起動FAIL・終了125、probe未到達）",
+  "note": "既存の最終JSONをバイト一致で保存。再開後の起動失敗で上書きしていない。イメージのpull/buildや別イメージでの再試行はしていない。"
+}

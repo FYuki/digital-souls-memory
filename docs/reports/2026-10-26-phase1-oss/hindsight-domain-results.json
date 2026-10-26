@@ -1,0 +1,3254 @@
+{
+  "candidate": "hindsight",
+  "source_commit": "f29ba70c825094c839daaf27b2b5a564de46fb4e",
+  "timestamp": "2026-10-26T12:02:56.153884+00:00",
+  "environment": {
+    "postgres_version": "PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "extensions": [
+      {
+        "extname": "btree_gin",
+        "extversion": "1.3"
+      },
+      {
+        "extname": "pg_trgm",
+        "extversion": "1.6"
+      },
+      {
+        "extname": "plpgsql",
+        "extversion": "1.0"
+      },
+      {
+        "extname": "vector",
+        "extversion": "0.8.2"
+      }
+    ],
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "search_backend": "native",
+    "postgres_image": "sha256:2c8eb6e2ae7d7736b0689b6711b0d871af3f90906f6b4d6a20139179da614cd9"
+  },
+  "models": "fixture LLM at provider boundary; constant 384d embeddings; chunks retain; native PostgreSQL worker claim/execute; RRF",
+  "execution_counts": {
+    "PASS": 33
+  },
+  "assertion_counts": {
+    "PASS": 27,
+    "FAIL": 6
+  },
+  "results": [
+    {
+      "test": "external_network_guard",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": "AF_INET/AF_INET6 connect rejected; Docker --network none"
+    },
+    {
+      "test": "auto_consolidation_equivalent_mentions",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "observations": [
+          {
+            "id": "9352f9ac-6ddf-4d76-b43a-b84bad321486",
+            "text": "青はお茶が好き。",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "1fb34b5f-26e2-41df-bacf-339fe34c3dc3",
+              "a30f5e16-e38e-406a-bb21-94446051577b",
+              "b0764224-40aa-4a21-b549-0c0b98ce4b46"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "0daeac0d-ca08-4b5f-8d63-fecdb94ceff5",
+            "text": "青は猫を2匹飼う。",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "56356b86-6b7f-4cb8-b9e0-cc45faa0f50d"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "c6d8dcc1-3018-49f4-b66b-8988ce83ee8f",
+            "text": "青は猫を3匹飼う。",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "8dcd7104-61a7-4b95-a991-810e7d73a2a8"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "be183060-9229-4d8d-b42b-d5d49f2c1d02",
+            "text": "青はお茶が嫌い。",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "0e45daf9-ad47-453d-a338-3d8fa636a569"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "4be08f70-6e81-4dc5-9703-f1ccc3b9fc09",
+            "text": "赤はお茶が好き。",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "eb74c61b-1256-4566-b804-e78acc6c3cd3"
+            ],
+            "consolidated_at": null
+          }
+        ],
+        "raw_count": 7
+      }
+    },
+    {
+      "test": "auto_consolidation_distinct_number_negation_subject",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "fixture意味判定が異なるFactを区別する経路。実モデル精度はNOT RUN",
+      "details": [
+        "青はお茶が好き。",
+        "青は猫を2匹飼う。",
+        "青は猫を3匹飼う。",
+        "青はお茶が嫌い。",
+        "赤はお茶が好き。"
+      ]
+    },
+    {
+      "test": "observation_only_recall_unifies_fact_view",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "raw factを同時返却せず統合済みFactを利用する",
+      "details": {
+        "results": [
+          {
+            "id": "4be08f70-6e81-4dc5-9703-f1ccc3b9fc09",
+            "text": "赤はお茶が好き。",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.844013+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 1.0999999996058918,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "be183060-9229-4d8d-b42b-d5d49f2c1d02",
+            "text": "青はお茶が嫌い。",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.787107+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.8524999994148721,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "c6d8dcc1-3018-49f4-b66b-8988ce83ee8f",
+            "text": "青は猫を3匹飼う。",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.729211+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.6049999993828022,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "0daeac0d-ca08-4b5f-8d63-fecdb94ceff5",
+            "text": "青は猫を2匹飼う。",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.672660+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.35749999951873285,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "9352f9ac-6ddf-4d76-b43a-b84bad321486",
+            "text": "青はお茶が好き。",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.602979+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.11120847332314895,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          }
+        ],
+        "trace": null,
+        "entities": null,
+        "chunks": null,
+        "source_facts": null,
+        "source_facts_truncated": null
+      }
+    },
+    {
+      "test": "native_reconciliation_called",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": null
+    },
+    {
+      "test": "delete_fixture_has_shared_observation",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": null
+    },
+    {
+      "test": "delete_invalidates_and_requeues",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": null
+    },
+    {
+      "test": "delete_reconsolidation_completes",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": [
+        {
+          "id": "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32",
+          "text": "青はお茶が好き。",
+          "fact_type": "world",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": "kept",
+          "source_memory_ids": [],
+          "consolidated_at": "2026-10-26 12:02:54.066658+00:00"
+        },
+        {
+          "id": "4b355939-77ea-4b98-a6a3-8c7b3b06fd4e",
+          "text": "青はお茶が好き。",
+          "fact_type": "observation",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": null,
+          "source_memory_ids": [
+            "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32"
+          ],
+          "consolidated_at": null
+        }
+      ]
+    },
+    {
+      "test": "delete_secret_absent_from_observation_and_recall",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "results": [
+          {
+            "id": "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32",
+            "text": "青はお茶が好き。",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.969745+00:00",
+            "document_id": "kept",
+            "metadata": {},
+            "chunk_id": "domain-delete-c9b6cd02_kept_0",
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 1.0999999991517948,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "4b355939-77ea-4b98-a6a3-8c7b3b06fd4e",
+            "text": "青はお茶が好き。",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.969745+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.10999999991517946,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          }
+        ],
+        "trace": null,
+        "entities": null,
+        "chunks": {
+          "domain-delete-c9b6cd02_kept_0": {
+            "chunk_text": "青はお茶が好き。",
+            "chunk_index": 0,
+            "truncated": false
+          }
+        },
+        "source_facts": null,
+        "source_facts_truncated": null
+      }
+    },
+    {
+      "test": "delete_during_consolidation_no_resurrection",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": null
+    },
+    {
+      "test": "delete_during_mixed_consolidation_no_stale_text",
+      "execution": "PASS",
+      "assertion": "FAIL",
+      "criterion": "native mechanism",
+      "details": {
+        "rows": [
+          {
+            "id": "1cc7447d-486f-40f7-b344-1ec5ac771f23",
+            "text": "青はお茶が好き。",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "kept",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.305150+00:00"
+          },
+          {
+            "id": "e7cbe232-1826-42bb-9878-48aff5e0a29e",
+            "text": "青はお茶が好き。秘密符号=MIXED_SECRET",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "1cc7447d-486f-40f7-b344-1ec5ac771f23"
+            ],
+            "consolidated_at": null
+          }
+        ],
+        "recall": {
+          "results": [
+            {
+              "id": "1cc7447d-486f-40f7-b344-1ec5ac771f23",
+              "text": "青はお茶が好き。",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.253343+00:00",
+              "document_id": "kept",
+              "metadata": {},
+              "chunk_id": "domain-race-mixed-54fe6aa2_kept_0",
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.099999999349626,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "e7cbe232-1826-42bb-9878-48aff5e0a29e",
+              "text": "青はお茶が好き。秘密符号=MIXED_SECRET",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.253343+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999993496257,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-race-mixed-54fe6aa2_kept_0": {
+              "chunk_text": "青はお茶が好き。",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        }
+      }
+    },
+    {
+      "test": "delete_during_retain_no_resurrection",
+      "execution": "PASS",
+      "assertion": "FAIL",
+      "criterion": "削除した内容の復活を防ぐ",
+      "details": {
+        "rows": [
+          {
+            "id": "8e6c1c68-3e2e-4e62-a82b-68c678965f4d",
+            "text": "RETAIN_SECRET",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "doomed",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.476380+00:00"
+          },
+          {
+            "id": "a47087c0-ab1d-4410-a841-74be95b05fc8",
+            "text": "RETAIN_SECRET",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "8e6c1c68-3e2e-4e62-a82b-68c678965f4d"
+            ],
+            "consolidated_at": null
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "test": "delete_blocks_late_retry",
+      "execution": "PASS",
+      "assertion": "FAIL",
+      "criterion": "削除後の同ID・同内容の再送を拒否する",
+      "details": [
+        {
+          "id": "3808eed0-a847-4f25-9e95-a9af68a016bc",
+          "text": "RETAIN_SECRET",
+          "fact_type": "world",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": "doomed",
+          "source_memory_ids": [],
+          "consolidated_at": "2026-10-26 12:02:54.584146+00:00"
+        },
+        {
+          "id": "6ca06150-2c7e-4c57-a689-69c3137a3d0d",
+          "text": "RETAIN_SECRET",
+          "fact_type": "observation",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": null,
+          "source_memory_ids": [
+            "3808eed0-a847-4f25-9e95-a9af68a016bc"
+          ],
+          "consolidated_at": null
+        }
+      ]
+    },
+    {
+      "test": "strict_scope_no_cross_character_per_tag",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "a": {
+          "results": [
+            {
+              "id": "36ba84dc-587b-4465-b231-96bfbf75973f",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+              "document_id": "both",
+              "metadata": {},
+              "chunk_id": "domain-scope-per~5Ftag-041653e6_both_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999993294647,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "aff2a0a1-8fab-4a5a-853b-4e3ef1240a9e",
+              "text": "A_PRIVATE",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.609970+00:00",
+              "document_id": "only-a",
+              "metadata": {},
+              "chunk_id": "domain-scope-per~5Ftag-041653e6_only-a_0",
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.7699999993707679,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "42515268-6f1a-4d2b-97d0-9c7172c9099d",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.4399999997317859,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "fd0a083f-b960-4e2f-864a-ccc10a72b3e5",
+              "text": "A_PRIVATE",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.609970+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999991010968,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-scope-per~5Ftag-041653e6_both_0": {
+              "chunk_text": "SHARED_PUBLIC",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-scope-per~5Ftag-041653e6_only-a_0": {
+              "chunk_text": "A_PRIVATE",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "b": {
+          "results": [
+            {
+              "id": "36ba84dc-587b-4465-b231-96bfbf75973f",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+              "document_id": "both",
+              "metadata": {},
+              "chunk_id": "domain-scope-per~5Ftag-041653e6_both_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999992325595,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "fecc13be-f192-4d7d-8eee-411ea86d7ba5",
+              "text": "B_PRIVATE",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.626566+00:00",
+              "document_id": "only-b",
+              "metadata": {},
+              "chunk_id": "domain-scope-per~5Ftag-041653e6_only-b_0",
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.7699999993766101,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "bd6e5bde-52eb-498d-bcbc-6286330dd7bc",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.43999999969302384,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "eb9c621d-ab9a-4cdc-b176-f7524c474213",
+              "text": "B_PRIVATE",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.626566+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.1099999999109443,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-scope-per~5Ftag-041653e6_both_0": {
+              "chunk_text": "SHARED_PUBLIC",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-scope-per~5Ftag-041653e6_only-b_0": {
+              "chunk_text": "B_PRIVATE",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "rows": [
+          {
+            "id": "aff2a0a1-8fab-4a5a-853b-4e3ef1240a9e",
+            "text": "A_PRIVATE",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "only-a",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.686636+00:00"
+          },
+          {
+            "id": "fecc13be-f192-4d7d-8eee-411ea86d7ba5",
+            "text": "B_PRIVATE",
+            "fact_type": "world",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": "only-b",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.687049+00:00"
+          },
+          {
+            "id": "36ba84dc-587b-4465-b231-96bfbf75973f",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "world",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": "both",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.716887+00:00"
+          },
+          {
+            "id": "fd0a083f-b960-4e2f-864a-ccc10a72b3e5",
+            "text": "A_PRIVATE",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "aff2a0a1-8fab-4a5a-853b-4e3ef1240a9e"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "eb9c621d-ab9a-4cdc-b176-f7524c474213",
+            "text": "B_PRIVATE",
+            "fact_type": "observation",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "fecc13be-f192-4d7d-8eee-411ea86d7ba5"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "bd6e5bde-52eb-498d-bcbc-6286330dd7bc",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "observation",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "36ba84dc-587b-4465-b231-96bfbf75973f"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "42515268-6f1a-4d2b-97d0-9c7172c9099d",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "36ba84dc-587b-4465-b231-96bfbf75973f"
+            ],
+            "consolidated_at": null
+          }
+        ]
+      }
+    },
+    {
+      "test": "strict_scope_returns_allowed_chunks",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "a_chunks": {
+          "domain-scope-per~5Ftag-041653e6_both_0": {
+            "chunk_text": "SHARED_PUBLIC",
+            "chunk_index": 0,
+            "truncated": false
+          },
+          "domain-scope-per~5Ftag-041653e6_only-a_0": {
+            "chunk_text": "A_PRIVATE",
+            "chunk_index": 0,
+            "truncated": false
+          }
+        },
+        "b_chunks": {
+          "domain-scope-per~5Ftag-041653e6_both_0": {
+            "chunk_text": "SHARED_PUBLIC",
+            "chunk_index": 0,
+            "truncated": false
+          },
+          "domain-scope-per~5Ftag-041653e6_only-b_0": {
+            "chunk_text": "B_PRIVATE",
+            "chunk_index": 0,
+            "truncated": false
+          }
+        }
+      }
+    },
+    {
+      "test": "shared_fact_visible_as_observation_per_tag",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": "[{\"id\": \"36ba84dc-587b-4465-b231-96bfbf75973f\", \"text\": \"SHARED_PUBLIC\", \"fact_type\": \"world\", \"entities\": null, \"context\": \"\", \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.645979+00:00\", \"document_id\": \"both\", \"metadata\": {}, \"chunk_id\": \"domain-scope-per~5Ftag-041653e6_both_0\", \"tags\": [\"character:b\", \"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 1.0999999993294647, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}, {\"id\": \"aff2a0a1-8fab-4a5a-853b-4e3ef1240a9e\", \"text\": \"A_PRIVATE\", \"fact_type\": \"world\", \"entities\": null, \"context\": \"\", \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.609970+00:00\", \"document_id\": \"only-a\", \"metadata\": {}, \"chunk_id\": \"domain-scope-per~5Ftag-041653e6_only-a_0\", \"tags\": [\"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 0.7699999993707679, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}, {\"id\": \"42515268-6f1a-4d2b-97d0-9c7172c9099d\", \"text\": \"SHARED_PUBLIC\", \"fact_type\": \"observation\", \"entities\": null, \"context\": null, \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.645979+00:00\", \"document_id\": null, \"metadata\": {}, \"chunk_id\": null, \"tags\": [\"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 0.4399999997317859, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}, {\"id\": \"fd0a083f-b960-4e2f-864a-ccc10a72b3e5\", \"text\": \"A_PRIVATE\", \"fact_type\": \"observation\", \"entities\": null, \"context\": null, \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.609970+00:00\", \"document_id\": null, \"metadata\": {}, \"chunk_id\": null, \"tags\": [\"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 0.10999999991010968, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}]"
+    },
+    {
+      "test": "scope_fixture_has_b_document",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": null
+    },
+    {
+      "test": "strict_scope_no_cross_character_combined",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "a": {
+          "results": [
+            {
+              "id": "abf853a7-5f59-4d2b-96a0-26bb7a8cac66",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.821736+00:00",
+              "document_id": "both",
+              "metadata": {},
+              "chunk_id": "domain-scope-combined-3d7ac510_both_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999995191527,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "7f466f8e-f501-4cdc-8bc6-f4d981497e30",
+              "text": "A_PRIVATE",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.780827+00:00",
+              "document_id": "only-a",
+              "metadata": {},
+              "chunk_id": "domain-scope-combined-3d7ac510_only-a_0",
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.7699999994817966,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "521c78c4-c147-467f-88af-ded0e1eb8009",
+              "text": "A_PRIVATE",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.780827+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.43999999970388387,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "70340628-7d8a-48b4-9d56-4669a60fb7ff",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.821736+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999995191524,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-scope-combined-3d7ac510_both_0": {
+              "chunk_text": "SHARED_PUBLIC",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-scope-combined-3d7ac510_only-a_0": {
+              "chunk_text": "A_PRIVATE",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "b": {
+          "results": [
+            {
+              "id": "82e87c8b-115f-4e22-9489-fc88facdb738",
+              "text": "B_PRIVATE",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.803104+00:00",
+              "document_id": "only-b",
+              "metadata": {},
+              "chunk_id": "domain-scope-combined-3d7ac510_only-b_0",
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999993476408,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "abf853a7-5f59-4d2b-96a0-26bb7a8cac66",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.821736+00:00",
+              "document_id": "both",
+              "metadata": {},
+              "chunk_id": "domain-scope-combined-3d7ac510_both_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.7699999996260628,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "1694610a-ab82-4617-9e95-06fe38fe4019",
+              "text": "B_PRIVATE",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.803104+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.43999999973905635,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "70340628-7d8a-48b4-9d56-4669a60fb7ff",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.821736+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999994658038,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-scope-combined-3d7ac510_only-b_0": {
+              "chunk_text": "B_PRIVATE",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-scope-combined-3d7ac510_both_0": {
+              "chunk_text": "SHARED_PUBLIC",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "rows": [
+          {
+            "id": "7f466f8e-f501-4cdc-8bc6-f4d981497e30",
+            "text": "A_PRIVATE",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "only-a",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.869721+00:00"
+          },
+          {
+            "id": "82e87c8b-115f-4e22-9489-fc88facdb738",
+            "text": "B_PRIVATE",
+            "fact_type": "world",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": "only-b",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.870096+00:00"
+          },
+          {
+            "id": "abf853a7-5f59-4d2b-96a0-26bb7a8cac66",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "world",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": "both",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:54.869595+00:00"
+          },
+          {
+            "id": "521c78c4-c147-467f-88af-ded0e1eb8009",
+            "text": "A_PRIVATE",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "7f466f8e-f501-4cdc-8bc6-f4d981497e30"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "70340628-7d8a-48b4-9d56-4669a60fb7ff",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "observation",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "abf853a7-5f59-4d2b-96a0-26bb7a8cac66"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "1694610a-ab82-4617-9e95-06fe38fe4019",
+            "text": "B_PRIVATE",
+            "fact_type": "observation",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "82e87c8b-115f-4e22-9489-fc88facdb738"
+            ],
+            "consolidated_at": null
+          }
+        ]
+      }
+    },
+    {
+      "test": "shared_fact_visible_as_observation_combined",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": "[{\"id\": \"abf853a7-5f59-4d2b-96a0-26bb7a8cac66\", \"text\": \"SHARED_PUBLIC\", \"fact_type\": \"world\", \"entities\": null, \"context\": \"\", \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.821736+00:00\", \"document_id\": \"both\", \"metadata\": {}, \"chunk_id\": \"domain-scope-combined-3d7ac510_both_0\", \"tags\": [\"character:b\", \"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 1.0999999995191527, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}, {\"id\": \"7f466f8e-f501-4cdc-8bc6-f4d981497e30\", \"text\": \"A_PRIVATE\", \"fact_type\": \"world\", \"entities\": null, \"context\": \"\", \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.780827+00:00\", \"document_id\": \"only-a\", \"metadata\": {}, \"chunk_id\": \"domain-scope-combined-3d7ac510_only-a_0\", \"tags\": [\"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 0.7699999994817966, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}, {\"id\": \"521c78c4-c147-467f-88af-ded0e1eb8009\", \"text\": \"A_PRIVATE\", \"fact_type\": \"observation\", \"entities\": null, \"context\": null, \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.780827+00:00\", \"document_id\": null, \"metadata\": {}, \"chunk_id\": null, \"tags\": [\"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 0.43999999970388387, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}, {\"id\": \"70340628-7d8a-48b4-9d56-4669a60fb7ff\", \"text\": \"SHARED_PUBLIC\", \"fact_type\": \"observation\", \"entities\": null, \"context\": null, \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.821736+00:00\", \"document_id\": null, \"metadata\": {}, \"chunk_id\": null, \"tags\": [\"character:b\", \"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 0.10999999995191524, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}]"
+    },
+    {
+      "test": "strict_scope_no_cross_character_shared",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "a": {
+          "results": [
+            {
+              "id": "978a84f8-2b1d-4912-8c1a-d73abc93a3fb",
+              "text": "A_PRIVATE",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.917929+00:00",
+              "document_id": "only-a",
+              "metadata": {},
+              "chunk_id": "domain-scope-shared-14e034dc_only-a_0",
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.099999999289688,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "ab0e49c8-6a44-46f5-81b3-9a4e9b601c94",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.965303+00:00",
+              "document_id": "both",
+              "metadata": {},
+              "chunk_id": "domain-scope-shared-14e034dc_both_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999995901318,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-scope-shared-14e034dc_only-a_0": {
+              "chunk_text": "A_PRIVATE",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-scope-shared-14e034dc_both_0": {
+              "chunk_text": "SHARED_PUBLIC",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "b": {
+          "results": [
+            {
+              "id": "d6c255c7-0083-4492-a4b1-02e17b3f15e7",
+              "text": "B_PRIVATE",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.945457+00:00",
+              "document_id": "only-b",
+              "metadata": {},
+              "chunk_id": "domain-scope-shared-14e034dc_only-b_0",
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999994195269,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "ab0e49c8-6a44-46f5-81b3-9a4e9b601c94",
+              "text": "SHARED_PUBLIC",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:54.965303+00:00",
+              "document_id": "both",
+              "metadata": {},
+              "chunk_id": "domain-scope-shared-14e034dc_both_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999995453892,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-scope-shared-14e034dc_only-b_0": {
+              "chunk_text": "B_PRIVATE",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-scope-shared-14e034dc_both_0": {
+              "chunk_text": "SHARED_PUBLIC",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "rows": [
+          {
+            "id": "978a84f8-2b1d-4912-8c1a-d73abc93a3fb",
+            "text": "A_PRIVATE",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "only-a",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.010114+00:00"
+          },
+          {
+            "id": "d6c255c7-0083-4492-a4b1-02e17b3f15e7",
+            "text": "B_PRIVATE",
+            "fact_type": "world",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": "only-b",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.010114+00:00"
+          },
+          {
+            "id": "ab0e49c8-6a44-46f5-81b3-9a4e9b601c94",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "world",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": "both",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.010114+00:00"
+          },
+          {
+            "id": "6fe28a5d-694c-4548-aaad-d7a7f1fcbead",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "observation",
+            "tags": [],
+            "document_id": null,
+            "source_memory_ids": [
+              "ab0e49c8-6a44-46f5-81b3-9a4e9b601c94"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "9cba28f2-7898-4b56-9c87-fd4f22d2b16a",
+            "text": "A_PRIVATE",
+            "fact_type": "observation",
+            "tags": [],
+            "document_id": null,
+            "source_memory_ids": [
+              "978a84f8-2b1d-4912-8c1a-d73abc93a3fb"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "a962025f-7b28-4417-8abe-cce91534f9cc",
+            "text": "B_PRIVATE",
+            "fact_type": "observation",
+            "tags": [],
+            "document_id": null,
+            "source_memory_ids": [
+              "d6c255c7-0083-4492-a4b1-02e17b3f15e7"
+            ],
+            "consolidated_at": null
+          }
+        ]
+      }
+    },
+    {
+      "test": "shared_fact_visible_as_observation_shared",
+      "execution": "PASS",
+      "assertion": "FAIL",
+      "criterion": "native mechanism",
+      "details": "[{\"id\": \"978a84f8-2b1d-4912-8c1a-d73abc93a3fb\", \"text\": \"A_PRIVATE\", \"fact_type\": \"world\", \"entities\": null, \"context\": \"\", \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.917929+00:00\", \"document_id\": \"only-a\", \"metadata\": {}, \"chunk_id\": \"domain-scope-shared-14e034dc_only-a_0\", \"tags\": [\"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 1.099999999289688, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}, {\"id\": \"ab0e49c8-6a44-46f5-81b3-9a4e9b601c94\", \"text\": \"SHARED_PUBLIC\", \"fact_type\": \"world\", \"entities\": null, \"context\": \"\", \"occurred_start\": null, \"occurred_end\": null, \"mentioned_at\": \"2026-10-26T12:02:54.965303+00:00\", \"document_id\": \"both\", \"metadata\": {}, \"chunk_id\": \"domain-scope-shared-14e034dc_both_0\", \"tags\": [\"character:b\", \"character:a\"], \"source_fact_ids\": null, \"scores\": {\"final\": 0.10999999995901318, \"reranker\": null, \"semantic\": 1.0, \"keyword\": null}}]"
+    },
+    {
+      "test": "shared_scope_default_any_exposes_other_character",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "危険設定の陽性対照。PASSはM6適合を意味しない",
+      "details": {
+        "results": [
+          {
+            "id": "978a84f8-2b1d-4912-8c1a-d73abc93a3fb",
+            "text": "A_PRIVATE",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.917929+00:00",
+            "document_id": "only-a",
+            "metadata": {},
+            "chunk_id": "domain-scope-shared-14e034dc_only-a_0",
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 1.09999999919206,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "ab0e49c8-6a44-46f5-81b3-9a4e9b601c94",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.965303+00:00",
+            "document_id": "both",
+            "metadata": {},
+            "chunk_id": "domain-scope-shared-14e034dc_both_0",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.8524999996066905,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "6fe28a5d-694c-4548-aaad-d7a7f1fcbead",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.965303+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.6049999997208771,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "a962025f-7b28-4417-8abe-cce91534f9cc",
+            "text": "B_PRIVATE",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.945457+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.3574999997941584,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "9cba28f2-7898-4b56-9c87-fd4f22d2b16a",
+            "text": "A_PRIVATE",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.917929+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.10999999991920596,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          }
+        ],
+        "trace": null,
+        "entities": null,
+        "chunks": null,
+        "source_facts": null,
+        "source_facts_truncated": null
+      }
+    },
+    {
+      "test": "same_topic_scope_blocks_private_detail_per_tag",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "同主題の共有Factと私的詳細を統合してもBに私的詳細を返さない",
+      "details": {
+        "a": {
+          "results": [
+            {
+              "id": "064570ae-998d-472d-94a9-bf9004b08bb9",
+              "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.127986+00:00",
+              "document_id": "private",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-per~5Ftag-3009a75b_private_0",
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.099999999109386,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "d56af541-478a-4c14-8ed7-b36abf8815f3",
+              "text": "青はお茶が好き。",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.056216+00:00",
+              "document_id": "shared",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-per~5Ftag-3009a75b_shared_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.6049999992598231,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "fde9ae97-dd7d-44e9-a12c-fab7ad84ceda",
+              "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.127986+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.11076246180893719,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-topic-scope-per~5Ftag-3009a75b_private_0": {
+              "chunk_text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-topic-scope-per~5Ftag-3009a75b_shared_0": {
+              "chunk_text": "青はお茶が好き。",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "b": {
+          "results": [
+            {
+              "id": "d56af541-478a-4c14-8ed7-b36abf8815f3",
+              "text": "青はお茶が好き。",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.056216+00:00",
+              "document_id": "shared",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-per~5Ftag-3009a75b_shared_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999985474886,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "7c0ffe34-0cf1-4b1b-aa58-d6af01b49dc7",
+              "text": "青はお茶が好き。",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.056216+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999985474884,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-topic-scope-per~5Ftag-3009a75b_shared_0": {
+              "chunk_text": "青はお茶が好き。",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "rows": [
+          {
+            "id": "d56af541-478a-4c14-8ed7-b36abf8815f3",
+            "text": "青はお茶が好き。",
+            "fact_type": "world",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": "shared",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.107437+00:00"
+          },
+          {
+            "id": "7c0ffe34-0cf1-4b1b-aa58-d6af01b49dc7",
+            "text": "青はお茶が好き。",
+            "fact_type": "observation",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "d56af541-478a-4c14-8ed7-b36abf8815f3"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "fde9ae97-dd7d-44e9-a12c-fab7ad84ceda",
+            "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "064570ae-998d-472d-94a9-bf9004b08bb9",
+              "d56af541-478a-4c14-8ed7-b36abf8815f3"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "064570ae-998d-472d-94a9-bf9004b08bb9",
+            "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "private",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.173140+00:00"
+          }
+        ]
+      }
+    },
+    {
+      "test": "same_topic_scope_blocks_private_detail_combined",
+      "execution": "PASS",
+      "assertion": "FAIL",
+      "criterion": "同主題の共有Factと私的詳細を統合してもBに私的詳細を返さない",
+      "details": {
+        "a": {
+          "results": [
+            {
+              "id": "32895850-cf26-46a0-a3d7-48fde58556e4",
+              "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.380039+00:00",
+              "document_id": "private",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-combined-eac38e87_private_0",
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999995886416,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "fa4b70ab-cd7b-4853-9a2b-c12b13b0bc3c",
+              "text": "青はお茶が好き。",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.295789+00:00",
+              "document_id": "shared",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-combined-eac38e87_shared_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.6049999994798825,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "1543cff5-f2ee-482e-9c9b-15e909e1dc33",
+              "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.380039+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.11076246185719495,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-topic-scope-combined-eac38e87_private_0": {
+              "chunk_text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-topic-scope-combined-eac38e87_shared_0": {
+              "chunk_text": "青はお茶が好き。",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "b": {
+          "results": [
+            {
+              "id": "fa4b70ab-cd7b-4853-9a2b-c12b13b0bc3c",
+              "text": "青はお茶が好き。",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.295789+00:00",
+              "document_id": "shared",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-combined-eac38e87_shared_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.099999998989929,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "1543cff5-f2ee-482e-9c9b-15e909e1dc33",
+              "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.380039+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.11076246185071004,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-topic-scope-combined-eac38e87_shared_0": {
+              "chunk_text": "青はお茶が好き。",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "rows": [
+          {
+            "id": "fa4b70ab-cd7b-4853-9a2b-c12b13b0bc3c",
+            "text": "青はお茶が好き。",
+            "fact_type": "world",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": "shared",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.352169+00:00"
+          },
+          {
+            "id": "1543cff5-f2ee-482e-9c9b-15e909e1dc33",
+            "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+            "fact_type": "observation",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "32895850-cf26-46a0-a3d7-48fde58556e4",
+              "fa4b70ab-cd7b-4853-9a2b-c12b13b0bc3c"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "32895850-cf26-46a0-a3d7-48fde58556e4",
+            "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "private",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.422914+00:00"
+          }
+        ]
+      }
+    },
+    {
+      "test": "same_topic_scope_blocks_private_detail_custom",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "同主題の共有Factと私的詳細を統合してもBに私的詳細を返さない",
+      "details": {
+        "a": {
+          "results": [
+            {
+              "id": "ae2f609f-0bc9-4925-af58-a9ed01da6263",
+              "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.534923+00:00",
+              "document_id": "private",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-custom-ec1d06ca_private_0",
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999995318048,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "576f7f91-4bf9-4b51-b9df-13550e866786",
+              "text": "青はお茶が好き。",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.467913+00:00",
+              "document_id": "shared",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-custom-ec1d06ca_shared_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.6049999995087567,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "a387a533-4a11-4499-8e0d-3b692b4610d5",
+              "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.534923+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.11076246185147187,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-topic-scope-custom-ec1d06ca_private_0": {
+              "chunk_text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+              "chunk_index": 0,
+              "truncated": false
+            },
+            "domain-topic-scope-custom-ec1d06ca_shared_0": {
+              "chunk_text": "青はお茶が好き。",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "b": {
+          "results": [
+            {
+              "id": "576f7f91-4bf9-4b51-b9df-13550e866786",
+              "text": "青はお茶が好き。",
+              "fact_type": "world",
+              "entities": null,
+              "context": "",
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.467913+00:00",
+              "document_id": "shared",
+              "metadata": {},
+              "chunk_id": "domain-topic-scope-custom-ec1d06ca_shared_0",
+              "tags": [
+                "character:b",
+                "character:a"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 1.0999999990095763,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            },
+            {
+              "id": "aa242cab-56b0-422d-bb19-65745dfb7124",
+              "text": "青はお茶が好き。",
+              "fact_type": "observation",
+              "entities": null,
+              "context": null,
+              "occurred_start": null,
+              "occurred_end": null,
+              "mentioned_at": "2026-10-26T12:02:55.467913+00:00",
+              "document_id": null,
+              "metadata": {},
+              "chunk_id": null,
+              "tags": [
+                "character:b"
+              ],
+              "source_fact_ids": null,
+              "scores": {
+                "final": 0.10999999990095762,
+                "reranker": null,
+                "semantic": 1.0,
+                "keyword": null
+              }
+            }
+          ],
+          "trace": null,
+          "entities": null,
+          "chunks": {
+            "domain-topic-scope-custom-ec1d06ca_shared_0": {
+              "chunk_text": "青はお茶が好き。",
+              "chunk_index": 0,
+              "truncated": false
+            }
+          },
+          "source_facts": null,
+          "source_facts_truncated": null
+        },
+        "rows": [
+          {
+            "id": "576f7f91-4bf9-4b51-b9df-13550e866786",
+            "text": "青はお茶が好き。",
+            "fact_type": "world",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "document_id": "shared",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.513260+00:00"
+          },
+          {
+            "id": "a387a533-4a11-4499-8e0d-3b692b4610d5",
+            "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "576f7f91-4bf9-4b51-b9df-13550e866786",
+              "ae2f609f-0bc9-4925-af58-a9ed01da6263"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "aa242cab-56b0-422d-bb19-65745dfb7124",
+            "text": "青はお茶が好き。",
+            "fact_type": "observation",
+            "tags": [
+              "character:b"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "576f7f91-4bf9-4b51-b9df-13550e866786"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "ae2f609f-0bc9-4925-af58-a9ed01da6263",
+            "text": "青はお茶が好き。秘密符号=A_ONLY_DETAIL",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "private",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.575853+00:00"
+          }
+        ]
+      }
+    },
+    {
+      "test": "forced_scope_without_caller_tags_a",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "results": [
+          {
+            "id": "36ba84dc-587b-4465-b231-96bfbf75973f",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+            "document_id": "both",
+            "metadata": {},
+            "chunk_id": "domain-scope-per~5Ftag-041653e6_both_0",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 1.0999999937136415,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "aff2a0a1-8fab-4a5a-853b-4e3ef1240a9e",
+            "text": "A_PRIVATE",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.609970+00:00",
+            "document_id": "only-a",
+            "metadata": {},
+            "chunk_id": "domain-scope-per~5Ftag-041653e6_only-a_0",
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.7699999954396918,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "42515268-6f1a-4d2b-97d0-9c7172c9099d",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.43999999748545665,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "fd0a083f-b960-4e2f-864a-ccc10a72b3e5",
+            "text": "A_PRIVATE",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.609970+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.10999999934852737,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          }
+        ],
+        "trace": null,
+        "entities": null,
+        "chunks": {
+          "domain-scope-per~5Ftag-041653e6_both_0": {
+            "chunk_text": "SHARED_PUBLIC",
+            "chunk_index": 0,
+            "truncated": false
+          },
+          "domain-scope-per~5Ftag-041653e6_only-a_0": {
+            "chunk_text": "A_PRIVATE",
+            "chunk_index": 0,
+            "truncated": false
+          }
+        },
+        "source_facts": null,
+        "source_facts_truncated": null
+      }
+    },
+    {
+      "test": "forced_scope_without_caller_tags_b",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "results": [
+          {
+            "id": "36ba84dc-587b-4465-b231-96bfbf75973f",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+            "document_id": "both",
+            "metadata": {},
+            "chunk_id": "domain-scope-per~5Ftag-041653e6_both_0",
+            "tags": [
+              "character:b",
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 1.099999993646423,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "fecc13be-f192-4d7d-8eee-411ea86d7ba5",
+            "text": "B_PRIVATE",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.626566+00:00",
+            "document_id": "only-b",
+            "metadata": {},
+            "chunk_id": "domain-scope-per~5Ftag-041653e6_only-b_0",
+            "tags": [
+              "character:b"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.7699999954663146,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "bd6e5bde-52eb-498d-bcbc-6286330dd7bc",
+            "text": "SHARED_PUBLIC",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.645979+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:b"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.43999999745856927,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "eb9c621d-ab9a-4cdc-b176-f7524c474213",
+            "text": "B_PRIVATE",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:54.626566+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:b"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.10999999935233064,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          }
+        ],
+        "trace": null,
+        "entities": null,
+        "chunks": {
+          "domain-scope-per~5Ftag-041653e6_both_0": {
+            "chunk_text": "SHARED_PUBLIC",
+            "chunk_index": 0,
+            "truncated": false
+          },
+          "domain-scope-per~5Ftag-041653e6_only-b_0": {
+            "chunk_text": "B_PRIVATE",
+            "chunk_index": 0,
+            "truncated": false
+          }
+        },
+        "source_facts": null,
+        "source_facts_truncated": null
+      }
+    },
+    {
+      "test": "forced_write_scope_rejects_forged_tags",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "type": "OperationValidationError",
+        "message": "Operation validation failed: You can't write memories tagged character:b"
+      }
+    },
+    {
+      "test": "append_preserves_prior_text",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "id": "session",
+        "bank_id": "domain-documents-511929fb",
+        "original_text": "TURN_ONE\nTURN_TWO",
+        "content_hash": "cdc1a783930427a399f9f6f75eec5c941244c7c7a4ae19f5c38592d2ed51d82c",
+        "memory_unit_count": 2,
+        "nodes_by_fact_type": {
+          "world": 2,
+          "experience": 0,
+          "observation": 2
+        },
+        "created_at": "2026-10-26T12:02:55.663774+00:00",
+        "updated_at": "2026-10-26T12:02:55.736308+00:00",
+        "tags": [
+          "character:a"
+        ],
+        "document_metadata": null,
+        "retain_params": {
+          "observation_scopes": "per_tag"
+        },
+        "observation_scopes": "per_tag"
+      }
+    },
+    {
+      "test": "append_retry_idempotent",
+      "execution": "PASS",
+      "assertion": "FAIL",
+      "criterion": "Turnの再送による二重追記を防ぐ",
+      "details": {
+        "id": "session",
+        "bank_id": "domain-documents-511929fb",
+        "original_text": "TURN_ONE\nTURN_TWO\nTURN_TWO",
+        "content_hash": "f93e41a721a7731a44c7e3c540b484d62b7c0402b6907b14895469750e0a47b0",
+        "memory_unit_count": 2,
+        "nodes_by_fact_type": {
+          "world": 2,
+          "experience": 0,
+          "observation": 2
+        },
+        "created_at": "2026-10-26T12:02:55.663774+00:00",
+        "updated_at": "2026-10-26T12:02:55.808498+00:00",
+        "tags": [
+          "character:a"
+        ],
+        "document_metadata": null,
+        "retain_params": {
+          "observation_scopes": "per_tag"
+        },
+        "observation_scopes": "per_tag"
+      }
+    },
+    {
+      "test": "replace_removes_old_text_and_derived",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "id": "session",
+        "bank_id": "domain-documents-511929fb",
+        "original_text": "TURN_THREE",
+        "content_hash": "8ccaf8a83a3b4a8f098af534b05e17471a517689baec1576fa982239a13e96cd",
+        "memory_unit_count": 1,
+        "nodes_by_fact_type": {
+          "world": 1,
+          "experience": 0,
+          "observation": 1
+        },
+        "created_at": "2026-10-26T12:02:55.663774+00:00",
+        "updated_at": "2026-10-26T12:02:55.884374+00:00",
+        "tags": [
+          "character:a"
+        ],
+        "document_metadata": null,
+        "retain_params": {
+          "observation_scopes": "per_tag"
+        },
+        "observation_scopes": "per_tag"
+      }
+    },
+    {
+      "test": "reprocess_preserves_original_and_rebuilds_units",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": {
+        "before": [
+          {
+            "id": "0b95cea8-e7d0-4872-bc62-0ab9c5e5a47e",
+            "text": "TURN_THREE",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "session",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.942712+00:00"
+          },
+          {
+            "id": "c938d1a6-69fc-413c-9070-b7d31e7db569",
+            "text": "TURN_THREE",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "0b95cea8-e7d0-4872-bc62-0ab9c5e5a47e"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "0c044954-84af-4e9b-84ab-09bdf88d73b0",
+            "text": "逐語の合成Turn",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "turn-immutable",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:56.023422+00:00"
+          },
+          {
+            "id": "d31a9b2b-c01c-4066-9115-eabda0850495",
+            "text": "逐語の合成Turn",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "0c044954-84af-4e9b-84ab-09bdf88d73b0"
+            ],
+            "consolidated_at": null
+          }
+        ],
+        "after": [
+          {
+            "id": "0b95cea8-e7d0-4872-bc62-0ab9c5e5a47e",
+            "text": "TURN_THREE",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "session",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:55.942712+00:00"
+          },
+          {
+            "id": "c938d1a6-69fc-413c-9070-b7d31e7db569",
+            "text": "TURN_THREE",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "0b95cea8-e7d0-4872-bc62-0ab9c5e5a47e"
+            ],
+            "consolidated_at": null
+          },
+          {
+            "id": "2e0df8ca-9e57-4153-a322-02d4aee2f42e",
+            "text": "逐語の合成Turn",
+            "fact_type": "world",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": "turn-immutable",
+            "source_memory_ids": [],
+            "consolidated_at": "2026-10-26 12:02:56.125813+00:00"
+          },
+          {
+            "id": "a80f873b-8d30-4e69-af49-d92f442be533",
+            "text": "逐語の合成Turn",
+            "fact_type": "observation",
+            "tags": [
+              "character:a"
+            ],
+            "document_id": null,
+            "source_memory_ids": [
+              "2e0df8ca-9e57-4153-a322-02d4aee2f42e"
+            ],
+            "consolidated_at": null
+          }
+        ],
+        "document": {
+          "id": "turn-immutable",
+          "bank_id": "domain-documents-511929fb",
+          "original_text": "逐語の合成Turn",
+          "content_hash": "377043b4384ddce5683acb757bebcff5833666f970b0b103ce704f7a454b437e",
+          "memory_unit_count": 1,
+          "nodes_by_fact_type": {
+            "world": 1,
+            "experience": 0,
+            "observation": 1
+          },
+          "created_at": "2026-10-26T12:02:55.977711+00:00",
+          "updated_at": "2026-10-26T12:02:56.066506+00:00",
+          "tags": [
+            "character:a"
+          ],
+          "document_metadata": null,
+          "retain_params": {
+            "observation_scopes": "per_tag"
+          },
+          "observation_scopes": "per_tag"
+        }
+      }
+    },
+    {
+      "test": "all_native_operations_completed",
+      "execution": "PASS",
+      "assertion": "PASS",
+      "criterion": "native mechanism",
+      "details": [
+        {
+          "operation_id": "361afaed-e69d-4fb2-bad5-9815db4bc9cd",
+          "bank_id": "domain-dedup-ab128a32",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "f5b53065-f398-4393-98f7-5add2a541b4a",
+          "bank_id": "domain-dedup-ab128a32",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "f57c91a3-6e02-4d16-9fad-3991b268b2f3",
+          "bank_id": "domain-dedup-ab128a32",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "8b6371eb-697f-4ccf-9c19-b6f5778b5900",
+          "bank_id": "domain-dedup-ab128a32",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "04c26374-f071-4fee-9cae-f3bcf2b79ba2",
+          "bank_id": "domain-dedup-ab128a32",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "30b553bf-f242-440a-acb1-d8a0cbcba686",
+          "bank_id": "domain-dedup-ab128a32",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "2418aede-1403-4972-bfe0-c571b73e2ecb",
+          "bank_id": "domain-dedup-ab128a32",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "048cab94-f32c-48fd-8d38-9211a514ce27",
+          "bank_id": "domain-delete-c9b6cd02",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "e587c02e-8a6e-4ce9-9a5a-2f835024dbf8",
+          "bank_id": "domain-delete-c9b6cd02",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "2f602a5e-cb69-4b02-b7d4-3f081b36886b",
+          "bank_id": "domain-delete-c9b6cd02",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "27d797d1-4e55-4c4d-bd0c-aba6b0feb0bc",
+          "bank_id": "domain-delete-c9b6cd02",
+          "operation_type": "graph_maintenance",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "d0c700cc-9da0-4f7e-adee-74b70d10c50f",
+          "bank_id": "domain-race-consolidation-fe9266f1",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "8d7d1c93-5894-493e-9992-00f1a6a15919",
+          "bank_id": "domain-race-consolidation-fe9266f1",
+          "operation_type": "graph_maintenance",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "f791063d-3496-48fa-a374-6e34a4839953",
+          "bank_id": "domain-race-mixed-54fe6aa2",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "3838ca4f-4316-4525-b7ce-b35131b6a7f7",
+          "bank_id": "domain-race-mixed-54fe6aa2",
+          "operation_type": "graph_maintenance",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "adda68aa-6cbd-4d24-b968-fec435d17b50",
+          "bank_id": "domain-race-retain-62324ff6",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "c2328172-09a3-43c3-8a9e-f6e547a6226b",
+          "bank_id": "domain-race-retain-62324ff6",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "b7ccd99c-1905-4c11-a5f9-d79653e1baa9",
+          "bank_id": "domain-race-retain-62324ff6",
+          "operation_type": "graph_maintenance",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "3d9e61a1-f859-4ab3-a036-8793a761df3c",
+          "bank_id": "domain-race-retain-62324ff6",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "148b8b4d-23d3-4512-8af9-ee21726a8fd6",
+          "bank_id": "domain-race-retain-62324ff6",
+          "operation_type": "graph_maintenance",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "370f94f1-d19c-4296-885e-b7745a4d509e",
+          "bank_id": "domain-race-retain-62324ff6",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "412fadb3-3dea-4bf2-81f9-ac3c5395cd9a",
+          "bank_id": "domain-scope-per_tag-041653e6",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "5dcbd9a1-372b-419c-a08d-e3c527f89e36",
+          "bank_id": "domain-scope-combined-3d7ac510",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "fb365cc8-8052-40d4-ab5f-cc075d224418",
+          "bank_id": "domain-scope-shared-14e034dc",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "b5e37349-9360-4fb1-9fcc-dcb0d59d8dc0",
+          "bank_id": "domain-topic-scope-per_tag-3009a75b",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "1b16d782-3647-4f64-822b-88918bbd3c27",
+          "bank_id": "domain-topic-scope-per_tag-3009a75b",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "49fbf343-dbe0-41fc-9c00-01c2b94cb7cf",
+          "bank_id": "domain-topic-scope-combined-eac38e87",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "5779fad9-d289-460e-a58f-7f09841e05b3",
+          "bank_id": "domain-topic-scope-combined-eac38e87",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "88cd6f5b-00eb-43c9-9799-0f48440c2117",
+          "bank_id": "domain-topic-scope-custom-ec1d06ca",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "3d34d5e2-a622-4a53-8900-5edafe31f176",
+          "bank_id": "domain-topic-scope-custom-ec1d06ca",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "01d5088b-4d5e-4bef-b068-ffc31c057eb9",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "446ae596-7a1b-42f0-94d3-da418ca0b02e",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "cc133544-d4f2-4e4e-8554-b7450fe2c173",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "fcf82f76-6cc3-4b51-ae06-c69656a9b27c",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "graph_maintenance",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "3dbb8161-91ee-4668-895e-41e3d004120b",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "817aeb10-7d58-462d-8d78-9e41f0455bf4",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "61ecb38a-1c13-47bc-80c8-7b95cb99df2c",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "retain",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "ec228ee8-c805-4342-9f02-615b02f14cdd",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "batch_retain",
+          "status": "completed",
+          "error_message": null
+        },
+        {
+          "operation_id": "73964c89-a723-4e96-89c9-72641925aed4",
+          "bank_id": "domain-documents-511929fb",
+          "operation_type": "consolidation",
+          "status": "completed",
+          "error_message": null
+        }
+      ]
+    }
+  ],
+  "snapshots": {
+    "dedup": [
+      {
+        "id": "1fb34b5f-26e2-41df-bacf-339fe34c3dc3",
+        "text": "青はお茶が好き。",
+        "fact_type": "world",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": "turn-0",
+        "source_memory_ids": [],
+        "consolidated_at": "2026-10-26 12:02:53.523386+00:00"
+      },
+      {
+        "id": "9352f9ac-6ddf-4d76-b43a-b84bad321486",
+        "text": "青はお茶が好き。",
+        "fact_type": "observation",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": null,
+        "source_memory_ids": [
+          "1fb34b5f-26e2-41df-bacf-339fe34c3dc3",
+          "a30f5e16-e38e-406a-bb21-94446051577b",
+          "b0764224-40aa-4a21-b549-0c0b98ce4b46"
+        ],
+        "consolidated_at": null
+      },
+      {
+        "id": "b0764224-40aa-4a21-b549-0c0b98ce4b46",
+        "text": "青は茶を好む。",
+        "fact_type": "world",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": "turn-1",
+        "source_memory_ids": [],
+        "consolidated_at": "2026-10-26 12:02:53.584110+00:00"
+      },
+      {
+        "id": "a30f5e16-e38e-406a-bb21-94446051577b",
+        "text": "青の好物はお茶。",
+        "fact_type": "world",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": "turn-2",
+        "source_memory_ids": [],
+        "consolidated_at": "2026-10-26 12:02:53.644135+00:00"
+      },
+      {
+        "id": "56356b86-6b7f-4cb8-b9e0-cc45faa0f50d",
+        "text": "青は猫を2匹飼う。",
+        "fact_type": "world",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": "turn-3",
+        "source_memory_ids": [],
+        "consolidated_at": "2026-10-26 12:02:53.711121+00:00"
+      },
+      {
+        "id": "0daeac0d-ca08-4b5f-8d63-fecdb94ceff5",
+        "text": "青は猫を2匹飼う。",
+        "fact_type": "observation",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": null,
+        "source_memory_ids": [
+          "56356b86-6b7f-4cb8-b9e0-cc45faa0f50d"
+        ],
+        "consolidated_at": null
+      },
+      {
+        "id": "8dcd7104-61a7-4b95-a991-810e7d73a2a8",
+        "text": "青は猫を3匹飼う。",
+        "fact_type": "world",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": "turn-4",
+        "source_memory_ids": [],
+        "consolidated_at": "2026-10-26 12:02:53.768506+00:00"
+      },
+      {
+        "id": "c6d8dcc1-3018-49f4-b66b-8988ce83ee8f",
+        "text": "青は猫を3匹飼う。",
+        "fact_type": "observation",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": null,
+        "source_memory_ids": [
+          "8dcd7104-61a7-4b95-a991-810e7d73a2a8"
+        ],
+        "consolidated_at": null
+      },
+      {
+        "id": "0e45daf9-ad47-453d-a338-3d8fa636a569",
+        "text": "青はお茶が嫌い。",
+        "fact_type": "world",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": "turn-5",
+        "source_memory_ids": [],
+        "consolidated_at": "2026-10-26 12:02:53.824350+00:00"
+      },
+      {
+        "id": "be183060-9229-4d8d-b42b-d5d49f2c1d02",
+        "text": "青はお茶が嫌い。",
+        "fact_type": "observation",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": null,
+        "source_memory_ids": [
+          "0e45daf9-ad47-453d-a338-3d8fa636a569"
+        ],
+        "consolidated_at": null
+      },
+      {
+        "id": "eb74c61b-1256-4566-b804-e78acc6c3cd3",
+        "text": "赤はお茶が好き。",
+        "fact_type": "world",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": "turn-6",
+        "source_memory_ids": [],
+        "consolidated_at": "2026-10-26 12:02:53.883795+00:00"
+      },
+      {
+        "id": "4be08f70-6e81-4dc5-9703-f1ccc3b9fc09",
+        "text": "赤はお茶が好き。",
+        "fact_type": "observation",
+        "tags": [
+          "character:a"
+        ],
+        "document_id": null,
+        "source_memory_ids": [
+          "eb74c61b-1256-4566-b804-e78acc6c3cd3"
+        ],
+        "consolidated_at": null
+      }
+    ],
+    "deletion": {
+      "before": [
+        {
+          "id": "5822ed84-5ab6-44e1-834f-1045e8093f83",
+          "text": "青はお茶が好き。秘密符号=SECRET_MARKER",
+          "fact_type": "world",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": "doomed",
+          "source_memory_ids": [],
+          "consolidated_at": "2026-10-26 12:02:53.947960+00:00"
+        },
+        {
+          "id": "f4ed096d-f739-486e-b4c7-cbe8fa9ea416",
+          "text": "青はお茶が好き。秘密符号=SECRET_MARKER",
+          "fact_type": "observation",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": null,
+          "source_memory_ids": [
+            "5822ed84-5ab6-44e1-834f-1045e8093f83",
+            "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32"
+          ],
+          "consolidated_at": null
+        },
+        {
+          "id": "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32",
+          "text": "青はお茶が好き。",
+          "fact_type": "world",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": "kept",
+          "source_memory_ids": [],
+          "consolidated_at": "2026-10-26 12:02:54.009895+00:00"
+        }
+      ],
+      "requeued": [
+        {
+          "id": "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32",
+          "text": "青はお茶が好き。",
+          "fact_type": "world",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": "kept",
+          "source_memory_ids": [],
+          "consolidated_at": null
+        }
+      ],
+      "after": [
+        {
+          "id": "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32",
+          "text": "青はお茶が好き。",
+          "fact_type": "world",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": "kept",
+          "source_memory_ids": [],
+          "consolidated_at": "2026-10-26 12:02:54.066658+00:00"
+        },
+        {
+          "id": "4b355939-77ea-4b98-a6a3-8c7b3b06fd4e",
+          "text": "青はお茶が好き。",
+          "fact_type": "observation",
+          "tags": [
+            "character:a"
+          ],
+          "document_id": null,
+          "source_memory_ids": [
+            "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32"
+          ],
+          "consolidated_at": null
+        }
+      ],
+      "recall": {
+        "results": [
+          {
+            "id": "e0da690c-3fbc-45ea-86d3-d8ffc9e9bc32",
+            "text": "青はお茶が好き。",
+            "fact_type": "world",
+            "entities": null,
+            "context": "",
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.969745+00:00",
+            "document_id": "kept",
+            "metadata": {},
+            "chunk_id": "domain-delete-c9b6cd02_kept_0",
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 1.0999999991517948,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          },
+          {
+            "id": "4b355939-77ea-4b98-a6a3-8c7b3b06fd4e",
+            "text": "青はお茶が好き。",
+            "fact_type": "observation",
+            "entities": null,
+            "context": null,
+            "occurred_start": null,
+            "occurred_end": null,
+            "mentioned_at": "2026-10-26T12:02:53.969745+00:00",
+            "document_id": null,
+            "metadata": {},
+            "chunk_id": null,
+            "tags": [
+              "character:a"
+            ],
+            "source_fact_ids": null,
+            "scores": {
+              "final": 0.10999999991517946,
+              "reranker": null,
+              "semantic": 1.0,
+              "keyword": null
+            }
+          }
+        ],
+        "trace": null,
+        "entities": null,
+        "chunks": {
+          "domain-delete-c9b6cd02_kept_0": {
+            "chunk_text": "青はお茶が好き。",
+            "chunk_index": 0,
+            "truncated": false
+          }
+        },
+        "source_facts": null,
+        "source_facts_truncated": null
+      }
+    }
+  },
+  "fixture_call_counts": {
+    "consolidation": 37,
+    "consolidation_dedup": 16
+  },
+  "not_run": [
+    "実LLM/embeddingの日本語品質",
+    "実モデル込みp95",
+    "全競合scheduleの網羅",
+    "Reflection/Belief/人格の実装",
+    "本番常駐workerの障害復旧"
+  ]
+}

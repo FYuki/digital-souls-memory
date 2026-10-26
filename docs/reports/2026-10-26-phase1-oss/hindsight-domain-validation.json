@@ -1,0 +1,151 @@
+{
+  "recorded_at": "2026-10-26T12:22:29.628243+00:00",
+  "scope": "合成データによる研究probeの仕上げ。製品コード・承認済みADRに変更なし。",
+  "native_probe": {
+    "execution": {
+      "PASS": 33,
+      "FAIL": 0,
+      "SKIP": 0,
+      "NOT RUN": 0
+    },
+    "assertion": {
+      "PASS": 27,
+      "FAIL": 6,
+      "SKIP": 0,
+      "NOT RUN": 0
+    },
+    "not_run_areas": 5,
+    "provenance": "引継ぎ最終JSONをバイト一致で保存。再開後はイメージ欠落でprobe再実行NOT RUN。",
+    "resume_runner": {
+      "status": "FAIL",
+      "exit_code": 125,
+      "probe_status": "NOT RUN"
+    }
+  },
+  "product_regression": {
+    "ut": {
+      "status": "PASS",
+      "passed": 1210,
+      "deselected": 1968,
+      "seconds": 8.0,
+      "source": "引継ぎdomain-product-ut.logの完了summary",
+      "log_sha256": "bba6686c6e6f1941c6273cb3553e6148cb7cff7d4a495bfaf5f5c05eda46b1c8",
+      "summary": "1210 passed, 1968 deselected, 1 warning in 8.00s"
+    },
+    "it1": {
+      "status": "PASS",
+      "passed": 1139,
+      "deselected": 2039,
+      "seconds": 36.16,
+      "source": "sandbox外での再開実行domain-product-it1-resumed.log、終了0",
+      "log_sha256": "b6ce8ed04a0d1590f74f88d6c2a309c50d7eeed294e319251fac7a0eb5e53c40",
+      "summary": "1139 passed, 2039 deselected, 1 warning in 36.16s"
+    },
+    "postgres": {
+      "status": "PASS",
+      "passed": 825,
+      "deselected": 2353,
+      "seconds": 1231.69,
+      "source": "引継ぎdomain-product-postgres.logの完了summary。重複実行なし。",
+      "log_sha256": "b1ab9c0a1841ceab5b89a5fdb3f83de461a725b2adce99dafe0319085fa3e997",
+      "summary": "825 passed, 2353 deselected, 1 warning in 1231.69s (0:20:31)"
+    },
+    "it2": {
+      "status": "NOT RUN",
+      "reason": "実モデルの実行許可なし。"
+    },
+    "st": {
+      "status": "NOT RUN",
+      "reason": "今回の変更は研究文書・probeのみ。E2E未実施。"
+    }
+  },
+  "checks": {
+    "ruff": {
+      "status": "PASS",
+      "command": ".venv/bin/ruff check src tests migrations tools/research/phase1_oss"
+    },
+    "ruff_format": {
+      "status": "PASS",
+      "files": 323,
+      "command": ".venv/bin/ruff format --check src tests migrations tools/research/phase1_oss"
+    },
+    "mypy": {
+      "status": "PASS",
+      "files": 319
+    },
+    "uv_lock_check": {
+      "status": "PASS",
+      "version": "0.8.22",
+      "mode": "offline・作業専用UV_CACHE_DIR"
+    },
+    "wheel_build": {
+      "status": "PASS",
+      "source": "引継ぎdomain-product-build.logのsdist/wheel作成成功",
+      "log_sha256": "cb299b008a7ab32fb06a215436acd3f9736938c020c7c08c1244f01a23d6333a"
+    },
+    "independent_environment_import": {
+      "status": "PASS",
+      "command": ".package-check/bin/python -I でcreate_appをimportしtitleを検査"
+    },
+    "independent_hashed_reinstall": {
+      "status": "NOT RUN",
+      "reason": "既存の独立環境のimportのみ実行。再開後の依存再インストールは未実施。"
+    },
+    "shell_syntax": {
+      "status": "PASS",
+      "command": "bash -n tools/research/phase1_oss/run-hindsight-domain.sh"
+    },
+    "fixed_source_links": {
+      "status": "PASS",
+      "count": 31,
+      "method": "固定commitのローカルcloneでファイルと#L行の実在を検査。外部HTTPはNOT RUN。"
+    },
+    "result_counts_and_probe_references": {
+      "status": "PASS",
+      "reference_count": 4
+    },
+    "local_report_links": {
+      "status": "PASS",
+      "count": 31,
+      "scope": [
+        "docs/research/hindsight-domain-fit.md",
+        "docs/research/phase1-oss-reassessment.md",
+        "tools/research/phase1_oss/README.md"
+      ]
+    },
+    "diff_check": {
+      "status": "PASS",
+      "command": "git diff --check（commit直前にも検査）"
+    }
+  },
+  "initial_attempts": {
+    "it1": {
+      "status": "FAIL",
+      "reason": "sandbox内PID 1344696が6分以上進行せずfutex待機。cwdとargvで所有確認後SIGTERM。未完走のためPASSに数えない。後続のsandbox外実行は完了。"
+    },
+    "uv_lock_check": {
+      "status": "FAIL",
+      "reason": "既定キャッシュのsandbox書込拒否。作業専用UV_CACHE_DIRでの再実行はPASS。"
+    }
+  },
+  "cleanup": {
+    "status": "PASS",
+    "remaining_owned_processes": [],
+    "remaining_owned_containers": [],
+    "disposable_database_socket_removed": true,
+    "scope": "PID 1344696/1382393/1382405/1383702、memory-pg-4Yf0XG51、phase1-hindsight-domain-*、/tmp/memory-pg.4Yf0XG51を確認。",
+    "other_sessions": "他セッションのmemory-pg-*とLiveKitは操作していない。"
+  },
+  "limitations": [
+    "fixtureは統合と削除の機構を検査し、意味品質は検査しない。",
+    "最終probeの固定イメージがローカルに残っておらず、再開後の再現実行は未完了。",
+    "実モデル品質、全経路p95、競合schedule網羅、Reflection/Belief/人格の全DAG、常駐worker障害復旧はNOT RUN。"
+  ],
+  "product_regression_counts": {
+    "PASS": 3174,
+    "FAIL": 0,
+    "SKIP": 0,
+    "NOT RUN_suites": 2,
+    "note": "UT/IT1/PostgreSQLの完走した最終結果のみ。中断試行はinitial_attemptsに別記。NOT RUNはIT2/STのsuite数でありテスト件数ではない。"
+  }
+}

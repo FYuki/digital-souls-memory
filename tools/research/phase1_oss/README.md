@@ -65,6 +65,23 @@ Neo4jはloopback限定・統計送信無効。データはtmpfs。
 
 ## 検証上の限界
 
+### Hindsightのドメイン適合追補
+
+`bash tools/research/phase1_oss/run-hindsight-domain.sh` は新規の合成PostgreSQLだけを使い、
+標準workerのclaim/execute経由でauto-consolidationを完了まで進める。
+observationを直接seedせず、LLM応答と384次元embeddingだけをfixtureにする。
+実モデル・外部APIは呼ばず、Pythonの接続guardとDBのnetwork noneを維持する。
+固定sourceとvenvは上記と共通。Neo4jは使用しない。
+
+結果は既定で`/tmp/phase1-oss-reassessment/hindsight-domain-results.json`。
+`OSS_DOMAIN_OUTPUT`で別の保存先を指定できる。最終保存結果と対応表は
+[詳細調査](../../../docs/research/hindsight-domain-fit.md)を参照する。
+`execution=PASS`と`assertion=PASS`を分け、危険設定を再現した陽性対照のPASSを
+ドメイン適合と混同しない。既知の条件FAILがあるため、終了0は採用可を意味しない。
+失敗した起動は非0終了と部分JSONを残す。各runはこのrunが作ったコンテナだけを削除する。
+
+以下は前回probe（`probe_hindsight.py`）の限界であり、追補の自動統合検証とは区別する。
+
 再現用freezeは当日の解決版を固定するが、配布物hash付きlockではない。
 probe内で使う上流はソースcommitと合わせて確認する。
 Hindsightの最初のobservationはfixtureで直接seedした。同一Factの統合はnative候補検索→fixture同値判定→native統合書込みを、削除はnativeのdelete_documentを検証した。
