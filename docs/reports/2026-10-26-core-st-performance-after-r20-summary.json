@@ -1400,10 +1400,64 @@
       "status": "PASS",
       "exit_code": 0
     },
-    "status": "PARTIAL"
+    "mypy": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "ut": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "it1": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "postgres": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "lock": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "shell": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "compose": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "package": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "status": "PASS",
+    "test_counts": {
+      "ut": 1210,
+      "it1": 1139,
+      "postgres": 826
+    },
+    "skip_xfail_xpass": 0,
+    "disposable_database_cleanup": {
+      "container": "memory-pg-aOwn47lk",
+      "fixture_directory": "/tmp/memory-pg.aOwn47lk",
+      "status": "PASS",
+      "container_remaining": false,
+      "socket_directory_remaining": false
+    }
   },
   "cleanup": {
-    "status": "NOT RUN"
+    "status": "PASS",
+    "project": "memory-core-perf-r20-20261026",
+    "containers": [],
+    "networks": [],
+    "volumes": [],
+    "model_containers": []
   },
   "not_run": [
     "10000 items",
@@ -1435,24 +1489,48 @@
     "reranker": "a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3"
   },
   "evidence_sha256": {
-    "build.log": "64eea8f2dc39188a74a91df67ec3a92d665de0176570b4cf2952b68e344c70aa",
+    "build-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "build.log": "70aee33610ed7b7e03359962f6bc07d91d89e5e13b70516cc380acf11512021b",
+    "cleanup-models.log": "0e27200aa6f99f9cc23995267ac3fcfd2a832f5817616de38dfb472cbe81760d",
+    "cleanup-st.log": "c6a86180c3c27e975efb1e1df0a7b20b7a70b1ec8d99517b68a31262d0d87761",
+    "cleanup.json": "0ec74d46808d1d7b3e160c2394b1210d9c01b14d00b30174071b3a614103cb9b",
+    "compose-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "compose.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "db-version.txt": "bc4f6fb6441531700b577e1d63682418270375861a0083b5869606c2756520fb",
     "embedding-start.log": "fbc106269307a8fd30ed11d35de79c8d7a0c30da2395f4dba792491cd86ce5b3",
     "image-source-hashes.txt": "3343f2d43c1101a9d5c18e7753aa5194e95ce623719a4fed3ed3cd6ed355192b",
+    "it1-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "it1.log": "c0877f2a5a5b59fa32518003936a175ec43b27388fa029f5484486968769974b",
     "list-timing.json": "51acbc5ea552e5fc71fae923bfbc22891cd0dcfd677c3e2255b3ac4701777cb8",
+    "lock-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "lock.log": "321f0b607da3e9134cfcf1529e067a07da87a9737f26f661d4b9d2228950f006",
     "manifest-before.sha256": "a489be28051b125e2d6f54483d178bfc6932d374127e5a83cf5db95b5198448c",
     "manifest.json": "1d1085e89f3908098a2ed4d663c41f01f0d06b83a6c3df7f5f097aac01afd473",
     "memory.log": "f7d4358ff642ef96cb52beb6bfe275684a132e616a7d67ffe7e1e6ff355eeaba",
     "model-digests.json": "6f2f31bd8318f308562823d20dcb950a313ccc3030866bdd2c5a81a1028ea801",
     "model-inspect.txt": "66400b15977a28271ef364fea4ca576916f759a9db5228879681645666632ec4",
+    "mypy-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "mypy.log": "3adfda9ee552433e47e3220b3a5316b3c7e195dec5e669938ac553a7f7bf6d71",
+    "package.log": "454e670a7b45158d7dc3ae5f3686fc268fb889fbf01d244c6e6125c1961ac70f",
     "performance.json": "dd23c7c8ce013d9ac0af2767adde6afa10d7330bfe288dd55f228aaa7379c6a5",
-    "quality.json": "7e24bd853635a28f9baf07072f3d276c70b0388742c0b97b54f0db1e9c1736e7",
+    "postgres-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "postgres.log": "00942ae69cd6b818c423e1bb0516ef1b9af61c9d9af58196957b017d2ec45d4f",
+    "quality-db-resource.json": "3ba6bdf9598e023b554925258a925b2fa8cd5392f6200ebc1bbdc8524c203235",
+    "quality.json": "b0f9e368a84e52155eb841fa95a24cec73f8396a8e93c0258f8cc2fd826c5302",
     "ready.txt": "d7d39f0df1dd2bfbc722cee1d65fd0a4183ff8aa4855cb42b41d0196a2bbae31",
     "reranker-start.log": "5ed2a8a6d352636542ae0afb6fe46a9f2084a11646f44e226d9647a663b4dcf4",
+    "ruff_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_check.log": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+    "ruff_format_check-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ruff_format_check.log": "052421aab453b9c0087aea55ba6398d3ed1325ff894fc2cdfa61e9c4c66cb127",
     "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
     "runner.log": "8c401c83df30974d25dd25335f15a9dba930271e5f264d3297a943eb5829a646",
+    "shell-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "shell.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "source-hashes.json": "926d8b9471f32d4d3fc28f630c2e6702a4dbed135c2327b80921444cdce2b497",
     "start.log": "5cef316408a3d82ecf145c6a5c2374fd05e745299cdc7e826824b51ff4b6a755",
-    "sync.log": "afbdcfa637f870ea59607cb992b26d09aaef993731a2c5784a26890a68a7aa80"
+    "sync.log": "afbdcfa637f870ea59607cb992b26d09aaef993731a2c5784a26890a68a7aa80",
+    "ut-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "ut.log": "0a0094b2fadb4cd8bba0c60a3c65bf3d84eba894f18b0b31abf8d53d314b831b"
   }
 }

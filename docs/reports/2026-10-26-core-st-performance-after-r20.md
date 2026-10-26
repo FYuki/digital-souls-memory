@@ -91,10 +91,20 @@ PR #103と同じDocker UTCアクセスログの応答ヘッダー出力境界。
 
 - ruff_check: **PASS**（終了0）
 - ruff_format_check: **PASS**（終了0）
+- mypy: **PASS**（終了0）
+- ut: **PASS**（終了0）
+- it1: **PASS**（終了0）
+- postgres: **PASS**（終了0）
+- lock: **PASS**（終了0）
+- shell: **PASS**（終了0）
+- compose: **PASS**（終了0）
+- build: **PASS**（終了0）
+- package: **PASS**（終了0）
 
-通常品質ゲートは性能計測後に実施。初回host uv syncはsandboxのDNS制限でFAIL、権限昇格後のfrozen syncは終了0。
+通常品質ゲートは性能計測後に実施。UT / IT1 / PostgreSQLの件数は要約JSONのquality.test_countsに記録。
+初回host uv syncはsandboxのDNS制限でFAIL、権限昇格後のfrozen syncは終了0。
 
-cleanup: **NOT RUN**（計測資源を保持中、後続で実施）。
+cleanup: **PASS**。今回起動した専用 project の container / network / volume とモデル container の残存0を、確認コマンドの終了0で確認。自分の資源だけを停止・削除した。
 
 生証跡 `/tmp/core-st-performance-after-r20-20261026`、各hashは要約JSON。
 秘密・利用者ホーム絶対パス・モデル本体はコミットしない。製品コード修正・mergeなし。
