@@ -310,7 +310,7 @@ S_{SP} = \frac{2 \cdot Consistency \cdot Adaptation}{Consistency + Adaptation}
 ### 段階的な進め方
 
 1. **Phase 1：一貫性の土台**：Evidence（Session, Turn, DeliveryReceipt, ProvisionRecord, Episode）、Memory（キー拡張検索、複合スコア）、Identity の登録（CoreIdentity, Temperament, PersonalityProfile の author\_seed と記述文）、VoiceExemplar と VerbatimAnchor、CharacterState、登録時の整合チェック、常駐コンテキスト API とターン想起 API、作者による削除。この時点で長期記憶つきの一貫したキャラとして動く。
-2. **Phase 2：内省**：ReflectionTrigger, Reflection, Belief, Motivation, ProvenanceGraph、会話終了後の文脈を踏まえた抽出と重複した記憶の整理（ADR 0023）。人格はまだ変えず、信念の記録だけを始める。
+2. **Phase 2：内省**：ReflectionTrigger, Reflection, Belief, Motivation, ProvenanceGraph、会話終了後の文脈を踏まえた抽出と重複した記憶の整理（ADR 0023。ADR 0024 の追補で Phase 1 では許容した、同じ内容の有効な Fact の並びも含む。Issue #98）。人格はまだ変えず、信念の記録だけを始める。
 3. **Phase 3：成長と統制**：TraitChangeProposal, ChangeBudget, 性格変更の審査エージェント, IdentityHistory, rollback, ProvenanceGraph による完全な削除連鎖, 評価ハーネスとダッシュボード。開始値で人格更新を有効にし、評価指標を見ながら運用中に閾値を調整する。
 
 ## 初期値の用意
