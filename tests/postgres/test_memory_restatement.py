@@ -12,7 +12,13 @@ from fastapi.testclient import TestClient
 
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.api import create_app
-from digital_souls_memory.memory.domain import DerivedMemory, ExtractionProposal, MemoryRelation
+from digital_souls_memory.memory.domain import (
+    DerivedMemory,
+    ExtractionProposal,
+    MemoryRelation,
+    MemoryValidationError,
+    SourceContribution,
+)
 from digital_souls_memory.memory.extraction import LocalOnly
 from digital_souls_memory.memory.projection import collect_evidence, projection_input
 from digital_souls_memory.memory.use_cases import MemoryService
@@ -24,8 +30,221 @@ from tests.postgres.test_deletion import HEADERS, seed_evidence
 from tests.postgres.test_deletion import deletion_url as deletion_url
 from tests.postgres.test_deletion_recalculation import make_worker
 from tests.postgres.test_memory_continuous_ingestion import LockMeasurements, publish_and_search
+from tests.restatement_sequences import (
+    coexisting_relations_sequence,
+    duplicate_fact_sequence,
+    revived_fact_sequence,
+)
 
 pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
+
+
+@pytest.mark.parametrize("effects_only", [False, True])
+def test_same_edge_preserves_each_original_candidate(database_url: str, effects_only: bool) -> None:
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    operations = coexisting_relations_sequence(same_target=True, effects_only=effects_only)
+    for op in operations[:3]:
+        evidence.add_turn(turn(op.origin, actor=op.actor))
+        gateway.output = ExtractionProposal(memories=op.bodies, relations=op.relations)
+        worker.process("char-b", op.origin)
+        state = store.get_extraction("char-b", op.origin)
+        assert state is not None and state.status == "done"
+    with store.transaction("char-b") as tx:
+        effects = tx.relation_effects()
+        assert {v.candidate.id for v in effects} == ({"b", "c"} if effects_only else {"b"})
+        assert all(v.candidate in operations[2].bodies for v in effects)
+        assert tx.source_contributions() == (
+            SourceContribution(
+                character_id="char-b",
+                fact_id="a",
+                extraction_turn_id="duplicates",
+                source_turn_id="duplicates",
+                occurred_at=OCCURRED,
+            ),
+        )
+    with psycopg.connect(database_url) as conn:
+        assert conn.execute(
+            "SELECT candidate_id FROM memory_candidate_relations "
+            "WHERE turn_id='duplicates' ORDER BY candidate_id"
+        ).fetchall() == ([("b",), ("c",)] if effects_only else [("a",), ("b",)])
+    with store.list_relations("char-b", "a") as relations:
+        assert tuple(relations) == (MemoryRelation(from_id="a", to_id="x", type="derives"),)
+    original = {v.candidate.id: v.candidate for v in effects}
+    worker.service.requeue("target-x")
+    gateway.output = (replace(operations[0].bodies[0], id="x2"),)
+    worker.process("char-b", "target-x")
+    state = store.get_extraction("char-b", "target-x")
+    assert state is not None and state.status == "done"
+    with PostgresMemoryStore(database_url).transaction("char-b") as tx:
+        restored = tx.relation_effects()
+        assert {v.candidate.id: v.candidate for v in restored} == original
+        assert all(
+            v.relation == MemoryRelation(from_id="a", to_id="x2", type="derives") for v in restored
+        )
+    with psycopg.connect(database_url) as conn:
+        assert conn.execute(
+            "SELECT candidate_id,to_id FROM memory_candidate_relations "
+            "WHERE turn_id='duplicates' AND effect IS NOT NULL ORDER BY candidate_id"
+        ).fetchall() == [(i, "x2") for i in sorted(original)]
+
+
+def test_same_candidate_ambiguous_temporal_effects_roll_back(database_url: str) -> None:
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    operations = coexisting_relations_sequence(same_target=False, temporal=True)
+    for op in operations[:3]:
+        evidence.add_turn(turn(op.origin, actor=op.actor))
+        relations = tuple(replace(r, from_id="b") for r in op.relations)
+        gateway.output = ExtractionProposal(memories=op.bodies, relations=relations)
+        worker.process("char-b", op.origin)
+    state = store.get_extraction("char-b", "duplicates")
+    assert state is not None and (state.status, state.error) == ("failed", "invalid_output")
+    with store.transaction("char-b") as tx:
+        assert {v.id for v in tx.memories()} == {"x", "y"}
+        assert all(v.valid_to is None for v in tx.memories())
+        assert tx.source_contributions() == ()
+        assert tx.relation_effects() == ()
+        assert tx.proposed_relations(include_inactive=True) == ()
+
+
+def test_revived_fact_keeps_existing_contribution_and_receives_new_restatement(
+    database_url: str,
+) -> None:
+    from tests.restatement_fakes import SequenceRecalculate
+
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    operations = revived_fact_sequence()
+    recalculation = SequenceRecalculate(*(v for op in operations for v in op.bodies))
+    with TestClient(
+        create_app(
+            clock=lambda: RECORDED,
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+            recalculation_gateway=recalculation,
+        )
+    ) as client:
+        active_ids = (
+            {"x"},
+            {"y"},
+            {"y", "z"},
+            {"y", "z"},
+            {"x", "z"},
+            {"x", "z"},
+            {"x", "z"},
+        )
+        for op, expected in zip(operations, active_ids, strict=True):
+            if op.kind == "extract":
+                evidence.add_turn(turn(op.origin, actor=op.actor))
+                gateway.output = ExtractionProposal(memories=op.bodies, relations=op.relations)
+                worker.process("char-b", op.origin)
+                state = store.get_extraction("char-b", op.origin)
+                assert state is not None and state.status == "done"
+            else:
+                response = client.post(
+                    "/deletion-requests",
+                    headers=HEADERS,
+                    json={"request_id": f"delete-{op.origin}", "target_turn_ids": [op.origin]},
+                )
+                assert response.status_code == 200 and response.json()["status"] == "done"
+            assert_consistent(worker.service, database_url, expected)
+            if op.origin == "before-revival":
+                before = store.get_memory("char-b", "z")
+                assert before is not None
+                assert set(before.source_turn_ids) == {"source-z", "before-revival"}
+            if op.origin == "after-revival":
+                with store.transaction("char-b") as tx:
+                    assert {(v.fact_id, v.source_turn_id) for v in tx.source_contributions()} == {
+                        ("z", "before-revival"),
+                        ("x", "after-revival"),
+                    }
+                x, z = store.get_memory("char-b", "x"), store.get_memory("char-b", "z")
+                assert x is not None and z is not None
+                assert set(x.source_turn_ids) == {"source-x", "after-revival"}
+                assert set(z.source_turn_ids) == {"source-z", "before-revival"}
+                assert x.valid_from == operations[0].bodies[0].valid_from
+                assert x.derivation == operations[0].bodies[0].derivation
+                assert x.epistemics.trust_tier == operations[0].bodies[0].epistemics.trust_tier
+        z = store.get_memory("char-b", "z")
+        assert z is not None and z.source_turn_ids == ("before-revival",)
+
+
+def test_duplicate_new_fact_commits_contribution_and_rewritten_relation(database_url: str) -> None:
+    evidence = seed_evidence(database_url)
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    worker = make_worker(database_url, store, gateway)
+    op = duplicate_fact_sequence()[0]
+    evidence.add_turn(turn(op.origin, actor=op.actor))
+    gateway.output = ExtractionProposal(memories=op.bodies, relations=op.relations)
+    worker.process("char-b", op.origin)
+    state = store.get_extraction("char-b", op.origin)
+    assert state is not None and state.status == "done"
+    with store.transaction("char-b") as tx:
+        saved = {v.id: v for v in tx.memories()}
+        contributions = tx.source_contributions()
+    assert set(saved) == {"a", "d"}
+    assert contributions == (
+        SourceContribution(
+            character_id="char-b",
+            fact_id="a",
+            extraction_turn_id="duplicates",
+            source_turn_id="duplicates",
+            occurred_at=OCCURRED,
+        ),
+    )
+    assert saved["a"].epistemics.independent_evidence_count == 1
+    assert saved["d"].content == op.bodies[2].content
+    with store.list_relations("char-b", "d") as relations:
+        assert tuple(relations) == (MemoryRelation(from_id="d", to_id="a", type="derives"),)
+    assert_consistent(worker.service, database_url, {"a", "d"})
+
+
+def test_new_fact_and_contribution_can_commit_in_one_transaction(database_url: str) -> None:
+    evidence = seed_evidence(database_url)
+    evidence.add_turn(turn("turn-1", actor="user-a"))
+    store = PostgresMemoryStore(database_url)
+    contribution = SourceContribution(
+        character_id="char-b",
+        fact_id="a",
+        extraction_turn_id="turn-1",
+        source_turn_id="turn-1",
+        occurred_at=OCCURRED,
+    )
+    with store.transaction("char-b") as tx:
+        tx.set_source_contributions("turn-1", (contribution,))
+        tx.add_memory(replace(memory(), id="a"))
+    with store.transaction("char-b") as tx:
+        assert tx.source_contributions() == (contribution,)
+        assert tx.memories() == (replace(memory(), id="a"),)
+
+
+def test_missing_fact_contribution_is_rejected_atomically_and_can_be_retried(
+    database_url: str,
+) -> None:
+    evidence = seed_evidence(database_url)
+    evidence.add_turn(turn("turn-1", actor="user-a"))
+    store = PostgresMemoryStore(database_url)
+    contribution = SourceContribution(
+        character_id="char-b",
+        fact_id="missing",
+        extraction_turn_id="turn-1",
+        source_turn_id="turn-1",
+        occurred_at=OCCURRED,
+    )
+    with pytest.raises(MemoryValidationError), store.transaction("char-b") as tx:
+        tx.add_memory(replace(memory(), id="unrelated"))
+        tx.set_source_contributions("turn-1", (contribution,))
+    with store.transaction("char-b") as tx:
+        assert tx.source_contributions() == ()
+        assert tx.memories() == ()
+    with store.transaction("char-b") as tx:
+        tx.add_memory(replace(memory(), id="missing"))
+        tx.set_source_contributions("turn-1", (contribution,))
+    with store.transaction("char-b") as tx:
+        assert tx.source_contributions() == (contribution,)
 
 
 @pytest.mark.parametrize("relation_type", ["updates", "contradicts", "derives"])
@@ -91,7 +310,7 @@ def test_equivalent_origin_id_change_preserves_foreign_contribution_and_effect(
             assert conn.execute(
                 "SELECT turn_id,from_id,to_id,type,effect->>'id' "
                 "FROM memory_candidate_relations WHERE effect IS NOT NULL"
-            ).fetchall() == [("turn-b", "z", "x", relation_type, "z")]
+            ).fetchall() == [("turn-b", "z", "x", relation_type, "b")]
         with store.list_relations("char-b", "z") as relations:
             assert tuple(relations) == (MemoryRelation(from_id="z", to_id="x", type=relation_type),)
         expected = {"z", "x"} if relation_type == "derives" else {"z"}

@@ -22,14 +22,17 @@ from digital_souls_memory.governance.domain import (
 )
 from digital_souls_memory.memory.domain import DerivedMemory, MemoryRelation
 from digital_souls_memory.memory.ports import MemoryContribution
-from tests.evidence_support import RECORDED, turn
+from tests.evidence_support import OCCURRED, RECORDED, turn
 from tests.restatement_model import Ledger, canonical, live, semantic_attributes
 from tests.restatement_sequences import (
     ObservationMismatch,
     Operation,
     _advance_ledger,
+    ambiguity_reproduction_sequence,
     compare,
     continue_sequence,
+    duplicate_fact_sequence,
+    effect_reextraction_sequence,
     event_times,
     extract,
     fresh_metadata,
@@ -37,6 +40,7 @@ from tests.restatement_sequences import (
     metadata_reextraction_sequence,
     minimal_sequence,
     reextraction_sequence,
+    revived_fact_sequence,
     shrink,
     valid_sequence,
     withdrawal_sequences,
@@ -45,6 +49,101 @@ from tests.restatement_sequences import (
 pytestmark = pytest.mark.ut
 
 T = TypeVar("T")
+
+
+def test_ledger_keeps_rewritten_effect_after_reextraction_and_source_deletion() -> None:
+    ledger = Ledger(RECORDED)
+    for op in effect_reextraction_sequence():
+        _advance_ledger(ledger, op)
+    assert ledger.saved["replacement"].source_turn_ids == ("support",)
+    assert ledger.saved["c"].source_turn_ids == ("support", "target")
+    assert ledger.saved["c"].last_reinforced_at == ledger.turns["support"].occurred_at
+    assert ledger.expected()[1] == {
+        MemoryRelation(from_id="replacement", to_id="c", type="extends")
+    }
+
+
+def test_ledger_keeps_each_duplicate_candidates_temporal_effect() -> None:
+    ledger = Ledger(RECORDED)
+    for identifier, object_value in (("x", "water"), ("y", "tea")):
+        _advance_ledger(ledger, extract(identifier, identifier, object_value))
+    first = extract("a", "duplicates", "coffee").bodies[0]
+    second = replace(first, id="b", valid_from=OCCURRED + timedelta(seconds=1))
+    third = replace(first, id="c", valid_from=OCCURRED + timedelta(seconds=2))
+    _advance_ledger(
+        ledger,
+        Operation(
+            "extract",
+            "duplicates",
+            (third, second, first),
+            (
+                MemoryRelation(from_id="b", to_id="x", type="updates"),
+                MemoryRelation(from_id="c", to_id="y", type="updates"),
+            ),
+        ),
+    )
+    assert ledger.saved["x"].valid_to == second.valid_from
+    assert ledger.saved["y"].valid_to == third.valid_from
+    assert ledger.saved["a"].valid_from == first.valid_from
+    assert {v.id for v in ledger.owners["duplicates"].bodies} == {"a"}
+    _advance_ledger(ledger, Operation("retry", "duplicates"))
+    assert ledger.saved["x"].valid_to is None
+    assert ledger.saved["y"].valid_to is None
+
+
+def test_ledger_selects_revived_fact_without_moving_earlier_contribution() -> None:
+    ledger = Ledger(RECORDED)
+    for op in revived_fact_sequence():
+        _advance_ledger(ledger, op)
+    assert ledger.owners["before-revival"].sources == {"z": ("before-revival",)}
+    assert ledger.owners["after-revival"].sources == {"x": ("after-revival",)}
+    assert set(ledger.saved) == {"x", "z"}
+    assert ledger.saved["x"].source_turn_ids == ("after-revival", "source-x")
+    assert ledger.saved["z"].source_turn_ids == ("before-revival",)
+
+
+def test_ledger_deduplicates_new_facts_and_rewrites_later_reference() -> None:
+    ledger = Ledger(RECORDED)
+    op = duplicate_fact_sequence()[0]
+    _advance_ledger(ledger, op)
+    owner = ledger.owners[op.origin]
+    assert {v.id for v in owner.bodies} == {"a", "d"}
+    assert owner.sources == {"a": ("duplicates",)}
+    assert owner.relations == (MemoryRelation(from_id="d", to_id="a", type="derives"),)
+    assert ledger.saved["a"].epistemics.independent_evidence_count == 1
+
+
+def test_ledger_unions_distinct_sources_of_duplicate_restatements() -> None:
+    ledger = Ledger(RECORDED)
+    _advance_ledger(ledger, extract("root", "root-source", "coffee"))
+    for identifier in ("one", "two", "origin"):
+        ledger.turns[identifier] = turn(identifier, actor="user-a")
+    bodies = tuple(
+        extract(i, source, "coffee").bodies[0] for i, source in (("a", "one"), ("b", "two"))
+    )
+    ledger.extract("origin", bodies, ())
+    assert set(ledger.owners["origin"].sources["root"]) == {"one", "two"}
+
+
+def test_seed_175_fixed_sequence_reaches_and_resolves_multiple_active_facts() -> None:
+    ledger = Ledger(RECORDED)
+    operations = ambiguity_reproduction_sequence()
+    assert len(operations) == 35
+    for op in operations[:-1]:
+        _advance_ledger(ledger, op)
+    matches = {
+        v.id for v in ledger.saved.values() if live(v, RECORDED) and v.object == "synthetic-4"
+    }
+    assert matches == {"candidate-15-0", "candidate-22-0"}
+    _advance_ledger(ledger, operations[-1])
+    assert ledger.owners["origin-34"].sources == {"candidate-15-0": ("origin-34",)}
+
+
+def test_continuation_completes_the_previously_ambiguous_seed() -> None:
+    prefix = minimal_sequence("extends", origin_first=True, actor="user-b")[:3]
+    operations = continue_sequence(prefix, Random(175), steps=40)
+    assert len(operations) == 40
+    assert valid_sequence(operations)
 
 
 @pytest.mark.parametrize(
@@ -549,7 +648,7 @@ def test_ledger_counts_opportunity_and_actor_and_preserves_fact_after_origin_del
     assert ledger.count(("turn-b", "reply")) == 1
 
 
-@pytest.mark.parametrize("variant", ["metadata", "content", "trust tier", "ambiguous"])
+@pytest.mark.parametrize("variant", ["metadata", "content", "trust tier"])
 def test_ledger_transfers_only_unambiguous_semantically_equivalent_reextraction(
     variant: str,
 ) -> None:
@@ -567,8 +666,7 @@ def test_ledger_transfers_only_unambiguous_semantically_equivalent_reextraction(
         renamed = replace(renamed, content="異なる合成本文")
     elif variant == "trust tier":
         renamed = replace(renamed, epistemics=replace(renamed.epistemics, trust_tier="A"))
-    candidates = (renamed, replace(renamed, id="zz")) if variant == "ambiguous" else (renamed,)
-    ledger.extract("turn-1", candidates, ())
+    ledger.extract("turn-1", (renamed,), ())
     after, relations = ledger.checkpoint()
     transferred = variant == "metadata"
     assert after["z"].source_turn_ids == (("turn-1", "turn-b") if transferred else ("turn-1",))

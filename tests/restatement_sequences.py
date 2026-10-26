@@ -55,6 +55,180 @@ def extract(identifier: str, origin: str, object_value: str) -> Operation:
     )
 
 
+def revived_fact_sequence() -> tuple[Operation, ...]:
+    x = extract("x", "source-x", "coffee")
+    y = replace(
+        extract("y", "source-y", "tea"),
+        relations=(MemoryRelation(from_id="y", to_id="x", type="updates"),),
+    )
+    z = extract("z", "source-z", "coffee")
+    return (
+        x,
+        y,
+        z,
+        extract("before", "before-revival", "coffee"),
+        Operation("delete", "source-y"),
+        extract("after", "after-revival", "coffee"),
+        Operation("delete", "source-z"),
+    )
+
+
+def duplicate_fact_sequence() -> tuple[Operation, ...]:
+    first = extract("a", "duplicates", "coffee").bodies[0]
+    later = replace(first, id="b")
+    summary = replace(
+        memory("summary"),
+        id="d",
+        source_turn_ids=("duplicates",),
+        content='b、`b`、{"from_id":"b"}\n```text\nb\n```\n~~~text\nb',
+    )
+    return (
+        Operation(
+            "extract",
+            "duplicates",
+            (later, first, summary),
+            (MemoryRelation(from_id="d", to_id="b", type="derives"),),
+        ),
+        extract("support", "support", "coffee"),
+        Operation("delete", "duplicates"),
+    )
+
+
+def coexisting_relations_sequence(
+    *, same_target: bool, effects_only: bool = False, temporal: bool = False
+) -> tuple[Operation, ...]:
+    x = extract("x", "target-x", "water")
+    y = extract("y", "target-y", "juice")
+    a = extract("a", "duplicates", "coffee").bodies[0]
+    b = replace(a, id="b", valid_from=a.valid_from + timedelta(seconds=1))
+    c = replace(a, id="c", valid_from=a.valid_from + timedelta(seconds=2))
+    proposal = Operation(
+        "extract",
+        "duplicates",
+        (a, b, c) if effects_only or temporal else (a, b),
+        (
+            MemoryRelation(
+                from_id="b" if effects_only or temporal else "a",
+                to_id="x",
+                type="updates" if temporal else "derives",
+            ),
+            MemoryRelation(
+                from_id="c" if effects_only or temporal else "b",
+                to_id="x" if same_target else "y",
+                type="updates" if temporal else "derives",
+            ),
+        ),
+    )
+    support = extract("support", "support", "coffee")
+    return (
+        x,
+        y,
+        proposal,
+        support,
+        Operation("retry", "duplicates"),
+        proposal,
+        replace(proposal, relations=proposal.relations[:1]),
+        proposal,
+        Operation("delete", "support"),
+        extract("support-2", "support-2", "coffee"),
+        Operation("delete", "duplicates"),
+    )
+
+
+def effect_reextraction_sequence() -> tuple[Operation, ...]:
+    root = extract("b", "root", "coffee")
+    support = replace(
+        extract("a", "support", "coffee"),
+        relations=(MemoryRelation(from_id="a", to_id="c", type="extends"),),
+    )
+    return (
+        extract("c", "target", "water"),
+        root,
+        support,
+        replace(root, bodies=(fresh_metadata(root.bodies[0], identifier="replacement"),)),
+        Operation("delete", "root"),
+    )
+
+
+def ambiguity_reproduction_sequence() -> tuple[Operation, ...]:
+    """The exact 35 operations recorded for seed 175, independent of generation."""
+    operations = list(minimal_sequence("extends", origin_first=True, actor="user-b")[:3])
+
+    def new(index: int, object_value: str, tier: str, reply: str | None = None) -> Operation:
+        op = extract(f"candidate-{index}", f"origin-{index}", object_value)
+        body = op.bodies[0]
+        return replace(
+            op,
+            actor="user-b",
+            reply_to_turn_id=reply,
+            bodies=(replace(body, epistemics=replace(body.epistemics, trust_tier=tier)),),
+        )
+
+    def renamed(index: int, previous: int) -> Operation:
+        op = operations[previous]
+        body = fresh_metadata(op.bodies[0], identifier=f"candidate-{index}-0")
+        return replace(
+            op,
+            bodies=(body,),
+            relations=tuple(replace(r, from_id=body.id) for r in op.relations),
+        )
+
+    operations.append(Operation("delete", "turn-c"))
+    operations.append(new(4, "synthetic-4", "A", "turn-b"))
+    operations.append(Operation("retry", "origin-4"))
+    operations.append(replace(renamed(6, 1), relations=()))
+    operations.append(renamed(7, 2))
+    operations.append(
+        replace(
+            new(8, "synthetic-8", "D"),
+            relations=(
+                MemoryRelation(from_id="candidate-8", to_id="candidate-7-0", type="derives"),
+            ),
+        )
+    )
+    operations.append(Operation("retry", "origin-4"))
+    operations.append(Operation("delete", "turn-1", recalculation="fail"))
+    operations.append(renamed(11, 7))
+    operations.append(extract("candidate-12", "origin-12", "synthetic-8"))
+    operations.append(renamed(13, 12))
+    operations.append(Operation("delete", "origin-8", recalculation="unavailable"))
+    operations.append(renamed(15, 4))
+    operations.append(new(16, "synthetic-4", "A", "turn-b"))
+    operations.append(new(17, "synthetic-4", "A"))
+    operations.append(
+        replace(
+            new(18, "synthetic-18", "D"),
+            relations=(
+                MemoryRelation(from_id="candidate-18", to_id="candidate-7-0", type="extends"),
+            ),
+        )
+    )
+    operations.append(renamed(19, 17))
+    operations.append(new(20, "coffee", "A"))
+    operations.append(Operation("retry", "origin-4"))
+    operations.append(renamed(22, 19))
+    operations.append(renamed(23, 18))
+    operations.append(Operation("delete", "origin-16"))
+    operations.append(Operation("retry", "origin-18"))
+    operations.append(renamed(26, 20))
+    operations.append(new(27, "synthetic-27", "F", "turn-b"))
+    operations.append(Operation("retry", "origin-27"))
+    operations.append(Operation("retry", "origin-4"))
+    operations.append(Operation("retry", "origin-12"))
+    operations.append(Operation("delete", "origin-12"))
+    operations.append(
+        replace(
+            new(32, "synthetic-32", "D"),
+            relations=(
+                MemoryRelation(from_id="candidate-32", to_id="candidate-22-0", type="extends"),
+            ),
+        )
+    )
+    operations.append(Operation("retry", "origin-27"))
+    operations.append(new(34, "synthetic-4", "D"))
+    return tuple(operations)
+
+
 def minimal_sequence(
     relation_type: str, *, origin_first: bool, actor: str
 ) -> tuple[Operation, ...]:

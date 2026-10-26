@@ -385,7 +385,10 @@ class PostgresDeletionStore:
                 ("character_id", "fact_id", "extraction_turn_id", "source_turn_id"),
             ),
             ("memory_fact_sources", ("character_id", "memory_id", "turn_id")),
-            ("memory_candidate_relations", ("character_id", "turn_id", "from_id", "to_id", "type")),
+            (
+                "memory_candidate_relations",
+                ("character_id", "turn_id", "from_id", "to_id", "type", "candidate_id"),
+            ),
             ("verbatim_anchors", ("character_id", "anchor_id")),
             ("voice_exemplars", ("character_id", "exemplar_id")),
             ("provision_records", ("provision_id",)),

@@ -23,20 +23,81 @@ from tests.restatement_sequences import (
     ObservationMismatch,
     Operation,
     RecalculationNotInvoked,
+    ambiguity_reproduction_sequence,
+    coexisting_relations_sequence,
     compare,
     continue_sequence,
+    duplicate_fact_sequence,
+    effect_reextraction_sequence,
     extract,
     fresh_metadata,
     generated_sequence,
     metadata_reextraction_sequence,
     minimal_sequence,
     reextraction_sequence,
+    revived_fact_sequence,
     shrink,
     valid_sequence,
     withdrawal_sequences,
 )
 
 pytestmark = pytest.mark.it1
+
+
+@pytest.mark.parametrize("same_target", [False, True])
+@pytest.mark.parametrize("effects_only", [False, True])
+def test_coexisting_relation_evidence_matches_all_paths(
+    same_target: bool, effects_only: bool
+) -> None:
+    replay(coexisting_relations_sequence(same_target=same_target, effects_only=effects_only))
+
+
+def test_distinct_candidate_temporal_effects_match_all_paths() -> None:
+    replay(coexisting_relations_sequence(same_target=False, temporal=True))
+
+
+def test_changing_one_original_candidates_time_only_changes_its_target() -> None:
+    h, store, service, worker = setup_worker()
+    operations = coexisting_relations_sequence(same_target=False, temporal=True)
+    for op in operations[:3]:
+        h.evidence.add_turn(turn(op.origin, actor=op.actor))
+        h.gateway.output = ExtractionProposal(memories=op.bodies, relations=op.relations)
+        worker.process("char-b", op.origin)
+        state = store.get_extraction("char-b", op.origin)
+        assert state is not None and state.status == "done"
+    with store.transaction("char-b") as tx:
+        before = {v.id: v for v in tx.memories()}
+    op = operations[2]
+    changed = tuple(
+        replace(v, valid_from=v.valid_from + timedelta(seconds=1)) if v.id == "c" else v
+        for v in op.bodies
+    )
+    service.requeue(op.origin)
+    h.gateway.output = ExtractionProposal(memories=changed, relations=op.relations)
+    worker.process("char-b", op.origin)
+    state = store.get_extraction("char-b", op.origin)
+    assert state is not None and state.status == "done"
+    with store.transaction("char-b") as tx:
+        after = {v.id: v for v in tx.memories()}
+    assert after["a"] == before["a"]
+    assert after["x"] == before["x"]
+    assert after["y"] == replace(before["y"], valid_to=changed[2].valid_from)
+
+
+def test_rewritten_effect_survives_reextraction_and_source_deletion() -> None:
+    replay(effect_reextraction_sequence())
+
+
+def test_revived_fact_selection_matches_all_projection_and_index_paths() -> None:
+    replay(revived_fact_sequence())
+
+
+def test_duplicate_candidates_match_all_projection_and_index_paths() -> None:
+    replay(duplicate_fact_sequence())
+
+
+def test_seed_175_fixed_reproduction_matches_all_projection_and_index_paths() -> None:
+    replay(ambiguity_reproduction_sequence())
 
 
 @pytest.mark.parametrize(

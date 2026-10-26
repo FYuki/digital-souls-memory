@@ -317,7 +317,7 @@ class ProjectionEvidence:
                     e
                     for e in snapshot.effects
                     if e.turn_id == effect.turn_id
-                    and e.relation.from_id == relation.from_id
+                    and e.candidate.id == effect.candidate.id
                     and e.relation.type in ("updates", "extends")
                 ]
                 if len(effect_changes) > 1:

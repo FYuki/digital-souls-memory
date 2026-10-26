@@ -59,7 +59,7 @@ class Owner:
     bodies: tuple[DerivedMemory, ...]
     sources: dict[str, tuple[str, ...]]
     relations: tuple[MemoryRelation, ...]
-    effects: dict[str, DerivedMemory]
+    effects: tuple[tuple[MemoryRelation, DerivedMemory], ...]
 
 
 @dataclass
@@ -112,32 +112,64 @@ class Ledger:
     ) -> None:
         self.withdraw(origin)
         before, _ = self.expected()
-        accepted, sources, effects, rewrites = [], {}, {}, {}
-        for body in bodies:
+        accepted: list[DerivedMemory] = []
+        sources: dict[str, tuple[str, ...]] = {}
+        rewrites: dict[str, str] = {}
+        targets: dict[tuple[object, ...], DerivedMemory] = {}
+        pending = {v.id: v for v in bodies}
+        ordered = []
+        while pending:
+            ready = [
+                identifier
+                for identifier in pending
+                if not any(r.from_id == identifier and r.to_id in pending for r in relations)
+            ]
+            if not ready:
+                raise ValueError("Sequence has a dependency cycle")
+            ordered.append(pending.pop(min(ready)))
+        for body in ordered:
+            key = (body.character_id, body.subject, body.predicate, body.object)
             matches = [
                 v
                 for v in before.values()
                 if body.kind == v.kind == "fact"
                 and v.id != body.id
+                and v.character_id == body.character_id
                 and live(v, self.now)
                 and (v.subject, v.predicate, v.object)
                 == (body.subject, body.predicate, body.object)
             ]
-            if len(matches) > 1:
-                raise ValueError("Sequence has an unspecified acceptance tie")
-            if matches:
-                target = matches[0].id
-                rewrites[body.id] = target
-                sources[target] = body.source_turn_ids
-                effects[target] = replace(body, id=target)
+            if body.kind == "fact" and key in targets:
+                selected = targets[key]
+            elif matches:
+                selected = sorted(matches, key=lambda v: (v.valid_from, v.recorded_at, v.id))[0]
             else:
                 accepted.append(body)
+                if body.kind == "fact":
+                    targets[key] = body
+                continue
+            targets[key] = selected
+            target = selected.id
+            rewrites[body.id] = target
+            sources[target] = tuple(
+                sorted(set(sources.get(target, ())) | set(body.source_turn_ids))
+            )
         rewritten = tuple(
             replace(
                 r, from_id=rewrites.get(r.from_id, r.from_id), to_id=rewrites.get(r.to_id, r.to_id)
             )
             for r in relations
+            if r.from_id not in rewrites
             if rewrites.get(r.from_id, r.from_id) != rewrites.get(r.to_id, r.to_id)
+        )
+        candidates = {body.id: body for body in bodies}
+        effects = tuple(
+            (
+                replace(r, from_id=rewrites[r.from_id], to_id=rewrites.get(r.to_id, r.to_id)),
+                candidates[r.from_id],
+            )
+            for r in relations
+            if r.from_id in rewrites and rewrites[r.from_id] != rewrites.get(r.to_id, r.to_id)
         )
         self.owners[origin] = Owner(tuple(accepted), sources, rewritten, effects)
         previous = self.history.get(origin, ())
@@ -154,10 +186,17 @@ class Ledger:
         self.candidates[origin] = tuple(accepted)
         for owner in self.owners.values():
             owner.sources = {replacements.get(i, i): s for i, s in owner.sources.items()}
-            owner.effects = {
-                replacements.get(i, i): replace(v, id=replacements.get(i, i))
-                for i, v in owner.effects.items()
-            }
+            owner.effects = tuple(
+                (
+                    replace(
+                        r,
+                        from_id=replacements.get(r.from_id, r.from_id),
+                        to_id=replacements.get(r.to_id, r.to_id),
+                    ),
+                    v,
+                )
+                for r, v in owner.effects
+            )
 
     def _resolved_owners(self) -> dict[str, Owner]:
         replacements = {}
@@ -181,7 +220,17 @@ class Ledger:
                     )
                     for r in owner.relations
                 ),
-                owner.effects,
+                tuple(
+                    (
+                        replace(
+                            r,
+                            from_id=replacements.get(r.from_id, r.from_id),
+                            to_id=replacements.get(r.to_id, r.to_id),
+                        ),
+                        v,
+                    )
+                    for r, v in owner.effects
+                ),
             )
             for origin, owner in self.owners.items()
         }
@@ -215,7 +264,11 @@ class Ledger:
             if owner_id in dependents | {origin}
             for identifier in (
                 *owner.sources,
-                *(r.to_id for r in owner.relations if r.type != "derives" and r in applied),
+                *(
+                    r.to_id
+                    for r in (*owner.relations, *(r for r, _ in owner.effects))
+                    if r.type != "derives" and r in applied
+                ),
             )
         }
         affected.update(
@@ -292,12 +345,15 @@ class Ledger:
                 for owner_id, owner in owners.items():
                     if owner_id in dependents | {origin}:
                         continue
-                    candidates = {v.id: v for v in owner.bodies} | owner.effects
-                    for relation in owner.relations:
+                    candidates = {v.id: v for v in owner.bodies}
+                    for relation, candidate in (
+                        *((r, candidates[r.from_id]) for r in owner.relations),
+                        *owner.effects,
+                    ):
                         if relation.to_id == identifier and relation.type == "extends":
                             reinforcement_times.extend(
                                 self.turns[s].occurred_at
-                                for s in candidates[relation.from_id].source_turn_ids
+                                for s in candidate.source_turn_ids
                                 if s in remaining
                             )
                 saved = self.baselines[identifier]
@@ -320,7 +376,9 @@ class Ledger:
                 for owner in self.owners.values():
                     owner.bodies = tuple(v for v in owner.bodies if v.id != identifier)
                     owner.sources.pop(identifier, None)
-                    owner.effects.pop(identifier, None)
+                    owner.effects = tuple(
+                        (r, v) for r, v in owner.effects if identifier not in (r.from_id, r.to_id)
+                    )
                     owner.relations = tuple(
                         r for r in owner.relations if identifier not in (r.from_id, r.to_id)
                     )
@@ -378,34 +436,36 @@ class Ledger:
         }
         relations: set[MemoryRelation] = set()
         # The generated graphs are acyclic; visit targets before their dependents.
-        owned = [(o, r) for o in owners.values() for r in o.relations]
+        owned = [(r, None) for o in owners.values() for r in o.relations] + [
+            (r, v) for o in owners.values() for r, v in o.effects
+        ]
         pending = set(values)
         while pending:
             ready = sorted(
                 i
                 for i in pending
-                if not any(r.from_id == i and r.to_id in pending for _, r in owned)
+                if not any(r.from_id == i and r.to_id in pending for r, _ in owned)
             )
             if not ready:
                 raise ValueError("Sequence has a dependency cycle")
             for identifier in ready:
                 pending.remove(identifier)
-                explicit = [(o, r) for o, r in owned if r.from_id == identifier]
+                explicit = [(r, v) for r, v in owned if r.from_id == identifier]
                 if any(
                     r.to_id not in values or values[r.to_id].superseded_at is not None
-                    for owner, r in explicit
-                    if identifier not in owner.effects
+                    for r, v in explicit
+                    if v is None
                 ):
                     if identifier not in self.baselines:
                         values.pop(identifier, None)
                     continue
-                for owner, relation in explicit:
-                    if identifier in owner.effects and (
+                for relation, candidate in explicit:
+                    if candidate is not None and (
                         relation.to_id not in values
                         or values[relation.to_id].superseded_at is not None
                     ):
                         continue
-                    source = owner.effects.get(identifier, bodies[identifier])
+                    source = candidate if candidate is not None else bodies[identifier]
                     target = values[relation.to_id]
                     if relation.type == "updates":
                         values[target.id] = replace(target, valid_to=source.valid_from)
@@ -432,7 +492,7 @@ class Ledger:
                                 target.epistemics, independent_evidence_count=self.count(sources)
                             ),
                         )
-                        if identifier not in owner.effects:
+                        if candidate is None:
                             values[identifier] = replace(values[identifier], superseded_at=self.now)
                     relations.add(relation)
         for identifier, old in self.saved.items():
