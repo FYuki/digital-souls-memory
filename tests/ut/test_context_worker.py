@@ -79,6 +79,7 @@ def resolved_window(*, sensitivity: str = "synthetic-public") -> "ResolvedWindow
             dependencies=tuple(stamps),
             session_ended_at=None,
             next_due_at=None,
+            delivery_timeout=timedelta(minutes=10),
         ),
     )
 

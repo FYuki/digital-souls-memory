@@ -97,7 +97,7 @@ def memory_router(service: Callable[[], MemoryService]) -> APIRouter:
         resolved = service()
         if resolved.evidence.get_turn(turn_id) is None:
             return JSONResponse(status_code=404, content={"detail": "Turn not found"})
-        resolved.store.requeue(turn_id)
+        resolved.requeue(turn_id)
         return JSONResponse(status_code=202, content={"status": "pending"})
 
     return router

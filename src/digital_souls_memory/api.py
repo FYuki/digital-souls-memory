@@ -15,6 +15,7 @@ from digital_souls_memory.adapters.postgres_connections import PostgresConnectio
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStore
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
+from digital_souls_memory.adapters.postgres_memory_listing import PostgresMemoryListing
 from digital_souls_memory.adapters.postgres_provision import (
     PostgresProvisionStore,
     PostgresSessionIdentityStore,
@@ -283,11 +284,19 @@ def create_app(
         if configured_memory is not None:
             return configured_memory
         resolved_memory = memory_store
+        listing = None
         if resolved_memory is None:
             url = os.environ.get("MEMORY_DATABASE_URL")
             if not url:
                 raise MemoryUnavailable()
             resolved_memory = PostgresMemoryStore(url)
+            if store is None and identity_store is None:
+                listing = PostgresMemoryListing(
+                    url,
+                    delivery_timeout=delivery_timeout,
+                    conversation_surfaces=conversation_surfaces,
+                    comment_surfaces=comment_surfaces,
+                )
         evidence = resolve_evidence_store()
         configured_memory = MemoryService(
             resolved_memory,
@@ -303,6 +312,7 @@ def create_app(
                 comment_surfaces=comment_surfaces,
             ),
             registration_clock,
+            listing=listing,
         )
         return configured_memory
 
@@ -447,7 +457,12 @@ def create_app(
                 raise MemoryUnavailable()
             from digital_souls_memory.adapters.postgres_deletion import PostgresDeletionStore
 
-            resolved_deletion = PostgresDeletionStore(url)
+            resolved_deletion = PostgresDeletionStore(
+                url,
+                delivery_timeout=delivery_timeout,
+                conversation_surfaces=conversation_surfaces,
+                comment_surfaces=comment_surfaces,
+            )
         return DeletionService(
             resolved_deletion,
             MemoryRecalculator(

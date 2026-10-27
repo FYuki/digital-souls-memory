@@ -25,11 +25,13 @@ pytestmark = pytest.mark.postgres
 
 @pytest.mark.parametrize("operation", ["state", "episodes"])
 @pytest.mark.parametrize("change", ["receipt", "ending"])
+@pytest.mark.parametrize("phase", ["model", "save"])
 def test_context_completion_rechecks_input_inside_the_save_transaction(
     app_database_url: str,
     monkeypatch: pytest.MonkeyPatch,
     operation: Literal["state", "episodes"],
     change: str,
+    phase: str,
 ) -> None:
     from digital_souls_memory.adapters.postgres_resident import PostgresContextStore
     from digital_souls_memory.resident.domain import ContextKey
@@ -51,7 +53,7 @@ def test_context_completion_rechecks_input_inside_the_save_transaction(
     def paused_connection() -> Iterator[psycopg.Connection[DictRow]]:
         nonlocal armed
         with original_connection() as connection:
-            if armed:
+            if armed and phase == "save":
                 armed = False
                 connection.execute("SELECT 1")
                 assert connection.info.transaction_status == TransactionStatus.INTRANS
@@ -86,6 +88,10 @@ def test_context_completion_rechecks_input_inside_the_save_transaction(
     monkeypatch.setattr(store, "complete_state", complete_state)
     monkeypatch.setattr(store, "complete_episodes", complete_episodes)
     gateway = EpisodeGateway()
+    if phase == "model":
+        entered = gateway.started if operation == "state" else gateway.episode_started
+        release = gateway.release if operation == "state" else gateway.episode_release
+        release.clear()
     ids = iter(("episode-1", "episode-2"))
     worker = ContextWorker(
         store=store,

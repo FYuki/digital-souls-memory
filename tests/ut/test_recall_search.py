@@ -1,6 +1,8 @@
+import sys
+from collections import Counter
 from dataclasses import asdict, replace
 from datetime import timedelta
-from types import TracebackType
+from types import FrameType, TracebackType
 from typing import cast
 from weakref import ReferenceType, WeakSet, ref
 
@@ -33,6 +35,7 @@ class SearchConnection:
         self.settings: list[str] = []
         self.closed = 0
         self.fetch_sizes: list[int] = []
+        self.queries: list[str] = []
 
     def cursor(self, name: str, *, scrollable: bool, withhold: bool) -> "SearchCursor":
         assert name and not scrollable and not withhold
@@ -40,6 +43,8 @@ class SearchConnection:
 
     def execute(self, query: str, params: tuple[object, ...] = ()) -> Rows:
         if query.startswith("SET TRANSACTION"):
+            return Rows([])
+        if query == "SET LOCAL hnsw.iterative_scan = strict_order":
             return Rows([])
         if query == "SHOW enable_seqscan":
             return Rows([{"enable_seqscan": self.setting}])
@@ -67,8 +72,9 @@ class SearchCursor:
         self.connection.closed += 1
 
     def execute(self, query: str, params: tuple[object, ...]) -> None:
-        self.width = int(str(params[-1]))
+        self.width = int(str(params[-1])) if "LIMIT %s" in query else sys.maxsize
         self.connection.limits.append(self.width)
+        self.connection.queries.append(query)
         self.connection.settings.append(self.connection.setting)
 
     def fetchmany(self, size: int) -> list[DictRow]:
@@ -130,7 +136,7 @@ def test_search_computes_term_ratio_for_semantic_candidates(
     assert found["lexical"] == pytest.approx(expected)
     assert found["semantic"] == pytest.approx(0.9)
     if query == "%_\\":
-        assert connection.closed == 1
+        assert connection.closed == len(connection.limits)
 
 
 @pytest.mark.parametrize("denied_count", [64, 512])
@@ -461,3 +467,217 @@ def test_search_closes_cursor_and_propagates_failure(
     assert connection.closed == len(connection.limits)
     if stage != "declare":
         assert connection.setting == "on"
+
+
+@pytest.mark.parametrize("allowed_count", [0, 2, 3])
+def test_short_approximate_scan_is_not_treated_as_exhausted(
+    monkeypatch: pytest.MonkeyPatch, allowed_count: int
+) -> None:
+    source = turn()
+    dependency = asdict(source_stamp(source, character_id="char-b"))
+    documents = [
+        {
+            "allowed": True,
+            "owner_id": "char-b",
+            "kind": "memory",
+            "identifier": f"candidate-{i}",
+            "search_text": "合成文書",
+            "payload": {"source_turn_ids": [source.turn_id]},
+            "dependencies": {
+                "values": [dependency | {"turn_id": "missing"}] if i < 5 else [dependency]
+            },
+        }
+        for i in range(5 + allowed_count)
+    ]
+
+    class ShortCursor(SearchCursor):
+        def fetchmany(self, size: int) -> list[DictRow]:
+            if len(self.connection.limits) == 1:
+                self.width = min(self.width, 2)
+            return super().fetchmany(size)
+
+    class ShortConnection(SearchConnection):
+        def cursor(self, name: str, *, scrollable: bool, withhold: bool) -> SearchCursor:
+            return ShortCursor(self)
+
+        def execute(self, query: str, params: tuple[object, ...] = ()) -> Rows:
+            if "hnsw." in query:
+                return Rows([{"hnsw.iterative_scan": "off"}])
+            return super().execute(query, params)
+
+    def materials(connection: object, ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return (
+            {
+                source.turn_id: CandidateMaterial(
+                    turn=source,
+                    session=session(reports_delivery=False),
+                    actor_is_character=True,
+                    receipt_state=ReceiptState(None, 0),
+                )
+            }
+            if source.turn_id in ids
+            else {}
+        )
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", materials)
+    connection = ShortConnection(documents)
+    found = search_rows(
+        cast(psycopg.Connection[DictRow], connection),
+        character_id="char-b",
+        text="%_\\",
+        vector="[1,0]",
+        space=SPACE,
+        now=RECORDED,
+        timeout=timedelta(minutes=10),
+        limit=3,
+    )
+
+    assert {row["identifier"] for row in found} == {
+        f"candidate-{i}" for i in range(5, 5 + allowed_count)
+    }
+    assert connection.closed == len(connection.limits)
+    assert max(connection.fetch_sizes) <= 3
+
+
+@pytest.mark.parametrize("lexical", [False, True])
+def test_refill_consumes_one_exact_cursor_until_the_eligible_tail(
+    monkeypatch: pytest.MonkeyPatch, lexical: bool
+) -> None:
+    source = turn(text="日本語")
+    dependency = asdict(source_stamp(source, character_id="char-b"))
+    documents = [
+        {
+            "allowed": True,
+            "owner_id": "char-b",
+            "kind": "memory",
+            "identifier": f"candidate-{i}",
+            "search_text": "日本語",
+            "payload": {"source_turn_ids": [source.turn_id]},
+            "dependencies": {
+                "values": [dependency | {"turn_id": "missing"}] if i < 30 else [dependency]
+            },
+        }
+        for i in range(33)
+    ]
+
+    class PathCursor(SearchCursor):
+        def fetchmany(self, size: int) -> list[DictRow]:
+            if lexical and "LIKE likequery" not in self.connection.queries[-1]:
+                return []
+            return super().fetchmany(size)
+
+    class PathConnection(SearchConnection):
+        def cursor(self, name: str, *, scrollable: bool, withhold: bool) -> SearchCursor:
+            return PathCursor(self)
+
+    def materials(connection: object, ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return (
+            {
+                source.turn_id: CandidateMaterial(
+                    turn=source,
+                    session=session(reports_delivery=False),
+                    actor_is_character=True,
+                    receipt_state=ReceiptState(None, 0),
+                )
+            }
+            if source.turn_id in ids
+            else {}
+        )
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", materials)
+    connection = PathConnection(documents)
+    found = search_rows(
+        cast(psycopg.Connection[DictRow], connection),
+        character_id="char-b",
+        text="日本語" if lexical else "%_\\",
+        vector="[1,0]",
+        space=SPACE,
+        now=RECORDED,
+        timeout=timedelta(minutes=10),
+        limit=3,
+    )
+    assert [v["identifier"] for v in found] == [f"candidate-{i}" for i in range(30, 33)]
+    exact_queries = [
+        q for q in connection.queries if ("LIKE likequery" in q if lexical else "+ 0" in q)
+    ]
+    assert len(exact_queries) == 1
+    assert max(connection.fetch_sizes) <= 3
+    assert connection.closed == len(connection.queries)
+
+
+def test_approximate_eligible_row_is_checked_once_and_exact_order_wins(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = turn()
+    dependency = asdict(source_stamp(source, character_id="char-b"))
+    documents = [
+        {
+            "allowed": True,
+            "owner_id": "char-b",
+            "kind": "memory",
+            "identifier": identifier,
+            "search_text": "合成文書",
+            "payload": {"source_turn_ids": [source.turn_id]},
+            "dependencies": {"values": [dependency]},
+        }
+        for identifier in ("closer", "closer-2", "retained", "approximate-only")
+    ]
+
+    class ApproximateCursor(SearchCursor):
+        def fetchmany(self, size: int) -> list[DictRow]:
+            if len(self.connection.queries) == 1:
+                if self.position:
+                    return []
+                self.position = 1
+                return documents[2:]
+            return super().fetchmany(size)
+
+    class ApproximateConnection(SearchConnection):
+        def cursor(self, name: str, *, scrollable: bool, withhold: bool) -> SearchCursor:
+            return ApproximateCursor(self)
+
+    def materials(connection: object, ids: tuple[str, ...]) -> dict[str, CandidateMaterial]:
+        return (
+            {
+                source.turn_id: CandidateMaterial(
+                    turn=source,
+                    session=session(reports_delivery=False),
+                    actor_is_character=True,
+                    receipt_state=ReceiptState(None, 0),
+                )
+            }
+            if source.turn_id in ids
+            else {}
+        )
+
+    # Observe the actual eligibility decision without replacing its behavior.
+    decisions: Counter[str] = Counter()
+
+    def observe(frame: FrameType, event: str, arg: object) -> None:
+        if (
+            event == "call"
+            and frame.f_globals.get("__name__") == "digital_souls_memory.adapters.recall_search"
+            and frame.f_code.co_name == "_eligible"
+        ):
+            decisions[str(frame.f_locals["row"]["identifier"])] += 1
+
+    monkeypatch.setattr("digital_souls_memory.adapters.recall_search.read_materials", materials)
+    connection = ApproximateConnection(documents)
+    previous = sys.getprofile()
+    sys.setprofile(observe)
+    try:
+        found = search_rows(
+            cast(psycopg.Connection[DictRow], connection),
+            character_id="char-b",
+            text="%_\\",
+            vector="[1,0]",
+            space=SPACE,
+            now=RECORDED,
+            timeout=timedelta(minutes=10),
+            limit=3,
+        )
+    finally:
+        sys.setprofile(previous)
+    assert [v["identifier"] for v in found] == ["closer", "closer-2", "retained"]
+    assert decisions["retained"] == decisions["approximate-only"] == 1
+    assert connection.closed == len(connection.queries)

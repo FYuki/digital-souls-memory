@@ -32,6 +32,12 @@ def reinforce(
 def update_fact(
     old: DerivedMemory, candidate: DerivedMemory
 ) -> tuple[DerivedMemory, DerivedMemory]:
+    if candidate.epistemics.trust_tier < old.epistemics.trust_tier:
+        raise MemoryValidationError("Invalid fact update")
+    return _close_fact_period(old, candidate), candidate
+
+
+def _close_fact_period(old: DerivedMemory, candidate: DerivedMemory) -> DerivedMemory:
     if (
         old.id == candidate.id
         or old.character_id != candidate.character_id
@@ -41,7 +47,7 @@ def update_fact(
         or candidate.valid_from < old.valid_from
     ):
         raise MemoryValidationError("Invalid fact update")
-    return replace(old, valid_to=candidate.valid_from), candidate
+    return replace(old, valid_to=candidate.valid_from)
 
 
 def supersede(value: DerivedMemory, *, at: datetime) -> DerivedMemory:
@@ -57,7 +63,7 @@ def apply_temporal_effect(
     at: datetime,
 ) -> DerivedMemory:
     if relation_type == "updates":
-        return update_fact(value, candidate)[0]
+        return _close_fact_period(value, candidate)
     if relation_type == "contradicts":
         return supersede(value, at=at)
     if relation_type != "extends":

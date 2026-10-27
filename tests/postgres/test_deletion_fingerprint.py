@@ -2,6 +2,7 @@
 
 import os
 import tracemalloc
+from datetime import timedelta
 
 import psycopg
 import pytest
@@ -17,7 +18,12 @@ pytestmark = [pytest.mark.postgres, pytest.mark.usefixtures("deletion_url")]
 
 def test_fingerprint_memory_does_not_grow_with_all_unaffected_texts() -> None:
     url = os.environ["MEMORY_TEST_DATABASE_URL"]
-    store = PostgresDeletionStore(os.environ["MEMORY_DELETION_DATABASE_URL"])
+    store = PostgresDeletionStore(
+        os.environ["MEMORY_DELETION_DATABASE_URL"],
+        delivery_timeout=timedelta(minutes=10),
+        conversation_surfaces=frozenset({"synthetic-chat"}),
+        comment_surfaces=frozenset(),
+    )
     empty = store.begin(
         DeletionCommand(request_id="empty-scan", target_turn_ids=("absent",)),
         principal=AuthorPrincipal(author_id="synthetic-author"),

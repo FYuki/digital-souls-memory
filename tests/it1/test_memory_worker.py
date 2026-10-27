@@ -49,8 +49,8 @@ def test_fact_relation_controls_update_and_restatement(
     worker.process("char-b", "turn-2")
     old = store.get_memory("char-b", OLD_ID)
     assert old is not None
-    restatement = relation is None and object_value == "coffee"
-    assert old.valid_to == (RECORDED if relation == "updates" else None)
+    restatement = object_value == "coffee"
+    assert old.valid_to == (RECORDED if relation == "updates" and not restatement else None)
     assert old.last_reinforced_at == (RECORDED if restatement else None)
     assert old.source_turn_ids == (("turn-1", "turn-2") if restatement else ("turn-1",))
     expected_ids = (
@@ -66,9 +66,9 @@ def test_fact_relation_controls_update_and_restatement(
         assert response.is_success
         assert {v["id"] for v in response.json()} == expected_ids
     with store.list_relations("char-b", NEW_ID) as values:
-        assert {r.type for r in values} == (
-            {"extends"} if restatement else {relation} if relation else set()
-        )
+        assert {r.type for r in values} == ({relation} if relation and not restatement else set())
+    if restatement:
+        assert store.get_memory("char-b", NEW_ID) is None
 
 
 def setup_worker() -> tuple[Harness, FakeMemoryStore, MemoryService, MemoryWorker]:
@@ -137,23 +137,35 @@ def test_new_turn_does_not_rewrite_unchanged_memories(
 
 
 def test_unrelated_turn_preserves_superseded_history_time() -> None:
+    from digital_souls_memory.memory.domain import MemoryRelation
     from tests.evidence_support import turn
     from tests.memory_support import NEW_ID
 
     h, store, _, worker = setup_worker()
     for identifier, memory_id in (("turn-1", memory().id), ("turn-2", NEW_ID)):
         h.evidence.add_turn(turn(turn_id=identifier, actor="user-a"))
-        h.gateway.output = (replace(memory(), id=memory_id, source_turn_ids=(identifier,)),)
+        candidate = replace(
+            memory(),
+            id=memory_id,
+            source_turn_ids=(identifier,),
+            object="tea" if memory_id == NEW_ID else "coffee",
+        )
+        h.gateway.output = ExtractionProposal(
+            memories=(candidate,),
+            relations=(MemoryRelation(from_id=NEW_ID, to_id=memory().id, type="contradicts"),)
+            if memory_id == NEW_ID
+            else (),
+        )
         worker.process("char-b", identifier)
-    history = store.get_memory("char-b", NEW_ID)
+    history = store.get_memory("char-b", memory().id)
     assert history is not None and history.superseded_at is not None
     h.now += timedelta(seconds=1)
     h.evidence.add_turn(turn(turn_id="turn-3", actor="user-a"))
     h.gateway.output = (
-        replace(memory(), id="unrelated-memory", source_turn_ids=("turn-3",), object="tea"),
+        replace(memory(), id="unrelated-memory", source_turn_ids=("turn-3",), object="water"),
     )
     worker.process("char-b", "turn-3")
-    assert store.get_memory("char-b", NEW_ID) == history
+    assert store.get_memory("char-b", memory().id) == history
 
 
 def test_background_scan_bounds_pages_and_outstanding_surfaces(
@@ -476,7 +488,7 @@ def test_invalid_model_batch_is_failed_without_partial_writes_and_requires_reque
     worker.process("char-b", "turn-1")
     assert len(h.gateway.local_calls) == calls
     h.gateway.output = (replace(memory(), subject="char-c"),)
-    store.requeue("turn-1")
+    worker.service.requeue("turn-1")
     worker.process("char-b", "turn-1")
     assert len(service.active("char-b")) == 1
 

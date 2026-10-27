@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from digital_souls_memory.evidence.domain import Turn
@@ -66,6 +67,35 @@ class ResolvedInput:
         return hashlib.sha256(json.dumps((raw, notification)).encode()).hexdigest()
 
 
+def input_eligible(
+    turn: Turn,
+    *,
+    actor_is_character: bool,
+    conversation_surfaces: frozenset[str],
+    comment_surfaces: frozenset[str],
+    has_character_reply: bool,
+) -> bool:
+    if actor_is_character or turn.kind != "utterance":
+        return True
+    if turn.surface in conversation_surfaces:
+        return True
+    return turn.surface in comment_surfaces and has_character_reply
+
+
+def resolve_input(turn_ids: tuple[str, ...], values: Mapping[str, ResolvedTurn]) -> ResolvedInput:
+    turns: dict[str, ResolvedTurn] = {}
+    for position, identifier in enumerate(turn_ids):
+        value = values.get(identifier)
+        if value is None:
+            continue
+        turns[identifier] = value
+        if position == 0 and value.turn.reply_to_turn_id is not None:
+            reply = values.get(value.turn.reply_to_turn_id)
+            if reply is not None:
+                turns[reply.turn.turn_id] = reply
+    return ResolvedInput(tuple(turns.values()))
+
+
 class MemoryInputs:
     def __init__(
         self,
@@ -83,16 +113,24 @@ class MemoryInputs:
         self.comment_surfaces = comment_surfaces
 
     def eligible(self, character_id: str, turn: Turn) -> bool:
-        if self.materials.characters.is_character(turn.actor) or turn.kind != "utterance":
-            return True
-        if turn.surface in self.conversation_surfaces:
-            return True
-        if turn.surface in self.comment_surfaces:
+        replied = False
+        actor_is_character = self.materials.characters.is_character(turn.actor)
+        if (
+            not actor_is_character
+            and turn.kind == "utterance"
+            and turn.surface in self.comment_surfaces
+        ):
             with self.evidence.list_perceived_turns(character_id) as values:
-                return any(
+                replied = any(
                     v.actor == character_id and v.reply_to_turn_id == turn.turn_id for v in values
                 )
-        return False
+        return input_eligible(
+            turn,
+            actor_is_character=actor_is_character,
+            conversation_surfaces=self.conversation_surfaces,
+            comment_surfaces=self.comment_surfaces,
+            has_character_reply=replied,
+        )
 
     def resolve(self, character_id: str, turn_ids: tuple[str, ...]) -> ResolvedInput:
         turns: dict[str, Turn] = {}
@@ -105,13 +143,14 @@ class MemoryInputs:
                 reply = self.evidence.get_turn(turn.reply_to_turn_id)
                 if reply is not None:
                     turns[reply.turn_id] = reply
-        return ResolvedInput(
-            tuple(
-                ResolvedTurn(
+        return resolve_input(
+            turn_ids,
+            {
+                turn.turn_id: ResolvedTurn(
                     turn,
                     self.materials.get_decision(character_id, turn.turn_id),
                     self.eligible(character_id, turn),
                 )
                 for turn in turns.values()
-            )
+            },
         )

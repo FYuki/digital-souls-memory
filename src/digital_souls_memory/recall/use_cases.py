@@ -39,7 +39,12 @@ from digital_souls_memory.recall.ports import (
     Retriever,
     TokenCounter,
 )
-from digital_souls_memory.recall.scoring import composite_score, recency, trust_score
+from digital_souls_memory.recall.scoring import (
+    composite_score,
+    recency,
+    semantic_score,
+    trust_score,
+)
 from digital_souls_memory.recall.settings import RecallSettings
 
 
@@ -193,7 +198,7 @@ class RecallService:
                 c = resolved.candidate
                 memory = c.memory
                 terms = dict(
-                    semantic=c.semantic,
+                    semantic=semantic_score(c.semantic),
                     lexical=c.lexical,
                     recency=recency(
                         kind=memory.kind if memory else "verbatim_anchor",
@@ -294,7 +299,7 @@ class RecallService:
                     accepted = trial
                     continue
                 width = max((len(s.text) for v in group for s in v.spans), default=0) // 2
-                while width >= max(1, len(search_text)):
+                while width > 0:
                     smaller = tuple(
                         replace(
                             v,

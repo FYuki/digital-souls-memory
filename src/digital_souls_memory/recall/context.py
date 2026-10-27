@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass, replace
 from digital_souls_memory.evidence.provision import SourceSpan
 from digital_souls_memory.identity.sessions import SessionIdentity
 from digital_souls_memory.recall.domain import ResolvedCandidate
+from digital_souls_memory.recall.windowing import window_bounds
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -37,18 +38,7 @@ class RecallResponse:
 def window_span(span: SourceSpan, *, query: str, width: int) -> SourceSpan:
     if width >= len(span.text):
         return span
-    folded_match = span.text.casefold().find(query.casefold())
-    match = 0
-    if folded_match >= 0:
-        folded_offset = 0
-        for position, character in enumerate(span.text):
-            folded_offset += len(character.casefold())
-            if folded_offset > folded_match:
-                match = position
-                break
-    width = max(width, min(len(query), len(span.text)))
-    start = max(0, min(match - max(0, width - len(query)) // 2, len(span.text) - width))
-    end = start + width
+    start, end = window_bounds(span.text, query, width)
     return replace(
         span,
         start=span.start + start,

@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import replace
-from datetime import timedelta
+from datetime import datetime, timedelta
 from time import perf_counter
 from typing import cast
 
@@ -155,12 +155,12 @@ def test_extraction_keeps_claim_and_revalidates_current_index_input(
     assert work.ref.memory_id in publish_and_search(app_database_url)
 
 
-def publish_and_search(url: str) -> set[str]:
+def publish_and_search(url: str, *, now: datetime = RECORDED, limit: int = 20) -> set[str]:
     index = PostgresRetrievalStore(url)
     embedding = RecordingEmbedding()
-    indexing = IndexWorker(index, embedding, space=SPACE, clock=lambda: RECORDED)
-    for _ in range(3):
-        for work in index.claim(space=SPACE, now=RECORDED, limit=32):
+    indexing = IndexWorker(index, embedding, space=SPACE, clock=lambda: now)
+    while works := index.claim(space=SPACE, now=now, limit=32):
+        for work in works:
             indexing.process(work)
     query = LocalOnly(texts=("飲み物",), labels=(InputLabel("sensitive", "v1"),))
     return {
@@ -169,8 +169,8 @@ def publish_and_search(url: str) -> set[str]:
             character_id="char-b",
             query=query,
             query_vector=embedding.embed(query, purpose="query"),
-            now=RECORDED,
-            limit=20,
+            now=now,
+            limit=limit,
         ).candidates
         if candidate.memory is not None
     }
@@ -252,7 +252,7 @@ class LockMeasurements:
         self.wait_seconds: list[float] = []
         self.hold_seconds: list[float] = []
         self.acquired: dict[int, float] = {}
-        self.neighbor_queries: list[tuple[str, Params | None]] = []
+        self.fact_queries: list[tuple[str, Params | None]] = []
         execute = cast(Callable[..., psycopg.Cursor[DictRow]], psycopg.Cursor.execute)
         commit = psycopg.Connection.commit
 
@@ -270,8 +270,13 @@ class LockMeasurements:
             rendered = (
                 query.as_string(cursor.connection) if isinstance(query, sql.Composable) else query
             )
-            if isinstance(rendered, str) and "relations AS NOT MATERIALIZED" in rendered:
-                self.neighbor_queries.append((rendered, params))
+            if (
+                isinstance(rendered, str)
+                and rendered.lstrip().upper().startswith(("SELECT", "WITH"))
+                and ("memory_generated" in rendered or "memory_baselines" in rendered)
+                and all(attribute in rendered for attribute in ("subject", "predicate", "object"))
+            ):
+                self.fact_queries.append((rendered, params))
             if (
                 isinstance(query, str)
                 and "pg_advisory_xact_lock" in query
@@ -343,3 +348,70 @@ def test_fixed_change_does_not_read_all_unrelated_memories_under_recall_lock(
         count: value.rows for count, value in measurements.items()
     }
     assert measurements[300].queries <= measurements[20].queries
+
+
+def test_derives_from_stable_representative_does_not_expand_to_existing_referrers(
+    app_database_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+    record_property: Callable[[str, object], None],
+) -> None:
+    monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
+    register_characters()
+    evidence = PostgresEvidenceStore(app_database_url)
+    evidence.add_session(session(reports_delivery=False))
+    store, gateway = PostgresMemoryStore(app_database_url), RecordingGateway()
+    worker = extraction_worker(app_database_url)
+    worker.extractor.gateway = gateway
+    for number, identifier in enumerate(("a", "b"), 1):
+        source = f"turn-{number}"
+        evidence.add_turn(turn(source, actor="user-a"))
+        gateway.output = (replace(memory(), id=identifier, source_turn_ids=(source,)),)
+        worker.process("char-b", source)
+        state = store.get_extraction("char-b", source)
+        assert state is not None and state.status == "done"
+    measurements: dict[int, LockMeasurements] = {}
+    closures: dict[int, frozenset[str]] = {}
+    seeded = 0
+    for count in (1, 100):
+        with store.transaction("char-b") as tx:
+            for number in range(seeded, count):
+                identifier = f"referrer-{number}"
+                tx.add_memory(replace(memory(), id=identifier, object=identifier))
+                tx.add_relation(MemoryRelation(from_id=identifier, to_id="a", type="derives"))
+        seeded = count
+        before_values = {
+            f"referrer-{n}": store.get_memory("char-b", f"referrer-{n}") for n in range(count)
+        }
+        before_index = document_states(app_database_url)
+        source = f"new-source-{count}"
+        identifier = f"new-derived-{count}"
+        evidence.add_turn(turn(source, actor="user-a"))
+        gateway.output = ExtractionProposal(
+            memories=(
+                replace(memory(), id=identifier, object=identifier, source_turn_ids=(source,)),
+            ),
+            relations=(MemoryRelation(from_id=identifier, to_id="a", type="derives"),),
+        )
+        with monkeypatch.context() as patch:
+            measured = LockMeasurements(patch)
+            worker.process("char-b", source)
+        state = store.get_extraction("char-b", source)
+        assert state is not None and state.status == "done"
+        measurements[count] = measured
+        with store.transaction("char-b") as tx:
+            closures[count] = worker.service.affected(tx, source)
+        record_property(
+            str(count),
+            {
+                "closure": sorted(closures[count]),
+                "queries": measured.queries,
+                "rows": measured.rows,
+                "lock_seconds": measured.hold_seconds,
+            },
+        )
+        assert {key: store.get_memory("char-b", key) for key in before_values} == before_values
+        after_index = document_states(app_database_url)
+        assert {key: after_index[key] for key in before_index} == before_index
+    assert closures == {1: frozenset({"new-derived-1"}), 100: frozenset({"new-derived-100"})}
+    assert measurements[100].queries <= measurements[1].queries
+    assert measurements[100].rows <= measurements[1].rows

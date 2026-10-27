@@ -5,6 +5,7 @@ import os
 import psycopg
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from psycopg import sql
 from sqlalchemy.engine import make_url
 
@@ -20,7 +21,9 @@ def initialize() -> None:
         ).fetchone() != (0,):
             raise ValueError("ST database must be empty")
     os.environ["MEMORY_DATABASE_URL"] = url
-    command.upgrade(Config("alembic.ini"), "head")
+    config = Config("alembic.ini")
+    command.upgrade(config, "head")
+    head = ScriptDirectory.from_config(config).get_current_head()
     with psycopg.connect(url, autocommit=True, connect_timeout=5) as conn:
         for role in ("memory_st_app", "memory_st_delete"):
             conn.execute(
@@ -44,7 +47,7 @@ def initialize() -> None:
         assert conn.execute(
             "SELECT pg_has_role('memory_st_app','memory_deletion_executor','MEMBER')"
         ).fetchone() == (False,)
-        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0010",)
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == (head,)
 
 
 if __name__ == "__main__":

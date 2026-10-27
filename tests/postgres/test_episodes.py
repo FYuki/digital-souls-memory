@@ -1,13 +1,24 @@
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import datetime, timedelta
+from threading import Event
+from typing import cast
 
+import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from psycopg.abc import Params, Query
+from psycopg.rows import DictRow, dict_row
 
+from digital_souls_memory.adapters.postgres_episodes import replace_episodes
+from digital_souls_memory.adapters.postgres_resident import PostgresContextStore
 from digital_souls_memory.api import create_app
 from digital_souls_memory.memory.extraction import CloudInput, LocalOnly
+from digital_souls_memory.resident.domain import ContextKey
 from tests.context_gateway_support import EpisodeGateway, eventually
 from tests.evidence_support import RECORDED, TEXT, receipt_payload, turn_payload
+from tests.postgres.test_context_work_selection import context_worker
 from tests.postgres.test_resident_state import register_open_session
 
 pytestmark = pytest.mark.postgres
@@ -135,6 +146,59 @@ def test_episode_input_correction_withdraws_old_batch_before_replacement_finishe
             assert [v["text"] for v in spans] == [TEXT]
         finally:
             gateway.episode_release.set()
+
+
+def test_episode_get_keeps_parent_and_spans_consistent_during_batch_replacement(
+    app_database_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
+    store = PostgresContextStore(app_database_url)
+    key = ContextKey(character_id="char-b", session_id="session-1", surface="synthetic-chat")
+    with TestClient(create_app(context_store=store, clock=lambda: RECORDED)) as client:
+        register_open_session(client, reports_delivery=False)
+        assert client.post("/turns", json=turn_payload()).status_code == 201
+        context_worker(store, EpisodeGateway()).process_episodes(key)
+        (original,) = store.list_episodes(key)
+        replacement = replace(original, episode_id="replacement", topic="置換した合成話題")
+        parent_read, replaced = Event(), Event()
+        execute = cast(Callable[..., psycopg.Cursor[DictRow]], psycopg.Cursor.execute)
+
+        def observe(
+            cursor: psycopg.Cursor[DictRow],
+            query: Query,
+            params: Params | None = None,
+            *,
+            prepare: bool | None = None,
+            binary: bool | None = None,
+        ) -> psycopg.Cursor[DictRow]:
+            result = execute(cursor, query, params, prepare=prepare, binary=binary)
+            if isinstance(query, str) and query.startswith("SELECT * FROM episodes "):
+                parent_read.set()
+                assert replaced.wait(5), "Replacement did not commit"
+            return result
+
+        with monkeypatch.context() as patch:
+            patch.setattr(psycopg.Cursor, "execute", observe)
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(client.get, PATH, params=PARAMS)
+                try:
+                    assert parent_read.wait(5), "Episode parent query was not reached"
+                    with psycopg.connect(app_database_url, row_factory=dict_row) as connection:
+                        replace_episodes(connection, key, (replacement,))
+                    replaced.set()
+                    response = future.result(timeout=5)
+                finally:
+                    replaced.set()
+        assert response.status_code == 200, response.json()
+        assert response.json()["episodes"][0]["episode_id"] in (
+            original.episode_id,
+            replacement.episode_id,
+        )
+        assert response.json()["episodes"][0]["turn_span"] == [
+            {"turn_id": "turn-1", "start": 0, "end": len(TEXT)}
+        ]
+        assert episodes(client)[0]["episode_id"] == replacement.episode_id
 
 
 @pytest.mark.parametrize(

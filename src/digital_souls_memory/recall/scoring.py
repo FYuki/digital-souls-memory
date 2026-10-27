@@ -26,6 +26,10 @@ class Weights:
             raise ValueError("Invalid ranking weights")
 
 
+def semantic_score(cosine: float) -> float:
+    return max(0.0, min(1.0, cosine))
+
+
 def composite_score(
     *,
     weights: Weights,

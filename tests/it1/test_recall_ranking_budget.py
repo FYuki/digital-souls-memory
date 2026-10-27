@@ -214,6 +214,128 @@ def test_multiple_sources_are_preserved_instead_of_silently_dropping_one_for_bud
     assert {s["text"] for s in response.json()["source_spans"]} == {TEXT, "English original"}
 
 
+@pytest.mark.parametrize("form", ["materials", "assembled"])
+def test_question_terms_keep_the_answer_in_the_long_original_and_provision(
+    harness: "RecallHarness", form: str
+) -> None:
+    h = harness
+    original = "日常の記録🙂e\u0301。" * 1200 + "約束は11月3日。" + "日常の記録。" * 1200
+    h.seed(turn(text=original), memory())
+
+    response = h.client.post(
+        "/characters/char-b/recall", json=request(form=form) | {"query": "約束の日付はいつ？"}
+    )
+
+    assert response.is_success
+    body = response.json()
+    assert any("約束は11月3日" in span["text"] for span in body["source_spans"])
+    for span in body["source_spans"]:
+        assert span["text"] == original[span["start"] : span["end"]]
+    assert (len(counted_response(h, body)) + 3) // 4 <= 1500
+    h.assert_record_matches(body)
+
+
+@pytest.mark.parametrize("form", ["materials", "assembled"])
+@pytest.mark.parametrize(
+    "original,query,answer",
+    [
+        (
+            "日常の記録。" * 1200 + "約束は11月3日。" + "日常の記録。" * 1200,
+            "約束の日付はいつ？" + "補足" * 4000,
+            "約束は11月3日。",
+        ),
+        (
+            "雑記。" * 3000 + "blue station: November 3." + "雑記。" * 3000,
+            "BLUE STATION?",
+            "blue station: November 3.",
+        ),
+        (
+            "雑記。" * 3000 + "Straße station: November 3." + "雑記。" * 3000,
+            "STRASSE STATION?",
+            "Straße station: November 3.",
+        ),
+    ],
+    ids=["long-question", "partial-casefold", "partial-expansion"],
+)
+def test_partial_match_survives_budgeting_in_http_and_provision(
+    harness: "RecallHarness", form: str, original: str, query: str, answer: str
+) -> None:
+    h = harness
+    h.seed(turn(text=original), memory())
+    response = h.client.post(
+        "/characters/char-b/recall", json=request(form=form) | {"query": query}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert [m["id"] for m in body["memories"]] == [memory().id]
+    assert any(answer in s["text"] for s in body["source_spans"])
+    for span in body["source_spans"]:
+        assert span["text"] == original[span["start"] : span["end"]]
+        assert span["truncated"] is True
+        assert (span["original_start"], span["original_end"]) == (0, len(original))
+    assert body["context"] == (
+        "\n".join(s["text"] for s in body["source_spans"]) if form == "assembled" else None
+    )
+    assert (len(counted_response(h, body)) + 3) // 4 <= 1500
+    h.assert_record_matches(body)
+
+
+@pytest.mark.parametrize("form", ["materials", "assembled"])
+def test_full_match_that_exceeds_budget_is_not_cut_to_return_a_memory(
+    harness: "RecallHarness", form: str
+) -> None:
+    h = harness
+    query = "検索全文" * 2000
+    h.seed(turn(text="前置き。" + query + "後置き。"), memory())
+    response = h.client.post(
+        "/characters/char-b/recall", json=request(form=form) | {"query": query}
+    )
+    assert response.status_code == 200
+    assert response.json()["memories"] == []
+    assert response.json()["source_spans"] == []
+    h.assert_record_matches(response.json())
+
+
+def test_negative_cosine_is_clamped_before_top_twenty_and_score_recording(
+    harness: "RecallHarness", monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from tests.recall_fixtures import candidate_for
+
+    h = harness
+    source = turn()
+    h.evidence.add_turn(source)
+    leaders = [
+        candidate_for(
+            replace(memory(), id=str(UUID(int=i + 1))), sources=(source,), semantic=0.9, lexical=0
+        )
+        for i in range(19)
+    ]
+    negative = candidate_for(
+        replace(memory(), id=str(UUID(int=99))), sources=(source,), semantic=-0.6, lexical=1
+    )
+    zero = candidate_for(
+        replace(memory(), id=str(UUID(int=100))), sources=(source,), semantic=0, lexical=0
+    )
+    h.retriever.values = [*leaders, negative, zero]
+    monkeypatch.setattr(h.counter, "count", lambda value: 1)
+
+    response = h.client.post("/characters/char-b/recall", json=request())
+
+    assert response.is_success
+    refs = {document.ref for document in h.reranker.calls[-1].documents}
+    assert refs == {candidate.ref for candidate in [*leaders, negative]}
+    record = h.provisions.get(response.json()["provision_id"])
+    assert record is not None
+    scores = {score.ref: score for score in record.scores}
+    assert scores[negative.ref].semantic == scores[zero.ref].semantic == 0
+    negative_composite = scores[negative.ref].composite
+    zero_composite = scores[zero.ref].composite
+    assert negative_composite is not None and zero_composite is not None
+    assert negative_composite - zero_composite == pytest.approx(0.25)
+    assert scores[negative.ref].relevance is not None
+    assert scores[zero.ref].relevance is None
+
+
 def test_tokenizer_failure_does_not_fall_back_to_byte_estimation_or_empty_success(
     harness: "RecallHarness", monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -149,8 +149,6 @@ def test_upgrade_restores_payloads_from_direct_sources_and_preserves_literal_con
                 with PostgresMemoryStore(url).transaction(value.character_id) as tx:
                     assert tx.baselines() == (value,)
                     assert tuple(item.memory for item in tx.candidates()) == (value,)
-                    # The generated collision check must also restore normalized provenance.
-                    tx.set_candidates("turn-2", (value,), dependencies=())
                 assert conn.execute("SELECT * FROM turns ORDER BY turn_id").fetchall() == (
                     evidence_before
                 )
@@ -175,7 +173,10 @@ def test_upgrade_restores_payloads_from_direct_sources_and_preserves_literal_con
                 assert conn.execute("SELECT used_text FROM memory_extractions").fetchone() == (
                     TEXT,
                 )
-            command.upgrade(config, "0011")
+            command.upgrade(config, "head")
+            # The current writer is exercised only after all schema revisions are installed.
+            with PostgresMemoryStore(url).transaction(value.character_id) as tx:
+                tx.set_candidates("turn-2", (value,), dependencies=())
             monkeypatch.setenv("MEMORY_AUTHOR_ID", "synthetic-author")
             monkeypatch.setenv("MEMORY_AUTHOR_TOKEN", "synthetic-test-credential")
             monkeypatch.setenv("MEMORY_DELETION_DATABASE_URL", url)

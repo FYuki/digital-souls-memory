@@ -36,18 +36,16 @@ def search_rows(
     for lexical in (False, True):
         if lexical and not terms:
             continue
-        width = limit
-        while True:
+        approximate_eligible: dict[tuple[str, str, str], DictRow] = {}
+        for exact in (True,) if lexical else (False, True):
             accepted: dict[tuple[str, str, str], DictRow] = {}
-            scanned = 0
             with _candidates(
-                connection, terms, vector, space, width, lexical, character_id, now
+                connection, terms, vector, space, limit, lexical, character_id, now, exact
             ) as cursor:
                 while len(accepted) < limit:
                     rows = cursor.fetchmany(batch_size)
                     if not rows:
                         break
-                    scanned += len(rows)
                     ids = tuple(
                         dict.fromkeys(
                             d["turn_id"]
@@ -70,6 +68,8 @@ def search_rows(
                         key = (row["owner_id"], row["kind"], row["identifier"])
                         eligible = found.get(key)
                         if eligible is None:
+                            eligible = approximate_eligible.get(key)
+                        if eligible is None:
                             eligible = _eligible(
                                 row,
                                 batch_materials,
@@ -85,10 +85,11 @@ def search_rows(
                                 break
                     # Release the preceding batch before fetching its replacement.
                     del rows, batch_materials
-            if len(accepted) == limit or scanned < width:
+            if len(accepted) == limit or exact:
                 found.update(accepted)
                 break
-            width *= 2
+            # An approximate scan can stop at its exploration cap before the true tail.
+            approximate_eligible = accepted
     return tuple(found.values())
 
 
@@ -102,6 +103,7 @@ def _candidates(
     lexical: bool,
     character_id: str,
     now: datetime,
+    exact: bool,
 ) -> Iterator[psycopg.ServerCursor[DictRow]]:
     matches = ["search_text LIKE likequery(%s)" for _ in terms]
     predicate = " AND (" + " OR ".join(matches) + ")" if lexical else ""
@@ -110,6 +112,9 @@ def _candidates(
         if lexical
         else "embedding <=> %s::vector"
     )
+    if not lexical and exact:
+        # The expression forces a full distance sort instead of a capped HNSW scan.
+        order = "(embedding <=> %s::vector) + 0"
     permission = (
         "((d.kind='anchor' AND d.owner_id=%s) OR (d.kind='memory' AND EXISTS("
         "SELECT 1 FROM derived_memories m WHERE m.character_id=d.owner_id AND m.id=d.identifier "
@@ -127,9 +132,11 @@ def _candidates(
         space.dimensions,
         *(terms if lexical else permission_params),
         *(terms if lexical else (vector,)),
-        limit,
+        *((limit,) if not exact else ()),
     )
     previous = None
+    if not lexical and not exact:
+        connection.execute("SET LOCAL hnsw.iterative_scan = strict_order")
     if lexical:
         setting = connection.execute("SHOW enable_seqscan").fetchone()
         assert setting is not None
@@ -143,7 +150,8 @@ def _candidates(
         + (predicate if lexical else " AND " + permission)
         + " ORDER BY "
         + order
-        + " LIMIT %s) c "
+        + (" LIMIT %s" if not exact else "")
+        + ") c "
         # Keep payload hydration as primary-key lookups after the index limit.
         "CROSS JOIN LATERAL (SELECT * FROM recall_documents d WHERE "
         "d.owner_id=c.owner_id AND d.kind=c.kind AND d.identifier=c.identifier OFFSET 0) d"

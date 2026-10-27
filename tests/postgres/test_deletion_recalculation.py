@@ -12,7 +12,7 @@ from digital_souls_memory.adapters.postgres_identity import PostgresIdentityStor
 from digital_souls_memory.adapters.postgres_memory import PostgresMemoryStore
 from digital_souls_memory.api import create_app
 from digital_souls_memory.evidence.materials import EvidenceMaterials
-from digital_souls_memory.memory.domain import DerivedMemory
+from digital_souls_memory.memory.domain import DerivedMemory, ExtractionProposal, MemoryRelation
 from digital_souls_memory.memory.extraction import (
     CloudInput,
     ExtractionGateway,
@@ -24,6 +24,7 @@ from digital_souls_memory.memory.use_cases import MemoryService
 from digital_souls_memory.memory.worker import MemoryWorker
 from tests.deletion_support import RecordingRecalculationGateway
 from tests.evidence_support import RECORDED, turn
+from tests.it1.test_memory_extraction import RecordingGateway
 from tests.memory_fakes import EchoGateway
 from tests.memory_support import NEW_ID, memory
 from tests.postgres.test_deletion import HEADERS, seed_evidence
@@ -82,6 +83,7 @@ def test_reinforced_projection_survives_when_its_original_baseline_loses_all_sou
         create_app(
             clock=lambda: RECORDED,
             recalculation_gateway=RecordingRecalculationGateway(revised),
+            conversation_surfaces=frozenset({"synthetic-chat"}),
         )
     ) as client:
         response = client.post(
@@ -158,3 +160,68 @@ def test_final_projection_owns_baseline_but_every_copy_is_validated(
                 for r in response.json()["cascade_result"]["removed_references"]
             )
             assert client.get("/characters/char-b/memories").json()[0]["content"] == final.content
+
+
+@pytest.mark.parametrize("tier", ["E", "A"])
+def test_recalculated_fact_reapplies_surviving_update_after_tier_change(
+    database_url: str, tier: str
+) -> None:
+    evidence = seed_evidence(database_url)
+    for identifier in ("turn-1", "turn-2", "turn-3"):
+        evidence.add_turn(replace(turn(identifier, actor="user-a"), occurred_at=RECORDED))
+    store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
+    original = replace(memory(), source_turn_ids=("turn-1", "turn-2"))
+    with store.transaction("char-b") as tx:
+        tx.add_memory(original)
+    candidate = replace(
+        memory(),
+        id=NEW_ID,
+        object="tea",
+        content="紅茶",
+        source_turn_ids=("turn-3",),
+        valid_from=RECORDED,
+    )
+    relation = MemoryRelation(from_id=NEW_ID, to_id=original.id, type="updates")
+    gateway.output = ExtractionProposal(memories=(candidate,), relations=(relation,))
+    worker = make_worker(database_url, store, gateway)
+    worker.process("char-b", "turn-3")
+    before = store.get_memory("char-b", original.id)
+    assert before is not None and before.valid_to == candidate.valid_from
+    revised = replace(
+        original,
+        source_turn_ids=("turn-2",),
+        epistemics=replace(original.epistemics, trust_tier=tier),
+    )
+    with TestClient(
+        create_app(
+            clock=lambda: RECORDED,
+            recalculation_gateway=RecordingRecalculationGateway(revised),
+            conversation_surfaces=frozenset({"synthetic-chat"}),
+        )
+    ) as client:
+        response = client.post(
+            "/deletion-requests",
+            headers=HEADERS,
+            json={"request_id": "delete-updated", "target_turn_ids": ["turn-1"]},
+        )
+        if tier == "A":
+            assert response.status_code == 422
+            assert evidence.get_turn("turn-1") is not None
+            assert store.get_memory("char-b", original.id) == before
+            return
+        assert response.status_code == 200, response.json()
+        assert response.json()["status"] == "done"
+        assert evidence.get_turn("turn-1") is None
+        expected = replace(revised, valid_to=candidate.valid_from)
+        for identifiers in (None, frozenset({original.id, candidate.id})):
+            restored = PostgresMemoryStore(database_url)
+            service = make_worker(database_url, restored, gateway).service
+            response = client.get("/characters/char-b/memories")
+            assert response.status_code == 200
+            assert [v["id"] for v in response.json()] == [NEW_ID]
+            with restored.transaction("char-b") as tx:
+                service.rebuild(tx, identifiers)
+            assert restored.get_memory("char-b", original.id) == expected
+            assert service.active("char-b") == (candidate,)
+            with restored.list_relations("char-b", NEW_ID) as relations:
+                assert tuple(relations) == (relation,)
