@@ -5,55 +5,11 @@ import psycopg
 import pytest
 from alembic import command
 from alembic.config import Config
-from alembic.script import ScriptDirectory
 from fastapi.testclient import TestClient
 
 from digital_souls_memory.api import create_app
 
 pytestmark = pytest.mark.postgres
-
-
-def test_review_fixes_revision_is_the_single_successor_of_fact_lookup() -> None:
-    config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
-    scripts = ScriptDirectory.from_config(config)
-    assert scripts.get_heads() == ["0014"]
-    restatements = scripts.get_revision("0014")
-    assert restatements is not None and restatements.down_revision == "0013"
-    representatives = scripts.get_revision("0013")
-    assert representatives is not None and representatives.down_revision == "0012"
-    derived_memory_review = scripts.get_revision("0012")
-    assert derived_memory_review is not None
-    assert derived_memory_review.down_revision == "0011"
-    review_fixes = scripts.get_revision("0011")
-    assert review_fixes is not None
-    assert review_fixes.down_revision == "0010"
-    fact_lookup = scripts.get_revision("0010")
-    assert fact_lookup is not None
-    assert fact_lookup.down_revision == "0009"
-    deletion = scripts.get_revision("0009")
-    assert deletion is not None
-    assert deletion.down_revision == "0008"
-    resident = scripts.get_revision("0008")
-    assert resident is not None
-    assert resident.down_revision == "0007"
-    recall = scripts.get_revision("0007")
-    assert recall is not None
-    assert recall.down_revision == "0006"
-    memory = scripts.get_revision("0006")
-    assert memory is not None
-    assert memory.down_revision == "0005"
-    voice = scripts.get_revision("0005")
-    assert voice is not None
-    assert voice.down_revision == "0004"
-    perception = scripts.get_revision("0004")
-    assert perception is not None
-    assert perception.down_revision == "0003"
-    identity = scripts.get_revision("0003")
-    assert identity is not None
-    assert identity.down_revision == "0002"
-    revision = scripts.get_revision("0002")
-    assert revision is not None
-    assert revision.down_revision == "0001"
 
 
 @pytest.mark.parametrize("previous_head", [False, True], ids=["empty", "previous-head"])

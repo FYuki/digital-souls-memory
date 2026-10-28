@@ -29,6 +29,8 @@ class Rows:
 
 class SearchConnection:
     def __init__(self, documents: list[DictRow]) -> None:
+        for document in documents:
+            document["chunk_index"] = 0
         self.documents = documents
         self.setting = "on"
         self.limits: list[int] = []
@@ -165,6 +167,7 @@ def test_refill_bounds_live_rows_keys_and_sources(
             owner_id="char-b",
             kind="memory",
             identifier=identifier,
+            chunk_index=0,
             payload={"source_turn_ids": [source_id]},
             dependencies={
                 "values": [

@@ -908,7 +908,7 @@ class PostgresDeletionStore:
     ) -> None:
         rows = connection.execute(
             "SELECT DISTINCT d.* FROM recall_documents d LEFT JOIN recall_document_sources s "
-            "USING(owner_id,kind,identifier) WHERE s.turn_id=ANY(%s)",
+            "USING(owner_id,kind,identifier,chunk_index) WHERE s.turn_id=ANY(%s)",
             (list(targets),),
         ).fetchall()
         for character, identifier in affected:

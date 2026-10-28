@@ -25,6 +25,7 @@ from digital_souls_memory.adapters.recall_records import (
 )
 from digital_souls_memory.adapters.recall_search import search_rows
 from digital_souls_memory.evidence.provision import CandidateRef, ProvisionUnavailable
+from digital_souls_memory.recall.chunking import split_chunks
 from digital_souls_memory.recall.domain import (
     DocumentStamp,
     EmbeddingBatch,
@@ -37,6 +38,7 @@ from digital_souls_memory.recall.eligibility import memory_allowed
 from digital_souls_memory.recall.indexing import IndexInput, IndexWork
 from digital_souls_memory.recall.inputs import InputLabel, LocalOnly, ModelInput
 from digital_souls_memory.recall.lexical import normalized_key
+from digital_souls_memory.recall.settings import RecallSettings
 from digital_souls_memory.voice.domain import VerbatimAnchor
 
 
@@ -48,10 +50,8 @@ def _key(ref: CandidateRef) -> tuple[str, str, str]:
     )
 
 
-def _vector(batch: EmbeddingBatch) -> str:
-    if len(batch.vectors) != 1:
-        raise ProvisionUnavailable()
-    return "[" + ",".join(str(v) for v in batch.vectors[0]) + "]"
+def _vector(vector: tuple[float, ...]) -> str:
+    return "[" + ",".join(str(v) for v in vector) + "]"
 
 
 class PostgresRetrievalStore:
@@ -61,10 +61,12 @@ class PostgresRetrievalStore:
         *,
         delivery_timeout: timedelta = timedelta(minutes=10),
         connections: PostgresConnections | None = None,
+        settings: RecallSettings | None = None,
     ) -> None:
         self.url = url.replace("postgresql+psycopg://", "postgresql://", 1)
         self._connections = connections if connections is not None else PostgresConnections(url)
         self.timeout = delivery_timeout
+        self.settings = settings if settings is not None else RecallSettings()
 
     @contextmanager
     def _connection(self) -> Iterator[psycopg.Connection[DictRow]]:
@@ -77,7 +79,8 @@ class PostgresRetrievalStore:
     def claim(self, *, space: VectorSpace, now: datetime, limit: int) -> tuple[IndexWork, ...]:
         with self._connection() as connection:
             rows = connection.execute(
-                "SELECT * FROM recall_documents WHERE (pending OR model IS DISTINCT FROM %s "
+                "SELECT * FROM recall_documents WHERE chunk_index=0 "
+                "AND (pending OR model IS DISTINCT FROM %s "
                 "OR revision IS DISTINCT FROM %s OR digest IS DISTINCT FROM %s OR "
                 "dimensions IS DISTINCT FROM %s) "
                 "AND (not_before IS NULL OR not_before<=%s) AND (lease_until IS NULL OR "
@@ -115,7 +118,8 @@ class PostgresRetrievalStore:
         self, connection: psycopg.Connection[DictRow], work: IndexWork, now: datetime
     ) -> IndexInput | None:
         row = connection.execute(
-            "SELECT * FROM recall_documents WHERE owner_id=%s AND kind=%s AND identifier=%s",
+            "SELECT * FROM recall_documents WHERE owner_id=%s AND kind=%s AND identifier=%s "
+            "AND chunk_index=0 FOR UPDATE",
             _key(work.ref),
         ).fetchone()
         if row is None or row["version"] != work.version or row["claim_token"] != work.token:
@@ -243,32 +247,41 @@ class PostgresRetrievalStore:
             dependencies=tuple(dependencies),
             labels=tuple(labels),
         )
+        chunks = split_chunks(
+            search_text, length=self.settings.chunk_length, overlap=self.settings.chunk_overlap
+        )
         return IndexInput(
-            candidate=candidate, input=LocalOnly(texts=(search_text,), labels=tuple(labels))
+            candidate=candidate,
+            input=LocalOnly(texts=tuple(c.text for c in chunks), labels=tuple(labels)),
+            chunks=chunks,
         )
 
     def cached(self, value: IndexInput) -> EmbeddingBatch | None:
         space = value.candidate.document.space
         with self._connection() as connection:
-            row = connection.execute(
-                "SELECT embedding::text AS vector FROM recall_embeddings WHERE content_digest=%s "
-                "AND model=%s AND revision=%s AND digest=%s AND dimensions=%s",
-                (
-                    value.candidate.document.content_digest,
-                    space.model,
-                    space.revision,
-                    space.digest,
-                    space.dimensions,
-                ),
-            ).fetchone()
-            if row is None:
-                return None
-            return EmbeddingBatch(space=space, vectors=(tuple(json.loads(row["vector"])),))
+            vectors = []
+            for candidate in value.candidates:
+                row = connection.execute(
+                    "SELECT embedding::text AS vector FROM recall_embeddings "
+                    "WHERE content_digest=%s "
+                    "AND model=%s AND revision=%s AND digest=%s AND dimensions=%s",
+                    (
+                        candidate.document.content_digest,
+                        space.model,
+                        space.revision,
+                        space.digest,
+                        space.dimensions,
+                    ),
+                ).fetchone()
+                if row is None:
+                    return None
+                vectors.append(tuple(json.loads(row["vector"])))
+            return EmbeddingBatch(space=space, vectors=tuple(vectors))
 
     def publish(
         self, work: IndexWork, *, input: IndexInput, embedding: EmbeddingBatch, now: datetime
     ) -> bool:
-        if embedding.space != work.space or len(embedding.vectors) != 1:
+        if embedding.space != work.space or len(embedding.vectors) != len(input.chunks):
             raise ProvisionUnavailable()
         with self._connection() as connection:
             connection.execute("SELECT pg_advisory_xact_lock(hashtextextended('recall-state',0))")
@@ -284,61 +297,76 @@ class PostgresRetrievalStore:
                 "SELECT content_digest FROM recall_documents WHERE owner_id=%s AND kind=%s "
                 "AND identifier=%s",
                 _key(work.ref),
-            ).fetchone()
-            candidate = input.candidate
-            space = work.space
-            if candidate.memory is not None:
-                payload = candidate_record(candidate.memory)
-            else:
-                assert candidate.anchor is not None
-                payload = json_record(asdict(candidate.anchor))
+            ).fetchall()
             connection.execute(
-                "INSERT INTO "
-                "recall_embeddings(content_digest,model,revision,digest,dimensions,embedding) "
-                "VALUES(%s,%s,%s,%s,%s,%s::vector) ON CONFLICT DO NOTHING",
-                (
-                    candidate.document.content_digest,
-                    space.model,
-                    space.revision,
-                    space.digest,
-                    space.dimensions,
-                    _vector(embedding),
-                ),
-            )
-            connection.execute(
-                "UPDATE recall_documents SET "
-                "ready=TRUE,pending=FALSE,not_before=NULL,claim_token=NULL,"
-                "lease_until=NULL,search_text=%s,content_digest=%s,model=%s,revision=%s,digest=%s,dimensions=%s,"
-                "embedding=%s::vector,payload=%s,dependencies=%s,labels=%s "
-                "WHERE owner_id=%s AND kind=%s AND identifier=%s",
-                (
-                    normalized_key(candidate.search_text),
-                    candidate.document.content_digest,
-                    space.model,
-                    space.revision,
-                    space.digest,
-                    space.dimensions,
-                    _vector(embedding),
-                    Jsonb(payload),
-                    Jsonb(json_record({"values": [asdict(v) for v in candidate.dependencies]})),
-                    Jsonb([asdict(v) for v in candidate.labels]),
-                    *_key(work.ref),
-                ),
-            )
-            connection.execute(
-                "DELETE FROM recall_document_sources WHERE owner_id=%s AND kind=%s AND "
-                "identifier=%s",
+                "DELETE FROM recall_documents WHERE owner_id=%s AND kind=%s AND identifier=%s",
                 _key(work.ref),
             )
-            for stamp in candidate.dependencies:
-                connection.execute(
-                    "INSERT INTO recall_document_sources(owner_id,kind,identifier,turn_id) "
-                    "VALUES(%s,%s,%s,%s)",
-                    (*_key(work.ref), stamp.turn_id),
-                )
-            if previous is not None and previous["content_digest"] is not None:
-                collect_embeddings(connection, [previous["content_digest"]])
+            for candidate, vector in zip(input.candidates, embedding.vectors, strict=True):
+                self._publish_chunk(connection, work, candidate, vector)
+            collect_embeddings(
+                connection,
+                [r["content_digest"] for r in previous if r["content_digest"] is not None],
+            )
             return True
+
+    def _publish_chunk(
+        self,
+        connection: psycopg.Connection[DictRow],
+        work: IndexWork,
+        candidate: RecallCandidate,
+        vector: tuple[float, ...],
+    ) -> None:
+        space = work.space
+        if candidate.memory is not None:
+            payload = candidate_record(candidate.memory)
+        else:
+            assert candidate.anchor is not None
+            payload = json_record(asdict(candidate.anchor))
+        connection.execute(
+            "INSERT INTO "
+            "recall_embeddings(content_digest,model,revision,digest,dimensions,embedding) "
+            "VALUES(%s,%s,%s,%s,%s,%s::vector) ON CONFLICT DO NOTHING",
+            (
+                candidate.document.content_digest,
+                space.model,
+                space.revision,
+                space.digest,
+                space.dimensions,
+                _vector(vector),
+            ),
+        )
+        connection.execute(
+            "INSERT INTO recall_documents (owner_id,kind,identifier,version,chunk_index,"
+            "chunk_start,chunk_end,chunk_text,ready,pending,search_text,content_digest,"
+            "model,revision,digest,dimensions,embedding,payload,dependencies,labels) "
+            "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,TRUE,FALSE,%s,%s,%s,%s,%s,%s,%s::vector,%s,%s,%s)",
+            (
+                *_key(work.ref),
+                work.version,
+                candidate.document.chunk_index,
+                candidate.chunk_start,
+                candidate.chunk_end,
+                candidate.search_text,
+                normalized_key(candidate.search_text),
+                candidate.document.content_digest,
+                space.model,
+                space.revision,
+                space.digest,
+                space.dimensions,
+                _vector(vector),
+                Jsonb(payload),
+                Jsonb(json_record({"values": [asdict(v) for v in candidate.dependencies]})),
+                Jsonb([asdict(v) for v in candidate.labels]),
+            ),
+        )
+        for stamp in candidate.dependencies:
+            connection.execute(
+                "INSERT INTO recall_document_sources"
+                "(owner_id,kind,identifier,chunk_index,turn_id) "
+                "VALUES(%s,%s,%s,%s,%s)",
+                (*_key(work.ref), candidate.document.chunk_index, stamp.turn_id),
+            )
 
     def retry(self, work: IndexWork, *, not_before: datetime) -> None:
         with self._connection() as connection:
@@ -366,22 +394,21 @@ class PostgresRetrievalStore:
             anchor = VerbatimAnchor(
                 **(payload | {"registered_at": datetime.fromisoformat(payload["registered_at"])})
             )
-            used_end = next(v.used_end for v in dependencies if v.turn_id == anchor.turn_id)
-            search_text = row["source_text"][:used_end]
-        else:
-            assert memory is not None
-            search_text = memory.content
+        search_text = row["chunk_text"]
         return RecallCandidate(
             ref=ref,
             memory=memory,
             anchor=anchor,
             search_text=search_text,
+            chunk_start=row["chunk_start"],
+            chunk_end=row["chunk_end"],
             semantic=float(row["semantic"]),
             lexical=float(row["lexical"]),
             importance=0.5,
             occurred_at=row["occurred_at"],
             document=DocumentStamp(
                 ref=ref,
+                chunk_index=row["chunk_index"],
                 version=row["version"],
                 content_digest=row["content_digest"],
                 space=VectorSpace(
@@ -404,7 +431,7 @@ class PostgresRetrievalStore:
             else PostgresConnections(self.url, configure=self._connections.configure)
         )
         reader = PostgresRetrievalStore(
-            self.url, delivery_timeout=self.timeout, connections=connections
+            self.url, delivery_timeout=self.timeout, connections=connections, settings=self.settings
         )
         if connections.bound is None:
             with connections.request(), connections.snapshot():
@@ -437,7 +464,9 @@ class PostgresRetrievalStore:
         space = query_vector.space
         if space.dimensions != 1024:
             return RetrievalResult(candidates=(), materials=())
-        vector = _vector(query_vector)
+        if len(query_vector.vectors) != 1:
+            raise ProvisionUnavailable()
+        vector = _vector(query_vector.vectors[0])
         with self._connection() as connection:
             rows = search_rows(
                 connection,
@@ -487,7 +516,7 @@ class PostgresRetrievalStore:
                     "WHERE s.owner_id=d.owner_id AND s.kind=d.kind AND "
                     "s.identifier=d.identifier) AS occurred_at "
                     "FROM recall_documents d WHERE d.owner_id=%s AND d.kind=%s AND "
-                    "d.identifier=%s AND d.ready",
+                    "d.identifier=%s AND d.chunk_index=0 AND d.ready",
                     _key(ref),
                 ).fetchone()
                 if row is not None:

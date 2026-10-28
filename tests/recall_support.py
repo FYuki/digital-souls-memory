@@ -122,8 +122,14 @@ class RecordingReranker:
     def rerank(self, value: RerankInput) -> tuple[RerankScore, ...]:
         self.calls.append(value)
         if not self.scores:
-            return tuple(RerankScore(ref=v.ref, relevance=1.0) for v in value.documents)
-        return tuple(RerankScore(ref=v.ref, relevance=self.scores[v.ref]) for v in value.documents)
+            return tuple(
+                RerankScore(ref=v.ref, chunk_index=v.chunk_index, relevance=1.0)
+                for v in value.documents
+            )
+        return tuple(
+            RerankScore(ref=v.ref, chunk_index=v.chunk_index, relevance=self.scores[v.ref])
+            for v in value.documents
+        )
 
 
 class RecordingTokenCounter:
@@ -249,8 +255,12 @@ class RecallHarness:
             or selection.personality_version != snapshot.personality_version
         ):
             return False
-        documents = {v.ref: v.document for v in (*self.retriever.values, *self.retriever.anchors)}
-        documents.update({v.ref: v.document for v in self.resident_candidates.values.values()})
+        documents = {
+            v.document.key: v.document for v in (*self.retriever.values, *self.retriever.anchors)
+        }
+        documents.update(
+            {v.document.key: v.document for v in self.resident_candidates.values.values()}
+        )
         if snapshot.profile_version is not None:
             profile = self.profiles.get(snapshot.character_id)
             if (profile.version if profile is not None else 0) != snapshot.profile_version:
@@ -261,7 +271,7 @@ class RecallHarness:
             for value in snapshot.voice_exemplars:
                 if self.voice.get_exemplar(snapshot.character_id, value.exemplar_id) != value:
                     return False
-        if any(documents.get(v.ref) != v for v in snapshot.documents):
+        if any(documents.get(v.key) != v for v in snapshot.documents):
             return False
         for stamp in snapshot.sources:
             source = self.evidence.get_turn(stamp.turn_id)
