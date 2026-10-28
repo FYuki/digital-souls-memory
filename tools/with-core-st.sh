@@ -9,13 +9,13 @@ export MEMORY_CORE_ST_EVIDENCE_DIR="$evidence_dir"
 export BUILDX_CONFIG=${BUILDX_CONFIG:-/tmp/memory-core-st-buildx}
 project="memory-core-st-$(date +%s)-$$"
 compose=(docker compose -p "$project" -f compose.core-st.yml)
-if [ "$mode" = performance ]; then
+if [ "$mode" = performance ] || [ "$mode" = performance-cold ]; then
   test -s "$evidence_dir/manifest.json"
   : "${MEMORY_EMBEDDING_ENDPOINT:?required}"
   : "${MEMORY_RERANKER_ENDPOINT:?required}"
   compose+=(-f compose.core-st.performance.yml)
 elif [ "$mode" != functional ]; then
-  echo "Expected functional or performance" >&2
+  echo "Expected functional, performance or performance-cold" >&2
   exit 2
 fi
 cleanup() {
@@ -47,4 +47,10 @@ printf 'bash tools/with-core-st.sh %s\n' "$mode" > "$evidence_dir/command.txt"
 "${compose[@]}" config --no-interpolate --quiet
 "${compose[@]}" build > "$evidence_dir/build.log" 2>&1
 "${compose[@]}" up -d --wait memory > "$evidence_dir/start.log" 2>&1
-"${compose[@]}" run --no-deps --rm runner > "$evidence_dir/tests.log" 2>&1
+if [ "$mode" = performance-cold ]; then
+  uv run --no-sync python -m tests.st.performance_control \
+    "$evidence_dir/manifest.json" "$evidence_dir/performance.json" "$project" \
+    > "$evidence_dir/tests.log" 2>&1
+else
+  "${compose[@]}" run --no-deps --rm runner > "$evidence_dir/tests.log" 2>&1
+fi

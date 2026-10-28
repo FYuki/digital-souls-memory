@@ -38,7 +38,7 @@
   "repetitions": 100,
   "warm_up": 5,
   "concurrency": 1,
-  "cold_condition": "",
+  "cold_condition": "Memory起動後に索引完了とwarm-upを実施。モデルサーバとOSキャッシュは保持。",
   "period": "",
   "aggregation": "nearest-rank"
 }
