@@ -261,6 +261,7 @@ class RecallService:
             identifier = self.id_factory()
             accepted: tuple[ResolvedCandidate, ...] = ()
             all_labels = labels + tuple(label for v in eligible for label in v.candidate.labels)
+            token_counts: dict[ModelInput, int] = {}
 
             def response(values: tuple[ResolvedCandidate, ...]) -> RecallResponse:
                 return assemble_response(
@@ -268,12 +269,27 @@ class RecallService:
                 )
 
             def fits(values: tuple[ResolvedCandidate, ...]) -> bool:
-                count = self.counter.count(
-                    self._input((serialize_response(response(values)),), all_labels)
-                )
-                if type(count) is not int or count < 0:
-                    raise ProvisionUnavailable()
+                value = self._input((serialize_response(response(values)),), all_labels)
+                count = token_counts.get(value)
+                if count is None:
+                    count = self.counter.count(value)
+                    if type(count) is not int or count < 0:
+                        raise ProvisionUnavailable()
+                    token_counts[value] = count
                 return count <= 1500
+
+            def window_group(
+                group: tuple[ResolvedCandidate, ...], width: int
+            ) -> tuple[ResolvedCandidate, ...]:
+                return tuple(
+                    replace(
+                        v,
+                        spans=tuple(
+                            window_span(s, query=search_text, width=width) for s in v.spans
+                        ),
+                    )
+                    for v in group
+                )
 
             if not fits(()):
                 raise ProvisionUnavailable()
@@ -299,18 +315,14 @@ class RecallService:
                     accepted = trial
                     continue
                 width = max((len(s.text) for v in group for s in v.spans), default=0) // 2
+                minimum = window_group(group, 1) if width > 0 else ()
                 while width > 0:
-                    smaller = tuple(
-                        replace(
-                            v,
-                            spans=tuple(
-                                window_span(s, query=search_text, width=width) for s in v.spans
-                            ),
-                        )
-                        for v in group
-                    )
+                    smaller = window_group(group, width)
                     if fits(accepted + smaller):
                         accepted += smaller
+                        break
+                    # Smaller widths cannot change any span once the whole group is minimal.
+                    if smaller == minimum:
                         break
                     width //= 2
             result = response(accepted)

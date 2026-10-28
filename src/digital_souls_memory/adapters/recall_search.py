@@ -108,7 +108,7 @@ def _candidates(
     matches = ["search_text LIKE likequery(%s)" for _ in terms]
     predicate = " AND (" + " OR ".join(matches) + ")" if lexical else ""
     order = (
-        " + ".join(f"({match})::int" for match in matches) + " DESC"
+        " + ".join("(lexical_text.rank_text LIKE likequery(%s))::int" for _ in terms) + " DESC"
         if lexical
         else "embedding <=> %s::vector"
     )
@@ -146,7 +146,13 @@ def _candidates(
     query = (
         "SELECT d.*,1-(d.embedding <=> %s::vector) semantic," + permission + " AS allowed FROM "
         "(SELECT owner_id,kind,identifier FROM recall_documents d "
-        "WHERE ready AND model=%s AND revision=%s AND digest=%s AND dimensions=%s"
+        # OFFSET prevents flattening; concatenation detoasts the ranking text once per row.
+        + (
+            "CROSS JOIN LATERAL (SELECT d.search_text || '' AS rank_text OFFSET 0) lexical_text "
+            if lexical
+            else ""
+        )
+        + "WHERE ready AND model=%s AND revision=%s AND digest=%s AND dimensions=%s"
         + (predicate if lexical else " AND " + permission)
         + " ORDER BY "
         + order
