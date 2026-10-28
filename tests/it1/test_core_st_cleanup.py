@@ -8,12 +8,16 @@ from pathlib import Path
 
 import pytest
 
+from tests.ut.test_core_st_harness import manifest_payload
+from tests.ut.test_performance_conditions import cold_condition
+
 pytestmark = pytest.mark.it1
 
 
 @pytest.mark.parametrize("ending,expected", [("success", 0), ("failure", 17), ("interrupt", 130)])
+@pytest.mark.parametrize("mode", ["functional", "performance-cold"])
 def test_runner_preserves_status_and_cleans_resources(
-    tmp_path: Path, ending: str, expected: int
+    tmp_path: Path, ending: str, expected: int, mode: str
 ) -> None:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -27,8 +31,20 @@ from pathlib import Path
 
 root = Path(os.environ['MEMORY_CORE_ST_EVIDENCE_DIR'])
 args = sys.argv[1:]
-if args[0] == 'compose':
-    operation = args[5]
+if Path(sys.argv[0]).name == 'uv':
+    if args == ['--version']:
+        print('uv 0.8.22')
+        sys.exit(0)
+    assert 'tests.st.performance_control' in args
+    (root / 'host-control').touch()
+    (root / 'ready').touch()
+    if os.environ['TEST_ENDING'] == 'interrupt':
+        while True:
+            time.sleep(0.01)
+    if os.environ['TEST_ENDING'] == 'failure':
+        sys.exit(17)
+elif args[0] == 'compose':
+    operation = next(a for a in args if a in ('config', 'build', 'up', 'run', 'logs', 'down'))
     with (root / 'operations.txt').open('a') as out:
         out.write(operation + '\\n')
     if operation == 'up':
@@ -47,16 +63,25 @@ elif (root / 'resource').exists():
 """
     )
     docker.chmod(0o755)
+    (bin_dir / "uv").symlink_to(docker)
     evidence = tmp_path / "evidence"
     evidence.mkdir()
+    if mode == "performance-cold":
+        import json
+
+        (evidence / "manifest.json").write_text(
+            json.dumps(manifest_payload() | {"cold_condition": cold_condition()})
+        )
     pid, terminal = pty.fork()
     if pid == 0:
         os.environ.update(
             PATH=f"{bin_dir}:{os.environ['PATH']}",
             MEMORY_CORE_ST_EVIDENCE_DIR=str(evidence),
             TEST_ENDING=ending,
+            MEMORY_EMBEDDING_ENDPOINT="http://127.0.0.1:18081",
+            MEMORY_RERANKER_ENDPOINT="http://127.0.0.1:18082",
         )
-        os.execvp("bash", ["bash", "tools/with-core-st.sh"])
+        os.execvp("bash", ["bash", "tools/with-core-st.sh", mode])
     exited = False
     try:
         deadline = time.monotonic() + 10
@@ -78,7 +103,13 @@ elif (root / 'resource').exists():
         )
         assert int(result["exit_status"]) == expected
         operations = (evidence / "operations.txt").read_text().splitlines()
-        assert operations == ["config", "build", "up", "run", "logs", "down"]
+        assert operations == (
+            ["config", "build", "up", "run", "logs", "down"]
+            if mode == "functional"
+            else ["config", "build", "up", "logs", "down"]
+        )
+        if mode == "performance-cold":
+            assert (evidence / "host-control").exists()
         assert not (evidence / "resource").exists()
         assert (evidence / "tests.log").exists()
         assert (evidence / "cleanup.log").exists()
