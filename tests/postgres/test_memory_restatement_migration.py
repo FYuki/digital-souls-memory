@@ -71,6 +71,7 @@ def test_upgrade_preserves_normal_relation_and_absorbed_candidate_effect(
             from_id="a", to_id="x" if same_target else "y", type="derives"
         )
         assert MemoryRelation(from_id="a", to_id="x", type="derives") in tx.proposed_relations()
+    command.upgrade(config, "head")
     assert_consistent(
         make_worker(database_url, store, RecordingGateway()).service, database_url, {"a", "x", "y"}
     )
@@ -121,6 +122,7 @@ def test_upgrade_reprojects_legacy_chain_and_previously_rejected_referrer(
     with store.list_relations("char-b", "d") as relations:
         assert tuple(relations) == (MemoryRelation(from_id="d", to_id="z", type="derives"),)
     worker = make_worker(database_url, store, RecordingGateway())
+    command.upgrade(config, "head")
     assert_consistent(worker.service, database_url, {"z", "d"})
     with TestClient(
         create_app(
@@ -184,6 +186,7 @@ def test_upgrade_keeps_recalculated_baseline_sources_despite_retry_origin(
         revised.superseded_at,
     )
     service = make_worker(database_url, store, RecordingGateway()).service
+    command.upgrade(config, "head")
     assert_consistent(service, database_url, {"a"})
     with TestClient(create_app(clock=lambda: RECORDED)) as client:
         listed = client.get("/characters/char-b/memories").json()
@@ -259,6 +262,7 @@ def test_upgrade_preserves_different_spo_extends_and_identifier_text(database_ur
     assert saved == result.memories["b"]
     with store.list_relations("char-b", "b") as relations:
         assert tuple(relations) == (relation,)
+    command.upgrade(config, "head")
     assert_consistent(
         make_worker(database_url, store, RecordingGateway()).service, database_url, {"z"}
     )
@@ -406,7 +410,7 @@ def test_populated_downgrade_refuses_loss_and_preserves_revision_and_recall(
 ) -> None:
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
     # This explicit revision also distinguishes a missing migration from a no-op downgrade.
-    command.upgrade(config, "0014")
+    command.upgrade(config, "0015")
     evidence = seed_evidence(database_url)
     store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
     worker = make_worker(database_url, store, gateway)
@@ -422,7 +426,7 @@ def test_populated_downgrade_refuses_loss_and_preserves_revision_and_recall(
     with pytest.raises(Exception, match="(?i)contribut|出典"):
         command.downgrade(config, "0013")
     with psycopg.connect(database_url) as conn:
-        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0014",)
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0015",)
     assert store.get_memory("char-b", "a") == before
     assert_consistent(worker.service, database_url, {"a"})
 

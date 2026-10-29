@@ -1,7 +1,9 @@
+from dataclasses import replace
 from datetime import datetime, timedelta
 
 import pytest
 
+from digital_souls_memory.recall.chunking import split_chunks
 from digital_souls_memory.recall.domain import EmbeddingBatch
 from digital_souls_memory.recall.indexing import IndexInput, IndexWork
 from digital_souls_memory.recall.inputs import InputLabel, LocalOnly
@@ -25,6 +27,7 @@ class IndexDouble:
         self.value: IndexInput | None = IndexInput(
             candidate=candidate_for(memory(), sources=(turn(),)),
             input=LocalOnly(texts=("合成検索文書",), labels=(InputLabel("sensitive", "v1"),)),
+            chunks=split_chunks("合成検索文書", length=512, overlap=64),
         )
         self.embedding = EmbeddingBatch(space=SPACE, vectors=((1.0,) + (0.0,) * 1023,))
         self.reuse = False
@@ -92,3 +95,29 @@ def test_index_worker_keeps_failed_or_superseded_work_retryable(failure: str) ->
     embedding.fail = False
     worker.process(store.work)
     assert store.published == [store.value]
+
+
+@pytest.mark.parametrize("text", ["abc", "abcdefghijk"])
+def test_index_input_keeps_chunk_identity_and_parent_while_deriving_cache_digests(
+    text: str,
+) -> None:
+    parent = candidate_for(replace(memory(), content=text), sources=(turn(),))
+    chunks = split_chunks(text, length=8, overlap=2)
+    value = IndexInput(
+        candidate=parent,
+        chunks=chunks,
+        input=LocalOnly(texts=tuple(c.text for c in chunks), labels=parent.labels),
+    )
+
+    candidates = value.candidates
+
+    assert [
+        (v.document.chunk_index, v.chunk_start, v.chunk_end, v.search_text) for v in candidates
+    ] == [(c.index, c.start, c.end, c.text) for c in chunks]
+    assert all(v.memory == parent.memory and v.ref == parent.ref for v in candidates)
+    assert all(
+        v.dependencies == parent.dependencies and v.labels == parent.labels for v in candidates
+    )
+    assert len({v.document.content_digest for v in candidates}) == len(chunks)
+    if len(chunks) == 1:
+        assert candidates[0].document.content_digest == parent.document.content_digest

@@ -38,7 +38,9 @@ from tests.voice_support import anchor
 pytestmark = pytest.mark.postgres
 
 
-@pytest.mark.parametrize("body_length", [24, 1039], ids=["short-body", "long-body"])
+# Equivalence applies only to documents that fit in one chunk (default length: 512).
+# Longer documents intentionally differ under ADR 0021 and are covered by test_recall_chunks.
+@pytest.mark.parametrize("body_length", [24, 512], ids=["short-body", "full-chunk-body"])
 @pytest.mark.parametrize("query_length", [3, 50, 200, 1039])
 def test_lexical_candidates_response_and_provision_equal_the_frozen_implementation(
     app_database_url: str, monkeypatch: pytest.MonkeyPatch, body_length: int, query_length: int

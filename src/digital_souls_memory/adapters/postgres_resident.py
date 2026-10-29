@@ -83,8 +83,9 @@ def check_profile_snapshot(
             raise ProvisionUnavailable()
     for doc in snapshot.documents:
         row = connection.execute(
-            "SELECT * FROM recall_documents WHERE owner_id=%s AND kind='memory' AND identifier=%s",
-            (doc.ref.owner_id, doc.ref.memory_id),
+            "SELECT * FROM recall_documents WHERE owner_id=%s AND kind='memory' AND identifier=%s "
+            "AND chunk_index=%s",
+            (doc.ref.owner_id, doc.ref.memory_id, doc.chunk_index),
         ).fetchone()
         if (
             row is None

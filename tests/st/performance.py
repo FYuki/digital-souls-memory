@@ -178,7 +178,8 @@ def run(
                 def indexed(expected: int = count) -> bool:
                     with psycopg.connect(os.environ["MEMORY_CORE_ST_AUDIT_URL"]) as conn:
                         return conn.execute(
-                            "SELECT count(*) FROM recall_documents WHERE ready AND owner_id=%s",
+                            "SELECT count(*) FROM recall_documents "
+                            "WHERE ready AND owner_id=%s AND chunk_index=0",
                             (character,),
                         ).fetchone() == (expected,)
 

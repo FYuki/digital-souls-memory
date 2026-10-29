@@ -275,6 +275,46 @@ def test_reranker_preserves_candidate_reference_when_response_order_changes() ->
     ]
 
 
+def test_reranker_preserves_distinct_chunks_of_one_parent_when_results_are_reversed() -> None:
+    from digital_souls_memory.adapters.recall_models import LlamaCppReranker
+    from digital_souls_memory.recall.domain import RerankDocument, RerankInput
+
+    ref = rerank_input().documents[0].ref
+    value = RerankInput(
+        query=local_input("合成質問"),
+        documents=tuple(
+            RerankDocument(ref=ref, chunk_index=i, input=local_input(text))
+            for i, text in enumerate(("先頭の生チャンクＡ", "末尾の生チャンク🙂"))
+        ),
+    )
+    sent: list[dict[str, object]] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        sent.append(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "results": [
+                    {"index": 1, "relevance_score": 7},
+                    {"index": 0, "relevance_score": -3},
+                ]
+            },
+        )
+
+    with LlamaCppReranker(
+        selected_reranker(),
+        endpoint="http://127.0.0.1:8080",
+        transport=httpx.MockTransport(respond),
+    ) as reranker:
+        scores = reranker.rerank(value)
+
+    assert {(v.ref, v.chunk_index): v.relevance for v in scores} == {
+        (ref, 0): -3,
+        (ref, 1): 7,
+    }
+    assert sent[0]["documents"] == ["先頭の生チャンクＡ", "末尾の生チャンク🙂"]
+
+
 @pytest.mark.parametrize(
     "results",
     [

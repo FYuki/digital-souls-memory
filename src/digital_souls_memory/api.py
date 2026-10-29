@@ -131,6 +131,7 @@ def create_app(
         raise ValueError("State TTL must be positive")
     if delivery_timeout < timedelta(0):
         raise ValueError("Delivery timeout must be nonnegative")
+    resolved_recall_settings = recall_settings if recall_settings is not None else RecallSettings()
     owned_models: list[LlamaCppEmbedding | LlamaCppReranker | LlamaCppTokenCounter] = []
     embedding_endpoint = os.environ.get("MEMORY_EMBEDDING_ENDPOINT")
     reranker_endpoint = os.environ.get("MEMORY_RERANKER_ENDPOINT")
@@ -161,7 +162,9 @@ def create_app(
     database_url = os.environ.get("MEMORY_DATABASE_URL")
     if database_url:
         if retriever is None:
-            index_store = PostgresRetrievalStore(database_url, delivery_timeout=delivery_timeout)
+            index_store = PostgresRetrievalStore(
+                database_url, delivery_timeout=delivery_timeout, settings=resolved_recall_settings
+            )
             retriever = index_store
         if provision_store is None:
             provision_store = PostgresProvisionStore(
@@ -178,7 +181,7 @@ def create_app(
             profile_store = PostgresProfileStore(database_url, delivery_timeout=delivery_timeout)
         if resident_candidates is None:
             resident_candidates = PostgresRetrievalStore(
-                database_url, delivery_timeout=delivery_timeout
+                database_url, delivery_timeout=delivery_timeout, settings=resolved_recall_settings
             )
         if context_store is None:
             context_store = PostgresContextStore(database_url, delivery_timeout=delivery_timeout)
@@ -352,7 +355,10 @@ def create_app(
                     identity = PostgresIdentityStore(database_url, connections=connections)
                 if default_retriever:
                     bound_retriever = PostgresRetrievalStore(
-                        database_url, delivery_timeout=delivery_timeout, connections=connections
+                        database_url,
+                        delivery_timeout=delivery_timeout,
+                        connections=connections,
+                        settings=resolved_recall_settings,
                     )
                 if default_provisions:
                     bound_provisions = PostgresProvisionStore(
@@ -376,7 +382,7 @@ def create_app(
                 id_factory=provision_id_factory,
                 delivery_timeout=delivery_timeout,
                 non_sensitive_labels=non_sensitive_labels,
-                settings=recall_settings if recall_settings is not None else RecallSettings(),
+                settings=resolved_recall_settings,
             )
 
     app.include_router(recall_router(recall_service))

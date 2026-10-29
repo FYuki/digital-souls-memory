@@ -1,9 +1,11 @@
 """Versioned work values for rebuildable persistent search documents."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
+from hashlib import sha256
 from typing import Protocol
 
+from digital_souls_memory.recall.chunking import TextChunk
 from digital_souls_memory.recall.domain import (
     CandidateRef,
     EmbeddingBatch,
@@ -25,6 +27,31 @@ class IndexWork:
 class IndexInput:
     candidate: RecallCandidate
     input: ModelInput
+    chunks: tuple[TextChunk, ...]
+
+    @property
+    def candidates(self) -> tuple[RecallCandidate, ...]:
+        return tuple(
+            replace(
+                self.candidate,
+                search_text=chunk.text,
+                chunk_start=chunk.start,
+                chunk_end=chunk.end,
+                document=replace(
+                    self.candidate.document,
+                    chunk_index=chunk.index,
+                    content_digest=(
+                        self.candidate.document.content_digest
+                        if len(self.chunks) == 1
+                        else sha256(
+                            f"{self.candidate.document.content_digest}:{chunk.index}:"
+                            f"{chunk.start}:{chunk.end}:{chunk.text}".encode()
+                        ).hexdigest()
+                    ),
+                ),
+            )
+            for chunk in self.chunks
+        )
 
 
 class IndexStore(Protocol):
