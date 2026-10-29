@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+test -f compose.core-st.yml
+mode=${1:-functional}
+evidence_dir=${MEMORY_CORE_ST_EVIDENCE_DIR:-$(mktemp -d /tmp/memory-core-st-evidence.XXXXXXXX)}
+mkdir -p "$evidence_dir"
+evidence_dir=$(realpath "$evidence_dir")
+export MEMORY_CORE_ST_EVIDENCE_DIR="$evidence_dir"
+export BUILDX_CONFIG=${BUILDX_CONFIG:-/tmp/memory-core-st-buildx}
+project="memory-core-st-$(date +%s)-$$"
+compose=(docker compose -p "$project" -f compose.core-st.yml)
+if [ "$mode" = performance ] || [ "$mode" = performance-cold ]; then
+  test -s "$evidence_dir/manifest.json"
+  : "${MEMORY_EMBEDDING_ENDPOINT:?required}"
+  : "${MEMORY_RERANKER_ENDPOINT:?required}"
+  compose+=(-f compose.core-st.performance.yml -f compose.chunk-evaluation.yml)
+elif [ "$mode" != functional ]; then
+  echo "Expected functional, performance or performance-cold" >&2
+  exit 2
+fi
+cleanup() {
+  status=$?
+  trap - EXIT INT TERM
+  "${compose[@]}" logs --no-color > "$evidence_dir/compose.log" 2>&1 || status=1
+  "${compose[@]}" down --volumes --remove-orphans > "$evidence_dir/cleanup.log" 2>&1 || status=1
+  remaining=$(docker ps -aq --filter "label=com.docker.compose.project=$project")
+  networks=$(docker network ls -q --filter "label=com.docker.compose.project=$project")
+  volumes=$(docker volume ls -q --filter "label=com.docker.compose.project=$project")
+  if [ -n "$remaining$networks$volumes" ]; then
+    status=1
+    echo "Dedicated ST resources remain" >> "$evidence_dir/cleanup.log"
+  fi
+  printf 'exit_status=%s\nproject=%s\n' "$status" "$project" > "$evidence_dir/result.txt"
+  echo "ST evidence: $evidence_dir"
+  exit "$status"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+git rev-parse HEAD > "$evidence_dir/revision.txt"
+git diff --stat > "$evidence_dir/diff-stat.txt"
+git ls-files --others --exclude-standard > "$evidence_dir/untracked-files.txt"
+git ls-files -z --modified --others --exclude-standard |
+  sort -zu | xargs -0 -r sha256sum > "$evidence_dir/source-sha256.txt"
+date -u +%Y-%m-%dT%H:%M:%SZ > "$evidence_dir/started-at.txt"
+printf 'bash tools/with-chunk-performance.sh %s\n' "$mode" > "$evidence_dir/command.txt"
+"${compose[@]}" config --no-interpolate --quiet
+"${compose[@]}" build > "$evidence_dir/build.log" 2>&1
+# ビルド完了後・計測開始前に実イメージをmanifestへ固定する。
+client_image=$(docker image inspect memory-core-st:local --format '{{.Id}}')
+db_image=$(docker image inspect memory-retrieval-postgres:pg18-vector0.8.2-pgroonga4.1.0-bigm735dceb --format '{{.Id}}')
+python3 - "$evidence_dir/manifest.json" "$client_image" "$db_image" <<'PYFIX'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+m = json.loads(p.read_text())
+m["client_image"] = sys.argv[2]
+m["db_image"] = sys.argv[3]
+p.write_text(json.dumps(m, ensure_ascii=False, indent=2))
+PYFIX
+"${compose[@]}" up -d --wait memory > "$evidence_dir/start.log" 2>&1
+if [ "$mode" = performance-cold ]; then
+  uv run --no-sync python -m tests.st.performance_control \
+    "$evidence_dir/manifest.json" "$evidence_dir/performance.json" "$project" \
+    > "$evidence_dir/tests.log" 2>&1
+else
+  "${compose[@]}" run --no-deps --rm runner > "$evidence_dir/tests.log" 2>&1
+fi

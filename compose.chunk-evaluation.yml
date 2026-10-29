@@ -1,0 +1,4 @@
+# 評価専用。性能試行の後にだけ全提供記録を保存する。
+services:
+  runner:
+    command: ["python", "-m", "tests.st.chunk_performance", "/evidence/manifest.json", "/evidence/performance.json"]
