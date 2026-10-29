@@ -6,6 +6,7 @@ import psycopg
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 
 from digital_souls_memory.adapters.postgres_evidence import PostgresEvidenceStore
 from digital_souls_memory.adapters.postgres_resident import PostgresContextStore
@@ -23,6 +24,10 @@ def test_single_revision_roundtrip_rechecks_existing_context_work(
     database_url: str, existing: bool
 ) -> None:
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
+    scripts = ScriptDirectory.from_config(config)
+    revision = scripts.get_revision("0012")
+    assert revision is not None and revision.down_revision == "0011"
+    assert scripts.get_heads() == ["0015"]
     command.downgrade(config, "0011")
     before = []
     artifacts = []

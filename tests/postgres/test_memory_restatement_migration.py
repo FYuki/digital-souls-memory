@@ -409,9 +409,8 @@ def test_populated_downgrade_refuses_loss_and_preserves_revision_and_recall(
     database_url: str,
 ) -> None:
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
-    command.upgrade(config, "head")
-    with psycopg.connect(database_url) as conn:
-        before_revision = conn.execute("SELECT version_num FROM alembic_version").fetchone()
+    # This explicit revision also distinguishes a missing migration from a no-op downgrade.
+    command.upgrade(config, "0015")
     evidence = seed_evidence(database_url)
     store, gateway = PostgresMemoryStore(database_url), RecordingGateway()
     worker = make_worker(database_url, store, gateway)
@@ -427,7 +426,7 @@ def test_populated_downgrade_refuses_loss_and_preserves_revision_and_recall(
     with pytest.raises(Exception, match="(?i)contribut|出典"):
         command.downgrade(config, "0013")
     with psycopg.connect(database_url) as conn:
-        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == before_revision
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone() == ("0015",)
     assert store.get_memory("char-b", "a") == before
     assert_consistent(worker.service, database_url, {"a"})
 
