@@ -24,6 +24,8 @@
 
 acceptanceのparaphrase / cross_languageは各9/10、追加したchunk_local_fact / chunk_contextは各2/2、他想起分類は全件合格。分類別precision・誤取得件数と候補スコアレンジは集計JSONに保持した。該当なしは全件空。tuningのthreshold分類の該当なしは4/6で70%未達（他の分類・全ケースの詳細はJSON）。tuning FAILは保持し、acceptanceに戻して閾値・goldを調整していない。
 
+親の追加確認（2026-10-29）：memory-v2.1 の bge-m3 + reranker + pg_bigm の tuning 生データ（`eval-artifacts/2026-10-21/memory-v2.1-bge-m3-rerank/tuning.json`）でも、採用値（閾値-2、semantic 0.55 / lexical 0.25）の threshold 該当なしは各回4/6で、失敗ケースは今回と同じ `tuning-threshold-near-daily-08`（relevance -1.91）と `tuning-threshold-near-tech-11`（-0.15）だった。両ケースの記憶は1文でチャンク長未満の1チャンクであり、この FAIL はチャンク索引による退行ではなく、想起の最低合格率を優先する選定規則で採った閾値-2の既存の余裕不足である。同データで閾値0は該当なし6/6・unrelated 22/22だが cross_language 23/24 となる。閾値の再評価は別 Issue で扱う。
+
 ## 段階別p50 / p95・判定
 
 [2026-10-28ベースライン](2026-10-28-recall-input-tiers-baseline.md)と同じ各段階のinput_text全文・保存本文を使用し、両方を100 / 256 / 1000 Unicode文字に固定。100件→1000件、各100試行+warm-up5、並列1、warm、段階ごとに空tmpfs DBを作った。`tests.st.performance`によるHTTPクライアントの呼出し直前〜型付き応答取得を計測し、失敗・欠測を除外しない。全600本計測と30 warm-upをJSONに保持。nearest-rankの50番目・95番目を独立再計算した。
