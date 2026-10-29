@@ -305,12 +305,13 @@ def test_profile_sources_and_resident_record_roundtrip_without_rewriting_origina
         assert PostgresProvisionStore(app_database_url).get(provided["provision_id"]) == record
 
 
+@pytest.mark.parametrize("text", ["日本語🙂", "日本語🙂" * 200], ids=["short", "long"])
 def test_resident_reading_saved_memory_does_not_reinforce_or_change_its_evidence(
     app_database_url: str,
     monkeypatch: pytest.MonkeyPatch,
+    text: str,
 ) -> None:
     monkeypatch.setenv("MEMORY_DATABASE_URL", app_database_url)
-    text = "日本語🙂"
     value = replace(memory(), content=text, last_reinforced_at=RECORDED - timedelta(days=2))
     store = PostgresMemoryStore(app_database_url)
     with TestClient(

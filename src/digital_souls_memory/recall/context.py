@@ -35,10 +35,20 @@ class RecallResponse:
     context: str | None
 
 
-def window_span(span: SourceSpan, *, query: str, width: int) -> SourceSpan:
+def window_span(
+    span: SourceSpan, *, query: str, width: int, match: tuple[int, int] | None = None
+) -> SourceSpan:
     if width >= len(span.text):
         return span
-    start, end = window_bounds(span.text, query, width)
+    if match is None:
+        start, end = window_bounds(span.text, query, width)
+    else:
+        left, right = match
+        if not span.start <= left < right <= span.end:
+            raise ValueError("Chunk is outside the original span")
+        size = min(len(span.text), max(width, right - left))
+        start = max(0, min(left - span.start - (size - (right - left)) // 2, len(span.text) - size))
+        end = start + size
     return replace(
         span,
         start=span.start + start,
@@ -46,6 +56,26 @@ def window_span(span: SourceSpan, *, query: str, width: int) -> SourceSpan:
         text=span.text[start:end],
         truncated=True,
     )
+
+
+def window_candidate(value: ResolvedCandidate, *, query: str, width: int) -> ResolvedCandidate:
+    candidate = value.candidate
+    spans = []
+    for span in value.spans:
+        whole_length = len(candidate.memory.content) if candidate.memory is not None else span.end
+        chunked = candidate.chunk_end is not None and (
+            candidate.chunk_start != 0 or candidate.chunk_end < whole_length
+        )
+        match = None
+        if chunked and candidate.anchor is not None:
+            assert candidate.chunk_end is not None
+            match = (candidate.chunk_start, candidate.chunk_end)
+        spans.append(
+            window_span(
+                span, query=candidate.search_text if chunked else query, width=width, match=match
+            )
+        )
+    return replace(value, spans=tuple(spans))
 
 
 def assemble_response(

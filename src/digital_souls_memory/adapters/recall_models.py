@@ -122,7 +122,9 @@ class LlamaCppReranker(_LocalModel):
                 raise ValueError("Invalid reranker correspondence")
             result = tuple(
                 RerankScore(
-                    ref=value.documents[v["index"]].ref, relevance=float(v["relevance_score"])
+                    ref=value.documents[v["index"]].ref,
+                    relevance=float(v["relevance_score"]),
+                    chunk_index=value.documents[v["index"]].chunk_index,
                 )
                 for v in data
             )

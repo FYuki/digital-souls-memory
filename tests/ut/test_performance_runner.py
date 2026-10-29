@@ -1,7 +1,9 @@
 """Run the measurement owner against synthetic HTTP and indexing boundaries."""
 
 import json
+import sqlite3
 from collections.abc import Callable
+from contextlib import closing
 from dataclasses import asdict
 from pathlib import Path
 from threading import Barrier, Lock, current_thread, local, main_thread
@@ -309,6 +311,52 @@ def test_long_input_reaches_ingestion_and_every_recall_without_truncation(
     assert performance.run(manifest, tmp_path / "performance.json")
     assert deployment.texts == [text]
     assert deployment.queries == [text] * 101
+
+
+@pytest.mark.parametrize("body_length, chunks", [(24, 1), (1039, 3)])
+def test_index_wait_counts_ready_documents_instead_of_chunk_rows(
+    deployment: Deployment,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    body_length: int,
+    chunks: int,
+) -> None:
+    manifest = performance.Manifest.model_validate(
+        manifest_payload()
+        | {
+            "data_counts": [1, 2],
+            "input_text": "合" * body_length,
+            "input_length": body_length,
+            "warm_up": 0,
+        }
+    )
+    observations: list[bool] = []
+    # Execute the runner's count SQL against synthetic rows; no PostgreSQL or models run.
+    with closing(sqlite3.connect(":memory:")) as audit:
+        audit.execute(
+            "CREATE TABLE recall_documents (owner_id TEXT, ready BOOLEAN, chunk_index INTEGER)"
+        )
+
+        def execute(query: str, params: tuple[str]) -> sqlite3.Cursor:
+            audit.execute("DELETE FROM recall_documents")
+            audit.executemany(
+                "INSERT INTO recall_documents VALUES (?, ?, ?)",
+                [(params[0], True, chunk) for _ in deployment.texts for chunk in range(chunks)]
+                + [("another-owner", True, 0), (params[0], False, 0)],
+            )
+            return audit.execute(query.replace("%s", "?"), params)
+
+        connection = MagicMock()
+        connection.__enter__.return_value.execute.side_effect = execute
+        monkeypatch.setattr(psycopg, "connect", lambda *args: connection)
+
+        def bounded(check: Callable[[], bool], *, timeout: float = 30) -> None:
+            observations.append(check())
+            assert observations[-1], "Ready chunk rows must count as their parent documents"
+
+        monkeypatch.setattr(performance, "eventually", bounded)
+        assert performance.run(manifest, tmp_path / "performance.json")
+    assert observations == [True, True]
 
 
 @pytest.mark.parametrize("ready", [True, False])

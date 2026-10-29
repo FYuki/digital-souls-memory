@@ -216,7 +216,7 @@ def test_fixed_window_reduces_tokenization_and_window_work_without_changing_the_
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from digital_souls_memory.evidence.provision import SourceSpan
-    from digital_souls_memory.recall import use_cases
+    from digital_souls_memory.recall import context
     from digital_souls_memory.recall.context import window_span
     from tests.postgres import recall_legacy
 
@@ -232,9 +232,11 @@ def test_fixed_window_reduces_tokenization_and_window_work_without_changing_the_
         calls.append(value)
         return 1501 if json.loads(value.texts[0])["memories"] else 1500
 
-    def observe(span: SourceSpan, *, query: str, width: int) -> SourceSpan:
+    def observe(
+        span: SourceSpan, *, query: str, width: int, match: tuple[int, int] | None = None
+    ) -> SourceSpan:
         widths.append(width)
-        return window_span(span, query=query, width=width)
+        return window_span(span, query=query, width=width, match=match)
 
     for legacy in (True, False):
         h = RecallHarness()
@@ -245,7 +247,7 @@ def test_fixed_window_reduces_tokenization_and_window_work_without_changing_the_
         subject = service(h)
         operation = recall_legacy.LegacyRecallService(**vars(subject)) if legacy else subject
         with monkeypatch.context() as patch:
-            patch.setattr(recall_legacy if legacy else use_cases, "window_span", observe)
+            patch.setattr(recall_legacy if legacy else context, "window_span", observe)
             result = operation.recall(
                 character_id="char-b",
                 session_id="session-1",

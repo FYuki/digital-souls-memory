@@ -50,6 +50,11 @@ class DocumentStamp:
     version: int
     content_digest: str
     space: VectorSpace
+    chunk_index: int = 0
+
+    @property
+    def key(self) -> tuple[CandidateRef, int]:
+        return self.ref, self.chunk_index
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -65,6 +70,8 @@ class RecallCandidate:
     document: DocumentStamp
     dependencies: tuple[SourceStamp, ...]
     labels: tuple[InputLabel, ...]
+    chunk_start: int = 0
+    chunk_end: int | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -105,6 +112,7 @@ class ProvisionSnapshot:
 class RerankDocument:
     ref: CandidateRef
     input: ModelInput
+    chunk_index: int = 0
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -117,3 +125,4 @@ class RerankInput:
 class RerankScore:
     ref: CandidateRef
     relevance: float
+    chunk_index: int = 0

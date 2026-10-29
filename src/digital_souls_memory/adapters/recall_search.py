@@ -31,14 +31,14 @@ def search_rows(
     materials: OrderedDict[str, CandidateMaterial | None] = OrderedDict()
     batch_size = limit
     cache_capacity = 2 * limit
-    found: dict[tuple[str, str, str], DictRow] = {}
+    found: dict[tuple[str, str, str, int], DictRow] = {}
     terms = lexical_terms(text)
     for lexical in (False, True):
         if lexical and not terms:
             continue
-        approximate_eligible: dict[tuple[str, str, str], DictRow] = {}
+        approximate_eligible: dict[tuple[str, str, str, int], DictRow] = {}
         for exact in (True,) if lexical else (False, True):
-            accepted: dict[tuple[str, str, str], DictRow] = {}
+            accepted: dict[tuple[str, str, str, int], DictRow] = {}
             with _candidates(
                 connection, terms, vector, space, limit, lexical, character_id, now, exact
             ) as cursor:
@@ -65,7 +65,7 @@ def search_rows(
                             materials.popitem(last=False)
                     del loaded, ids, missing
                     for row in rows:
-                        key = (row["owner_id"], row["kind"], row["identifier"])
+                        key = (row["owner_id"], row["kind"], row["identifier"], row["chunk_index"])
                         eligible = found.get(key)
                         if eligible is None:
                             eligible = approximate_eligible.get(key)
@@ -145,7 +145,7 @@ def _candidates(
         connection.execute("SELECT set_config('enable_seqscan','off',true)")
     query = (
         "SELECT d.*,1-(d.embedding <=> %s::vector) semantic," + permission + " AS allowed FROM "
-        "(SELECT owner_id,kind,identifier FROM recall_documents d "
+        "(SELECT owner_id,kind,identifier,chunk_index FROM recall_documents d "
         # OFFSET prevents flattening; concatenation detoasts the ranking text once per row.
         + (
             "CROSS JOIN LATERAL (SELECT d.search_text || '' AS rank_text OFFSET 0) lexical_text "
@@ -160,7 +160,8 @@ def _candidates(
         + ") c "
         # Keep payload hydration as primary-key lookups after the index limit.
         "CROSS JOIN LATERAL (SELECT * FROM recall_documents d WHERE "
-        "d.owner_id=c.owner_id AND d.kind=c.kind AND d.identifier=c.identifier OFFSET 0) d"
+        "d.owner_id=c.owner_id AND d.kind=c.kind AND d.identifier=c.identifier "
+        "AND d.chunk_index=c.chunk_index OFFSET 0) d"
     )
     with connection.cursor("recall_candidates", scrollable=False, withhold=False) as cursor:
         cursor.execute(query, params)

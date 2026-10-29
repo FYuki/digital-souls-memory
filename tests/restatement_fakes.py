@@ -22,6 +22,7 @@ from digital_souls_memory.memory.projection import (
 )
 from digital_souls_memory.memory.relations import resolve_relations
 from digital_souls_memory.memory.use_cases import MemoryService
+from digital_souls_memory.recall.chunking import split_chunks
 from digital_souls_memory.recall.domain import CandidateMaterial, EmbeddingBatch, VectorSpace
 from digital_souls_memory.recall.indexing import IndexInput, IndexWork
 from digital_souls_memory.recall.inputs import LocalOnly
@@ -319,8 +320,11 @@ class SequenceIndexStore:
         candidate = candidate_for(
             value, sources=tuple(self.memories.evidence.turns[i] for i in value.source_turn_ids)
         )
+        chunks = split_chunks(value.content, length=512, overlap=64)
         return IndexInput(
-            candidate=candidate, input=LocalOnly(texts=(value.content,), labels=candidate.labels)
+            candidate=candidate,
+            input=LocalOnly(texts=tuple(c.text for c in chunks), labels=candidate.labels),
+            chunks=chunks,
         )
 
     def cached(self, value: IndexInput) -> EmbeddingBatch | None:
