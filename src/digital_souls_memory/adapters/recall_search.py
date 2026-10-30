@@ -115,6 +115,7 @@ def _candidates(
     if not lexical and exact:
         # The expression forces a full distance sort instead of a capped HNSW scan.
         order = "(embedding <=> %s::vector) + 0"
+    order += ", d.owner_id, d.kind, d.identifier, d.chunk_index"
     permission = (
         "((d.kind='anchor' AND d.owner_id=%s) OR (d.kind='memory' AND EXISTS("
         "SELECT 1 FROM derived_memories m WHERE m.character_id=d.owner_id AND m.id=d.identifier "
