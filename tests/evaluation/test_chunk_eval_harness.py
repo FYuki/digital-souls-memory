@@ -1,10 +1,55 @@
 """チャンク比較アダプタの重要な契約。"""
 
+import json
+from collections.abc import Callable
+
 import pytest
 
-from tests.chunk_evaluation import chunk_case, collapse_hits
+from tests.chunk_evaluation import (
+    chunk_case,
+    collapse_hits,
+    frozen_tuning_case_ids,
+    validate_frozen_suite,
+)
 
 pytestmark = pytest.mark.ut
+
+
+def test_frozen_acceptance_rejects_tuning_case_overlap(
+    make_suite: Callable[[], dict[str, object]],
+    rejected: Callable[[], pytest.RaisesExc[BaseException]],
+) -> None:
+    tuning = {**make_suite(), "split": "tuning"}
+    tuning_ids = frozen_tuning_case_ids(json.dumps(tuning).encode())
+    acceptance = make_suite()
+
+    with rejected():
+        validate_frozen_suite("acceptance", acceptance, tuning_ids)
+
+
+def test_frozen_acceptance_allows_disjoint_tuning_cases(
+    make_suite: Callable[[], dict[str, object]],
+    case: dict[str, object],
+    gold: dict[str, object],
+) -> None:
+    tuning = {
+        **make_suite(),
+        "split": "tuning",
+        "cases": [{**case, "id": "other-case"}],
+        "gold": [{**gold, "case_id": "other-case"}],
+    }
+    tuning_ids = frozen_tuning_case_ids(json.dumps(tuning).encode())
+
+    validate_frozen_suite("acceptance", make_suite(), tuning_ids)
+
+
+def test_frozen_tuning_does_not_reject_its_own_case_ids(
+    make_suite: Callable[[], dict[str, object]],
+) -> None:
+    tuning = {**make_suite(), "split": "tuning"}
+    tuning_ids = frozen_tuning_case_ids(json.dumps(tuning).encode())
+
+    validate_frozen_suite("tuning", tuning, tuning_ids)
 
 
 def test_chunk_text_retains_original_provenance() -> None:
