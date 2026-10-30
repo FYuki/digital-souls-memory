@@ -1,7 +1,7 @@
 # 0021. 検索方式は bge-m3 + pg_bigm + bge-reranker-v2-m3 による棄却とする
 
 - 日付：2026-10-20（Proposed）、2026-10-21（承認）
-- 状態：承認。追補 2026-10-28（長い原文のチャンク索引、本人決定）
+- 状態：承認。追補 2026-10-28（長い原文のチャンク索引、本人決定）、追補 2026-10-30（閾値の既知の限界と保留した性能対策、本人回答 Q-008・Q-009）
 - 関連：[ADR 0007](0007-postgres-single-store.md)、[ADR 0012](0012-retrieval-scoring-and-recency.md)、[ADR 0017](0017-recall-latency-budget.md)
 
 ## 背景と比較条件
@@ -119,3 +119,20 @@ memory-v2.1 の結果は保持し、再評価で上書きしない。
 
 性能対策のうち、lexical の bigram 数の上限と rerank 入力の切り詰めも結果が変わる。
 この2案はチャンク索引と性能確認の後に要否を判断する追加対応として保留する。
+
+## 追補（2026-10-30、本人回答 Q-008・Q-009）：閾値の既知の限界と保留した性能対策
+
+memory-v2.1 と memory-v2.2 の tuning では、採用値の閾値 −2 で「閾値付近・該当なし」が各回 4/6 となり、
+基準の 70% に届かない（[チャンク索引の評価](../reports/2026-10-29-recall-chunk-eval.md)）。
+該当しない短い1文の記憶が、閾値をわずかに超える関連度（−1.91、−0.15）で返る。
+選定規則が想起の取りこぼしを最優先するため −2 が選ばれており、acceptance は両版とも満たしている。
+
+- Phase 1 は閾値 −2 を維持し、この tuning の基準未達を既知の限界とする。
+  同じ重みで閾値を −1 または 0 に上げると、言語をまたぐ想起の取りこぼしが1件生じる。
+- 閾値と選定規則の見直しは、tuning のケースを増やしたうえで Phase 2 で新しい比較版として再評価する。
+  acceptance を調整に戻さない（[#128](https://github.com/FYuki/digital-souls-memory/issues/128)）。
+- 2026-10-28 の追補で保留した bigram 数の上限と rerank 入力の切り詰めは、Phase 1 では導入しない。
+  チャンク索引後の段階別 ST で、音声会話100文字・テキスト256文字は ADR 0017 の必達 p95 を満たしている。
+  p50 の目標（[#112](https://github.com/FYuki/digital-souls-memory/issues/112)）や
+  10000件規模（[#114](https://github.com/FYuki/digital-souls-memory/issues/114)）の対策を検討するときに、
+  要否を判断し直す（[#123](https://github.com/FYuki/digital-souls-memory/issues/123)）。
