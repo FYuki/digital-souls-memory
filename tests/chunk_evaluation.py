@@ -19,7 +19,7 @@ from digital_souls_memory.evaluation.adapters.real import (
     real_token_counter_factory,
 )
 from digital_souls_memory.evaluation.context import bounded_results
-from digital_souls_memory.evaluation.models import rows, validate_suite
+from digital_souls_memory.evaluation.models import rows, unique, validate_suite
 from digital_souls_memory.evaluation.ports import ObservedSearch
 from digital_souls_memory.evaluation.retrieval import eligible_memories
 from digital_souls_memory.evaluation.scoring import aggregate_run, score_case
@@ -63,6 +63,14 @@ def collapse_hits(
     return result
 
 
+def frozen_tuning_case_ids(raw: bytes) -> set[str]:
+    return unique(rows(json.loads(raw)["cases"]), "id")
+
+
+def validate_frozen_suite(split: str, suite: dict[str, object], tuning_case_ids: set[str]) -> None:
+    validate_suite(suite, tuning_case_ids=tuning_case_ids if split == "acceptance" else set())
+
+
 def main() -> None:
     config = json.loads(Path(sys.argv[1]).read_text())
     output = Path(sys.argv[2])
@@ -88,10 +96,11 @@ def main() -> None:
         "started_at": datetime.now(UTC).isoformat(),
     }
     (output / "frozen.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2))
+    tuning_case_ids = frozen_tuning_case_ids(frozen["tuning"])
     for split, raw in frozen.items():
         suite = json.loads(raw)
         # 既存validator/採点器の版識別子を変更せず、新版は外側manifestで識別する。
-        validate_suite(suite, tuning_case_ids=set())
+        validate_frozen_suite(split, suite, tuning_case_ids)
         protocol = suite["protocol"]
         gold = {g["case_id"]: g for g in suite["gold"]}
         runs: list[dict[str, Any]] = []
