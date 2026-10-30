@@ -182,8 +182,9 @@ def test_projection_expiry_withdraws_a_previously_searchable_document_in_the_sam
         assert response.json()["memories"] == response.json()["source_spans"] == []
 
 
+@pytest.mark.parametrize("text", [TEXT, TEXT * 100], ids=["short", "long"])
 def test_receipt_committed_after_save_transaction_starts_rejects_the_old_snapshot(
-    app_database_url: str, monkeypatch: pytest.MonkeyPatch
+    app_database_url: str, monkeypatch: pytest.MonkeyPatch, text: str
 ) -> None:
     from digital_souls_memory.adapters.postgres_provision import PostgresProvisionStore
     from tests.memory_support import memory
@@ -201,9 +202,9 @@ def test_receipt_committed_after_save_transaction_starts_rejects_the_old_snapsho
             ).is_success
     evidence = PostgresEvidenceStore(app_database_url)
     evidence.add_session(session())
-    evidence.add_turn(turn())
+    evidence.add_turn(turn(text=text))
     with PostgresMemoryStore(app_database_url).transaction("char-b") as tx:
-        tx.add_memory(replace(memory(), subject="char-c", content=TEXT))
+        tx.add_memory(replace(memory(), subject="char-c", content=text))
     provisions = PostgresProvisionStore(app_database_url)
     connection = provisions._connection
     entered, release = Event(), Event()

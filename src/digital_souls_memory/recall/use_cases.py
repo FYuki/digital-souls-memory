@@ -19,10 +19,11 @@ from digital_souls_memory.recall.context import (
     RecallResponse,
     assemble_response,
     serialize_response,
-    window_span,
+    window_candidate,
 )
 from digital_souls_memory.recall.domain import (
     CandidateMaterial,
+    CandidateRef,
     ProvisionSnapshot,
     RecallCandidate,
     RerankDocument,
@@ -193,7 +194,7 @@ class RecallService:
                 if c.document.space == vector.space
                 and (v := self._resolve(c, character_id, now, material_by_id)) is not None
             )
-            scores: list[CandidateScore] = []
+            scores: dict[tuple[CandidateRef, int], CandidateScore] = {}
             for resolved in eligible:
                 c = resolved.candidate
                 memory = c.memory
@@ -210,57 +211,67 @@ class RecallService:
                     self_relevance=memory.identity_links.self_relevance if memory else 1.0,
                     trust=trust_score(memory.epistemics) if memory else 1.0,
                 )
-                scores.append(
-                    CandidateScore(
-                        ref=c.ref,
-                        **terms,
-                        composite=composite_score(weights=self.settings.weights, **terms),
-                        relevance=None,
-                    )
+                scores[c.document.key] = CandidateScore(
+                    ref=c.ref,
+                    **terms,
+                    composite=composite_score(weights=self.settings.weights, **terms),
+                    relevance=None,
                 )
-            ranked_scores = sorted(scores, key=lambda v: (-v.composite, v.ref.sort_key))[:20]
-            by_ref = {v.candidate.ref: v for v in eligible}
-            relevance: dict[object, float] = {}
+            ranked_scores = sorted(
+                scores, key=lambda k: (-scores[k].composite, k[0].sort_key, k[1])
+            )[:20]
+            by_key = {v.candidate.document.key: v for v in eligible}
+            relevance: dict[tuple[CandidateRef, int], float] = {}
             if ranked_scores:
                 output = self.reranker.rerank(
                     RerankInput(
                         query=model_query,
                         documents=tuple(
                             RerankDocument(
-                                ref=s.ref,
+                                ref=key[0],
+                                chunk_index=key[1],
                                 input=self._input(
-                                    (by_ref[s.ref].candidate.search_text,),
-                                    by_ref[s.ref].candidate.labels,
+                                    (by_key[key].candidate.search_text,),
+                                    by_key[key].candidate.labels,
                                 ),
                             )
-                            for s in ranked_scores
+                            for key in ranked_scores
                         ),
                     )
                 )
                 if (
                     len(output) != len(ranked_scores)
-                    or len({s.ref for s in output}) != len(output)
-                    or {s.ref for s in output} != {s.ref for s in ranked_scores}
+                    or len({(s.ref, s.chunk_index) for s in output}) != len(output)
+                    or {(s.ref, s.chunk_index) for s in output} != set(ranked_scores)
                     or any(not isfinite(s.relevance) for s in output)
                 ):
                     raise ProvisionUnavailable()
-                relevance = {s.ref: s.relevance for s in output}
-            scores = [replace(s, relevance=relevance.get(s.ref)) for s in scores]
+                relevance = {(s.ref, s.chunk_index): s.relevance for s in output}
+            scores = {k: replace(s, relevance=relevance.get(k)) for k, s in scores.items()}
+            representatives: dict[CandidateRef, ResolvedCandidate] = {}
+            recorded_scores: dict[CandidateRef, CandidateScore] = {}
+            for key in sorted(
+                scores,
+                key=lambda k: (
+                    scores[k].relevance is None,
+                    -relevance[k] if k in relevance else -scores[k].composite,
+                    k[0].sort_key,
+                    k[1],
+                ),
+            ):
+                representatives.setdefault(key[0], by_key[key])
+                recorded_scores.setdefault(key[0], scores[key])
             ranked = tuple(
-                by_ref[s.ref]
-                for s in sorted(
-                    (
-                        s
-                        for s in scores
-                        if s.relevance is not None
-                        and s.relevance >= self.settings.relevance_threshold
-                    ),
-                    key=lambda s: (-float(s.relevance or 0), s.ref.sort_key),
-                )
+                value
+                for value in representatives.values()
+                if value.candidate.document.key in relevance
+                and relevance[value.candidate.document.key] >= self.settings.relevance_threshold
             )
             identifier = self.id_factory()
             accepted: tuple[ResolvedCandidate, ...] = ()
             all_labels = labels + tuple(label for v in eligible for label in v.candidate.labels)
+
+            token_counts: dict[ModelInput, int] = {}
 
             def response(values: tuple[ResolvedCandidate, ...]) -> RecallResponse:
                 return assemble_response(
@@ -268,12 +279,19 @@ class RecallService:
                 )
 
             def fits(values: tuple[ResolvedCandidate, ...]) -> bool:
-                count = self.counter.count(
-                    self._input((serialize_response(response(values)),), all_labels)
-                )
-                if type(count) is not int or count < 0:
-                    raise ProvisionUnavailable()
+                value = self._input((serialize_response(response(values)),), all_labels)
+                count = token_counts.get(value)
+                if count is None:
+                    count = self.counter.count(value)
+                    if type(count) is not int or count < 0:
+                        raise ProvisionUnavailable()
+                    token_counts[value] = count
                 return count <= 1500
+
+            def window_group(
+                group: tuple[ResolvedCandidate, ...], width: int
+            ) -> tuple[ResolvedCandidate, ...]:
+                return tuple(window_candidate(v, query=search_text, width=width) for v in group)
 
             if not fits(()):
                 raise ProvisionUnavailable()
@@ -288,29 +306,29 @@ class RecallService:
                         now=now,
                     )
                     material_by_id.update((v.turn.turn_id, v) for v in anchors.materials)
-                    group += tuple(
-                        v
-                        for c in anchors.candidates
-                        if c.document.space == vector.space
-                        and (v := self._resolve(c, character_id, now, material_by_id)) is not None
-                    )
+                    related: dict[CandidateRef, ResolvedCandidate] = {}
+                    for c in sorted(anchors.candidates, key=lambda c: c.document.chunk_index):
+                        if c.document.space != vector.space:
+                            continue
+                        related_value = representatives.get(c.ref)
+                        if related_value is None:
+                            related_value = self._resolve(c, character_id, now, material_by_id)
+                        if related_value is not None:
+                            related.setdefault(c.ref, related_value)
+                    group += tuple(related.values())
                 trial = accepted + group
                 if fits(trial):
                     accepted = trial
                     continue
                 width = max((len(s.text) for v in group for s in v.spans), default=0) // 2
+                minimum = window_group(group, 1) if width > 0 else ()
                 while width > 0:
-                    smaller = tuple(
-                        replace(
-                            v,
-                            spans=tuple(
-                                window_span(s, query=search_text, width=width) for s in v.spans
-                            ),
-                        )
-                        for v in group
-                    )
+                    smaller = window_group(group, width)
                     if fits(accepted + smaller):
                         accepted += smaller
+                        break
+                    # Smaller widths cannot change any span once the whole group is minimal.
+                    if smaller == minimum:
                         break
                     width //= 2
             result = response(accepted)
@@ -345,7 +363,9 @@ class RecallService:
                 motivation_ids=(),
                 temperament_version=selection.temperament_version,
                 personality_version=selection.personality_version,
-                scores=tuple(scores),
+                scores=tuple(
+                    recorded_scores[ref] for ref in dict.fromkeys(v.candidate.ref for v in eligible)
+                ),
                 duration_ms=(self.monotonic() - started) * 1000,
                 provided_at=now,
                 provided_refs=tuple(

@@ -62,7 +62,7 @@ def test_manifest_accepts_frozen_approved_conditions() -> None:
         ("data_counts", [100, 100]),
         ("input_length", 99),
         ("repetitions", 99),
-        ("concurrency", 2),
+        ("concurrency", 0),
         ("aggregation", "mean"),
     ],
 )

@@ -3,6 +3,9 @@
 import json
 import os
 import sys
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import ExitStack
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -26,6 +29,14 @@ from tests.st.latency import LatencySample, summarize_latency
 from tests.st.support import add_session, add_turn, eventually, new_client, register
 
 
+class ColdCondition(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    restart_memory_service: Literal[True]
+    restart_postgres: Literal[False]
+    restart_model_servers: Literal[False]
+    flush_os_cache: Literal[False]
+
+
 class Manifest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     revision: str = Field(pattern=r"^[0-9a-f]{40}$")
@@ -47,8 +58,8 @@ class Manifest(BaseModel):
     relevance_threshold: Literal[-2]
     repetitions: int = Field(ge=100, strict=True)
     warm_up: int = Field(ge=0, strict=True)
-    concurrency: Literal[1]
-    cold_condition: str = Field(min_length=1)
+    concurrency: int = Field(default=1, ge=1, strict=True)
+    cold_condition: str | ColdCondition
     period: str = Field(min_length=1)
     aggregation: Literal["nearest-rank"]
 
@@ -62,6 +73,8 @@ class Manifest(BaseModel):
             raise ValueError("Dataset sizes must be unique and increasing")
         if self.input_length != len(self.input_text):
             raise ValueError("Input length does not match the frozen text")
+        if isinstance(self.cold_condition, str) and not self.cold_condition:
+            raise ValueError("A nonempty cold condition is required")
         return self
 
 
@@ -86,7 +99,48 @@ def measure(
     ), None
 
 
-def run(manifest: Manifest, output: Path) -> bool:
+def check_deployment(manifest: Manifest, *, wait_for_health: bool) -> None:
+    with httpx.Client(
+        base_url=os.environ["MEMORY_CORE_ST_URL"], timeout=30, trust_env=False
+    ) as preflight:
+        if wait_for_health:
+
+            def healthy() -> bool:
+                try:
+                    return preflight.get("/health").is_success
+                except httpx.TransportError:
+                    return False
+
+            eventually(healthy, timeout=180)
+        config_response = preflight.get("/_st/config")
+        config_response.raise_for_status()
+        if config_response.json() != {
+            "mode": "performance",
+            "real_models": True,
+            "embedding": manifest.embedding,
+            "reranker": manifest.reranker,
+        }:
+            raise ValueError("Real-model ST deployment required")
+
+
+def parallel_trials(
+    manifest: Manifest, character: str, request: RecallRequest
+) -> list[tuple[LatencySample, str | None]]:
+    def worker(index: int) -> list[tuple[LatencySample, str | None]]:
+        with new_client() as client:
+            return [
+                measure(client, character, request)
+                for _ in range(index, manifest.repetitions, manifest.concurrency)
+            ]
+
+    with ThreadPoolExecutor(max_workers=manifest.concurrency) as executor:
+        batches = executor.map(worker, range(min(manifest.concurrency, manifest.repetitions)))
+        return [trial for batch in batches for trial in batch]
+
+
+def run(
+    manifest: Manifest, output: Path, *, restart_memory: Callable[[], None] | None = None
+) -> bool:
     results: dict[str, object] = {
         "manifest": manifest.model_dump(mode="json"),
         "started_at": datetime.now(UTC).isoformat(),
@@ -100,22 +154,12 @@ def run(manifest: Manifest, output: Path) -> bool:
     results["runs"] = runs
     success = True
     try:
-        with new_client() as client:
-            with httpx.Client(
-                base_url=os.environ["MEMORY_CORE_ST_URL"],
-                timeout=30,
-                trust_env=False,
-            ) as preflight:
-                config_response = preflight.get("/_st/config")
-                config_response.raise_for_status()
-                configuration = config_response.json()
-                if configuration != {
-                    "mode": "performance",
-                    "real_models": True,
-                    "embedding": manifest.embedding,
-                    "reranker": manifest.reranker,
-                }:
-                    raise ValueError("Real-model ST deployment required")
+        cold = isinstance(manifest.cold_condition, ColdCondition)
+        if cold and restart_memory is None:
+            raise ValueError("Cold measurement requires a Memory restart operation")
+        with ExitStack() as clients:
+            client = clients.enter_context(new_client())
+            check_deployment(manifest, wait_for_health=False)
             character = "perf-" + uuid4().hex
             register(client, character)
             session = add_session(client, delivery=False, started_at=datetime.now(UTC))
@@ -134,7 +178,8 @@ def run(manifest: Manifest, output: Path) -> bool:
                 def indexed(expected: int = count) -> bool:
                     with psycopg.connect(os.environ["MEMORY_CORE_ST_AUDIT_URL"]) as conn:
                         return conn.execute(
-                            "SELECT count(*) FROM recall_documents WHERE ready AND owner_id=%s",
+                            "SELECT count(*) FROM recall_documents "
+                            "WHERE ready AND owner_id=%s AND chunk_index=0",
                             (character,),
                         ).fetchone() == (expected,)
 
@@ -147,22 +192,52 @@ def run(manifest: Manifest, output: Path) -> bool:
                     sensitivity="synthetic-sensitive",
                     classifier_version="synthetic-v1",
                 )
+                cold_trial = None
+                if cold:
+                    clients.close()
+                    assert restart_memory is not None
+                    restart_memory()
+                    check_deployment(manifest, wait_for_health=True)
+                    client = clients.enter_context(new_client())
+                    cold_trial = measure(client, character, request)
                 warm = [measure(client, character, request) for _ in range(manifest.warm_up)]
-                trials = [measure(client, character, request) for _ in range(manifest.repetitions)]
+                started = perf_counter()
+                trials = (
+                    [measure(client, character, request) for _ in range(manifest.repetitions)]
+                    if manifest.concurrency == 1
+                    else parallel_trials(manifest, character, request)
+                )
+                elapsed = perf_counter() - started
                 summary = summarize_latency(
                     [s for s, _ in trials],
                     expected_count=manifest.repetitions,
                     real_models=True,
                 )
                 success = success and summary.required_pass and all(s.success for s, _ in warm)
-                runs.append(
-                    {
-                        "data_count": count,
-                        "summary": asdict(summary),
-                        "warm_up": [asdict(s) | {"error": e} for s, e in warm],
-                        "trials": [asdict(s) | {"error": e} for s, e in trials],
+                if cold_trial is not None:
+                    success = success and cold_trial[0].success
+                measurement: dict[str, object] = {
+                    "data_count": count,
+                    "summary": asdict(summary),
+                    "warm_up": [asdict(s) | {"error": e} for s, e in warm],
+                    "trials": [asdict(s) | {"error": e} for s, e in trials],
+                    "load": {
+                        "failure_rate": sum(not s.success for s, _ in trials) / len(trials),
+                        "elapsed_seconds": elapsed,
+                        "throughput_rps": len(trials) / elapsed if elapsed > 0 else None,
+                    },
+                }
+                if cold_trial is not None:
+                    sample, error = cold_trial
+                    measurement["cold_start"] = {
+                        "sample": asdict(sample) | {"error": error},
+                        "delta_p50_ms": (
+                            sample.elapsed_ms - summary.p50_ms
+                            if summary.p50_ms is not None
+                            else None
+                        ),
                     }
-                )
+                runs.append(measurement)
                 output.write_text(
                     json.dumps(results, ensure_ascii=False, indent=2, allow_nan=False)
                 )

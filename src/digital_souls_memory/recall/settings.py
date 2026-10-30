@@ -39,7 +39,11 @@ class RecallSettings:
     weights: Weights = field(default_factory=Weights)
     relevance_threshold: float = -2
     candidate_limit: int = 200
+    chunk_length: int = 512
+    chunk_overlap: int = 64
 
     def __post_init__(self) -> None:
         if not isfinite(self.relevance_threshold) or self.candidate_limit < 20:
             raise ValueError("Invalid recall settings")
+        if self.chunk_length <= 0 or not 0 <= self.chunk_overlap < self.chunk_length:
+            raise ValueError("Invalid chunk settings")

@@ -154,36 +154,42 @@ class PostgresProvisionStore:
                     raise ProvisionUnavailable()
                 sources.append(actual)
             documents = {}
-            ordered = sorted(snapshot.documents, key=lambda v: v.ref.sort_key)
+            ordered = sorted(snapshot.documents, key=lambda v: (v.ref.sort_key, v.chunk_index))
             keys = [
                 {
                     "owner_id": d.ref.owner_id,
                     "kind": "memory" if d.ref.memory_id is not None else "anchor",
                     "identifier": d.ref.memory_id or d.ref.anchor_id,
+                    "chunk_index": d.chunk_index,
                     "position": i,
                 }
                 for i, d in enumerate(ordered)
             ]
             rows = connection.execute(
                 "SELECT d.* FROM jsonb_to_recordset(%s) AS k(owner_id text,kind text,"
-                "identifier text,position int) JOIN recall_documents d "
-                "ON (d.owner_id,d.kind,d.identifier)=(k.owner_id,k.kind,k.identifier) "
+                "identifier text,chunk_index int,position int) JOIN recall_documents d "
+                "ON (d.owner_id,d.kind,d.identifier,d.chunk_index)="
+                "(k.owner_id,k.kind,k.identifier,k.chunk_index) "
                 "ORDER BY k.position FOR UPDATE OF d",
                 (Jsonb(keys),),
             ).fetchall()
-            by_key = {(r["owner_id"], r["kind"], r["identifier"]): r for r in rows}
+            by_key = {
+                (r["owner_id"], r["kind"], r["identifier"], r["chunk_index"]): r for r in rows
+            }
             for document in ordered:
                 row = by_key.get(
                     (
                         document.ref.owner_id,
                         "memory" if document.ref.memory_id is not None else "anchor",
                         document.ref.memory_id or document.ref.anchor_id,
+                        document.chunk_index,
                     )
                 )
                 if row is None or not row["ready"]:
                     raise ProvisionUnavailable()
-                documents[document.ref] = DocumentStamp(
+                documents[document.key] = DocumentStamp(
                     ref=document.ref,
+                    chunk_index=row["chunk_index"],
                     version=row["version"],
                     content_digest=row["content_digest"],
                     space=VectorSpace(
@@ -198,7 +204,7 @@ class PostgresProvisionStore:
                 session_id=selection["session_id"],
                 temperament_version=selection["temperament_version"],
                 personality_version=selection["personality_version"],
-                documents=tuple(documents[v.ref] for v in snapshot.documents),
+                documents=tuple(documents[v.key] for v in snapshot.documents),
                 sources=tuple(sources),
                 profile_version=snapshot.profile_version,
                 core_identity_version=snapshot.core_identity_version,

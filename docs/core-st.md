@@ -90,6 +90,85 @@ server duration_ms は性能判定に使わない。
 performance.json の全試行、p50/p95、判定、環境 manifest、日時、例外の型を証跡に残す。
 データ件数・入力分布を超える大規模運用保証は行わない。
 
+## 実モデル IT2
+
+実行は承認済み GPU 環境を持つ親担当が行う。合成日本語だけを使い、
+実 embedding / reranker / tokenizer と使い捨て PostgreSQL を検証する。
+モデルサーバを起動し、起動した重みの識別子・digest と承認済み定数を照合する。
+設定用モデル manifest は次のコマンドで作り、その照合後に指定する。
+
+```bash
+uv run --no-sync python -c 'import json; from digital_souls_memory.recall.settings import EMBEDDING_MODEL, RERANKER_MODEL; print(json.dumps({"embedding": EMBEDDING_MODEL, "reranker": RERANKER_MODEL}, indent=2))' > /tmp/memory-it2-models.json
+export MEMORY_IT2_MODEL_MANIFEST=/tmp/memory-it2-models.json
+export MEMORY_EMBEDDING_ENDPOINT=http://127.0.0.1:18081
+export MEMORY_RERANKER_ENDPOINT=http://127.0.0.1:18082
+bash tools/with-test-postgres.sh uv run --no-sync pytest -m it2 --force-enable-socket -q tests/it2 tests/postgres/test_recall_it2.py
+```
+
+manifest / endpoint の不足・モデル情報の不一致・接続失敗はエラーとし、SKIP や
+fake へ変換しない。collection は設定・接続なしで可能。
+通常の UT / IT1 / postgres CI には IT2 を含めない。
+embedding は1024次元・単位ノルム・決定性・意味順序を検証する。
+reranker は raw relevance の順序と -2 未満の除外を観測する。
+DB 結合では関連する2件、原文区間、提供記録、最終 HTTP JSON 全体の
+1,500トークン上限を検証する。厳密な -2 / -2.001 境界は既存 IT1 で保持する。
+
+## cold・並列負荷・長文の実行
+
+各条件について別の evidence ディレクトリと固定 manifest.json を用意し、
+上記の共通環境欄を埋める。再起動対象を指定する cold は次のオブジェクトを使う。
+
+```json
+{
+  "restart_memory_service": true,
+  "restart_postgres": false,
+  "restart_model_servers": false,
+  "flush_os_cache": false
+}
+```
+
+これを manifest の cold_condition に設定し、次を実行する。
+ホストにも Python 3.12.3 / uv 0.8.22 と frozen 環境が必要。
+
+```bash
+uv sync --frozen
+MEMORY_EMBEDDING_ENDPOINT=http://127.0.0.1:18081 MEMORY_RERANKER_ENDPOINT=http://127.0.0.1:18082 MEMORY_CORE_ST_EVIDENCE_DIR=/absolute/cold-evidence bash tools/with-core-st.sh performance-cold
+```
+
+shell が作った専用 Compose project の memory だけをホスト制御から再起動する。
+DB、モデルサーバ、OS キャッシュは保持する。各データ件数で投入・索引完了後に
+HTTP client を閉じ、再起動、health / config 確認、新 client による最初の想起、
+warm-up、warm 本計測の順に実行する。readiness では想起を呼ばない。
+cold_start.sample と cold_start.delta_p50_ms に初回遅延と warm p50 との差を保存し、
+cold 標本は warm 分位点に混ぜない。再起動・readiness の失敗は FAIL と例外型を残す。
+host-control.json に実際のホスト Python・uv・コマンド・project を記録する。
+旧文字列 cold_condition は記述として保持し、JSONを含む文字列も再解釈しない。
+構造化条件は再起動操作を渡さない通常の performance 入口では拒否する。
+
+並列負荷は concurrency を正の整数（例: 1、4、8。省略時1）にして実行する。
+repetitions は worker ごとではなく総試行数。各 worker が client を所有し、
+全標本をまとめて nearest-rank の p50 / p95 を求める。
+
+```bash
+MEMORY_EMBEDDING_ENDPOINT=http://127.0.0.1:18081 MEMORY_RERANKER_ENDPOINT=http://127.0.0.1:18082 MEMORY_CORE_ST_EVIDENCE_DIR=/absolute/concurrency4-evidence bash tools/with-core-st.sh performance
+```
+
+load.failure_rate は失敗数 / 総試行数、load.throughput_rps は完了試行数（失敗を含む）/
+本計測区間の実秒数。load.elapsed_seconds は投入・再起動・warm-upを除く。
+全試行を trials に保持し、既存 summary のキー・判定を維持する。
+時間を観測できない場合 throughput は null であり、性能成功の証拠にしない。
+
+長文には docs/reports/core-st-performance-long-manifest.template.json の固定日本語全文を使う。
+空欄を埋めて /absolute/long-evidence/manifest.json に保存し、次を実行する。
+
+```bash
+MEMORY_EMBEDDING_ENDPOINT=http://127.0.0.1:18081 MEMORY_RERANKER_ENDPOINT=http://127.0.0.1:18082 MEMORY_CORE_ST_EVIDENCE_DIR=/absolute/long-evidence bash tools/with-core-st.sh performance
+```
+
+input_length は全文の文字数と一致させる。投入本文・想起 query は切り詰めない。
+短文・100/1000件・逐次 warm の旧 manifest と二引数 run 呼出しも保持する。
+実モデル IT2・cold・並列・長文の実測結果は親が取得し、fake 試験を実測に読み替えない。
+
 ## 品質を維持するモデルserver設定の比較
 
 基準は [2026-10-22の診断](reports/2026-10-22-core-st-performance.md) と同じ
