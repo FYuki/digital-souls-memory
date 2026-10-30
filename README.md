@@ -61,6 +61,8 @@ Voice API は承認済み代表発話・Turn を参照する逐語アンカー�
 docker compose up -d --wait postgres
 uv run --no-sync alembic upgrade head
 uv run --no-sync alembic current
+# 0015 以降へ更新した直後は、索引の再構築が終わるまで既存の記憶が想起で返らない。
+# 完了の確認方法は docs/recall-api.md の「永続化と競合」を参照する。
 # 開発 DB を停止する（volume は保持）
 docker compose down
 ```
